@@ -1,0 +1,68 @@
+/**************************************************************************/
+/*  vrge_probe.h                                                          */
+/*                                                                        */
+/*  Прибор: паспорт железа. Отвечает НА ОДИН ВОПРОС ЧИСЛОМ или именем,    */
+/*  а не «работает ли». См. PRACTICES.md §1.                              */
+/*                                                                        */
+/*  Принципы, заложенные в API:                                           */
+/*   - §1.6 прибор не восстанавливает предмет измерения: версия Vulkan и  */
+/*     имя устройства СПРАШИВАЮТСЯ у RenderingDevice, а список расширений */
+/*     — у того самого VkPhysicalDevice, который использует движок, а не  */
+/*     у своего временного инстанса.                                      */
+/*   - §3.2 пустой знаменатель — не отказ: запросы расширений возвращают  */
+/*     троичное значение, где -1 означает «спросить было негде», а не     */
+/*     «нет». Это РАЗНЫЕ состояния отчёта.                                */
+/**************************************************************************/
+
+#ifndef VRGE_PROBE_H
+#define VRGE_PROBE_H
+
+#include "core/object/object.h"
+#include "core/variant/dictionary.h"
+#include "core/variant/typed_array.h"
+
+class VRGEProbe : public Object {
+	GDCLASS(VRGEProbe, Object);
+
+	static VRGEProbe *singleton;
+
+protected:
+	static void _bind_methods();
+
+public:
+	// Троичный результат опроса. НЕ сводить к bool: «нет расширения» и
+	// «некого было спросить» требуют разных строк в отчёте (PRACTICES §3.2).
+	enum Availability {
+		AVAILABILITY_ABSENT = 0,
+		AVAILABILITY_PRESENT = 1,
+		AVAILABILITY_UNKNOWN = -1,
+	};
+
+	static VRGEProbe *get_singleton();
+
+	// --- Vulkan: спрашиваем у движка, не пересчитываем ---
+	String get_vulkan_api_version() const;
+	String get_device_name() const;
+	String get_vendor_name() const;
+
+	// Полный список расширений физического устройства. Пустой массив при
+	// невозможности опроса неотличим от «расширений нет», поэтому для
+	// решений использовать has_vulkan_device_extension(), а этот метод —
+	// для приложения к отчёту.
+	PackedStringArray list_vulkan_device_extensions() const;
+	int has_vulkan_device_extension(const String &p_name) const;
+
+	// --- OpenXR ---
+	int has_openxr_extension(const String &p_name) const;
+	bool is_openxr_running() const;
+
+	// Сводка для записи в docs/hardware-profile.md.
+	Dictionary get_summary() const;
+
+	VRGEProbe();
+	~VRGEProbe();
+};
+
+VARIANT_ENUM_CAST(VRGEProbe::Availability);
+
+#endif // VRGE_PROBE_H

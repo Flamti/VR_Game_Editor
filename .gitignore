@@ -1,3 +1,4 @@
+# ─── Шаблон GitHub для Godot (из origin/main, сохранён) ───
 # Godot 4+ specific ignores
 .godot/
 .nomedia
@@ -15,3 +16,38 @@ export_credentials.cfg
 .mono/
 data_*/
 mono_crash.*.json
+
+# ─── Форк движка и наша сборка ───
+# Сборка Godot
+godot/bin/
+godot/.sconsign.dblite
+godot/platform/android/java/lib/build/
+godot/platform/android/java/app/build/
+*.os
+*.obj
+*.o
+*.so
+*.a
+*.pyc
+__pycache__/
+
+# Godot-проекты
+projects/*/.godot/
+projects/*/android/
+export_presets.cfg
+
+# Артефакты
+*.apk
+*.aab
+build/
+out/
+
+# Инструменты и локальное
+.env
+local.properties
+tools/local.env
+
+# Редакторы
+.vscode/
+.idea/
+*.swp

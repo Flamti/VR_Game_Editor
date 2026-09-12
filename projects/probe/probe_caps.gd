@@ -81,7 +81,8 @@ var all_extensions: PackedStringArray = PackedStringArray()
 ##   семейство тайлов 1, рантайм активен 1, список непуст 1
 func expected_checks(probe) -> int:
 	_collect_xr_names(probe)
-	return (1 + 1 + 2 + 1 + 1 + 1 + 1
+	# +1 — лимит composition layers (свойства системы OpenXR).
+	return (1 + 1 + 2 + 1 + 1 + 1 + 1 + 1
 			+ VULKAN_REQUIRED.size()
 			+ _xr_checks.size()
 			+ _engine_feature_count(probe))
@@ -124,6 +125,7 @@ func run(probe, r: ProbeReport) -> void:
 	_family(probe, r, "тайловый набор", VULKAN_TILE_FAMILY)
 	_openxr(probe, r)
 	_engine_features(probe, r)
+	_system_properties(probe, r)
 	_limits(r)
 
 
@@ -239,6 +241,29 @@ func _engine_features(probe, r: ProbeReport) -> void:
 		else:
 			# Не критично: отсутствие — факт, а не отказ проекта.
 			r.pass_("движок: %s — не включено (не критично)" % name)
+
+
+## Свойства системы OpenXR. Главное — maxLayerCount: от него зависит, возможен
+## ли отдельный composition layer на каждую ячейку шар-меню (ADR-0003).
+func _system_properties(probe, r: ProbeReport) -> void:
+	if not probe.has_method("get_openxr_system_properties"):
+		r.unkn("свойства системы: модуль собран без get_openxr_system_properties()")
+		return
+	var d: Dictionary = probe.get_openxr_system_properties()
+	if d.is_empty():
+		# «Спросить не удалось» ≠ «лимитов нет» (PRACTICES §3.2).
+		r.unkn("свойства системы: опрос не удался (рантайм не поднят или xrGetSystemProperties отказал)")
+		return
+	r.note("")
+	r.note("система OpenXR: %s (vendor 0x%x)" % [d.get("system_name", "?"), d.get("vendor_id", 0)])
+	r.note("    swapchain макс: %dx%d" % [d.get("max_swapchain_width", 0), d.get("max_swapchain_height", 0)])
+	var layers: int = d.get("max_layer_count", 0)
+	# Это не отказ и не успех сам по себе — это ЧИСЛО, от которого зависит
+	# архитектура шар-меню. Проверка фиксирует, что оно получено и осмысленно.
+	if layers > 0:
+		r.pass_("лимит composition layers: **%d** — определяет, возможен ли слой на ячейку (ADR-0003)" % layers)
+	else:
+		r.fail("лимит composition layers: рантайм вернул %d — либо слои не поддерживаются, либо опрос соврал" % layers)
 
 
 ## Лимиты — контекст, а не проверки: у них нет «правильного» значения.

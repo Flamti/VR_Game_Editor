@@ -154,6 +154,55 @@ int VRGEProbe::has_openxr_extension(const String &p_name) const {
 #endif
 }
 
+Dictionary VRGEProbe::get_openxr_system_properties() const {
+	Dictionary d;
+#ifdef MODULE_OPENXR_ENABLED
+	OpenXRAPI *xr = OpenXRAPI::get_singleton();
+	if (xr == nullptr) {
+		return d;
+	}
+	XrInstance instance = xr->get_instance();
+	if (instance == XR_NULL_HANDLE) {
+		return d;
+	}
+
+	// Функция берётся через get_instance_proc_addr(), а не вызывается напрямую.
+	//
+	// Прямой вызов не слинковался: `undefined symbol: xrGetSystemProperties`.
+	// Сам Godot её зовёт напрямую (openxr_api.cpp:767), но загрузчик OpenXR на
+	// Android приходит из плагина godot_openxr_vendors в рантайме, и символ
+	// наружу из модуля openxr не экспортируется.
+	//
+	// get_instance_proc_addr() — штатный путь, публичный (openxr_api.h:60), и
+	// тот же, которым Godot разрешает функции расширений. Снова тот же урок:
+	// спрашивать по санкционированному пути, а не тянуться напрямую.
+	PFN_xrGetSystemProperties func = nullptr;
+	XrResult result = xr->get_instance_proc_addr("xrGetSystemProperties", (PFN_xrVoidFunction *)&func);
+	if (XR_FAILED(result) || func == nullptr) {
+		return d;
+	}
+
+	XrSystemProperties props = {};
+	props.type = XR_TYPE_SYSTEM_PROPERTIES;
+
+	result = func(instance, xr->get_system_id(), &props);
+	if (XR_FAILED(result)) {
+		// Пустой словарь — это «спросить не удалось», а не «лимитов нет»
+		// (PRACTICES §3.2). Различие разбирает вызывающий.
+		return d;
+	}
+
+	d["system_name"] = String::utf8(props.systemName);
+	d["vendor_id"] = (int)props.vendorId;
+	d["max_layer_count"] = (int)props.graphicsProperties.maxLayerCount;
+	d["max_swapchain_width"] = (int)props.graphicsProperties.maxSwapchainImageWidth;
+	d["max_swapchain_height"] = (int)props.graphicsProperties.maxSwapchainImageHeight;
+	d["orientation_tracking"] = (bool)props.trackingProperties.orientationTracking;
+	d["position_tracking"] = (bool)props.trackingProperties.positionTracking;
+#endif
+	return d;
+}
+
 Dictionary VRGEProbe::get_engine_features() const {
 	Dictionary d;
 	RenderingDevice *rd = RenderingDevice::get_singleton();
@@ -214,6 +263,7 @@ void VRGEProbe::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("has_vulkan_device_extension", "name"), &VRGEProbe::has_vulkan_device_extension);
 	ClassDB::bind_method(D_METHOD("has_openxr_extension", "name"), &VRGEProbe::has_openxr_extension);
 	ClassDB::bind_method(D_METHOD("is_openxr_running"), &VRGEProbe::is_openxr_running);
+	ClassDB::bind_method(D_METHOD("get_openxr_system_properties"), &VRGEProbe::get_openxr_system_properties);
 	ClassDB::bind_method(D_METHOD("get_engine_features"), &VRGEProbe::get_engine_features);
 	ClassDB::bind_method(D_METHOD("get_summary"), &VRGEProbe::get_summary);
 

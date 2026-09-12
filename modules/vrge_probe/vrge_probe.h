@@ -72,6 +72,19 @@ public:
 	// проверяет компилятор.
 	Dictionary get_engine_features() const;
 
+	// --- Свойства системы OpenXR ---
+	//
+	// Главное здесь — maxLayerCount: лимит числа composition layers, которые
+	// рантайм примет за кадр. От него зависит, возможен ли отдельный слой на
+	// каждую ячейку шар-меню или шар обязан быть ОДНИМ слоем с нарисованной
+	// текстурой. Это разные подходы к вёрстке, хит-тесту и обновлению.
+	//
+	// Godot читает эти свойства в graphics_properties, но наружу не отдаёт:
+	// поле приватно (openxr_api.h:153). Зато get_instance() и get_system_id()
+	// публичны, поэтому модуль спрашивает рантайм напрямую тем же вызовом,
+	// что и сам движок (PRACTICES §1.6 — спрашивать, а не восстанавливать).
+	Dictionary get_openxr_system_properties() const;
+
 	// Сводка для записи в docs/hardware-profile.md.
 	Dictionary get_summary() const;
 

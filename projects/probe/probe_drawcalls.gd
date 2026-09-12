@@ -3,6 +3,7 @@ class_name ProbeDrawCalls
 
 const ProbeReport := preload("res://probe_report.gd")
 const ProbeStats := preload("res://probe_stats.gd")
+const ProbeBudget := preload("res://probe_budget.gd")
 
 ## Фазы C–D: цена разогрева PSO и стоимость draw call.
 ##
@@ -60,18 +61,6 @@ func setup(host: Node) -> void:
 	host.add_child(_container)
 	_viewport_rid = host.get_viewport().get_viewport_rid()
 	RenderingServer.viewport_set_measure_render_time(_viewport_rid, true)
-
-
-func _refresh_rate() -> float:
-	var iface := XRServer.find_interface("OpenXR")
-	if iface != null and iface.has_method("get_display_refresh_rate"):
-		return iface.get_display_refresh_rate()
-	return 0.0
-
-
-func _budget_ms() -> float:
-	var hz := _refresh_rate()
-	return (1000.0 / hz) if hz > 1.0 else NAN
 
 
 func _clear() -> void:
@@ -141,8 +130,8 @@ func _measure() -> Dictionary:
 
 
 func run(r: ProbeReport) -> void:
-	_refresh_at_start = _refresh_rate()
-	var budget := _budget_ms()
+	_refresh_at_start = ProbeBudget.current_hz()
+	var budget := ProbeBudget.current_ms()
 	r.note("")
 	r.note("--- C–D. Стоимость отрисовки ---")
 	r.note("частота обновления: %.1f Гц, кадровый бюджет: %.2f мс" % [_refresh_at_start, budget])
@@ -176,8 +165,17 @@ func _sweep(r: ProbeReport, label: String, out: Dictionary, spawn: Callable, bud
 		r.note("            %sGPU %s" % [" ".repeat(14), gpu.brief()])
 		# Свип идёт до превышения бюджета — граница определяется сама,
 		# без заранее назначенного порога.
-		if not is_nan(budget) and cpu.median() > budget:
-			r.note("    бюджет %.2f мс превышен на N=%d — свип остановлен" % [budget, n])
+		#
+		# Останов по СВЯЗЫВАЮЩЕМУ ограничению, а не по CPU. Первая версия
+		# смотрела только на cpu.median(), и при GPU-связанной нагрузке свип
+		# не останавливался НИКОГДА: на 1600 объектах GPU 10.5 мс против CPU
+		# 1.77, и «граница» молча уезжала за бюджет. С бюджетом 8.33 мс на
+		# 120 Гц (ADR-0006) это перестаёт быть безобидным. Четвёртый случай
+		# той же CPU-центричности — см. CLAUDE.md, архитектурное правило 2.
+		var worst := maxf(cpu.median(), gpu.median())
+		if not is_nan(budget) and worst > budget:
+			r.note("    бюджет %.2f мс превышен на N=%d по %s (%.3f мс) — свип остановлен" % [
+					budget, n, "GPU" if gpu.median() >= cpu.median() else "CPU", worst])
 			break
 	_clear()
 	await _host.get_tree().process_frame
@@ -230,14 +228,24 @@ func _check_zero_point(r: ProbeReport, budget: float) -> void:
 	if not unbatched.has(0):
 		r.unkn("нулевой контроль: точка N=0 не измерялась")
 		return
-	var st: ProbeStats = unbatched[0]["cpu"]
-	var z := st.median()
+	# По СВЯЗЫВАЮЩЕМУ ограничению, а не по CPU (CLAUDE.md, правило 2). Первая
+	# версия смотрела только CPU, и на 120 Гц это стало неверным ответом:
+	# пустая сцена даёт CPU 0.109 мс — «запас есть», — тогда как GPU у неё
+	# 3.130 мс из бюджета 8.33, то есть 38% съедено до единого нашего объекта.
+	var cpu_st: ProbeStats = unbatched[0]["cpu"]
+	var gpu_st: ProbeStats = unbatched[0]["gpu"]
+	var z_cpu := cpu_st.median()
+	var z_gpu := gpu_st.median()
+	var z := maxf(z_cpu, z_gpu)
+	var binding := "GPU" if z_gpu >= z_cpu else "CPU"
 	if is_nan(budget):
 		r.unkn("нулевой контроль: бюджет неизвестен (частота не получена), сравнивать не с чем")
 	elif z < budget * 0.5:
-		r.pass_("нулевой контроль: пустая сцена %.3f мс — меньше половины бюджета, запас есть" % z)
+		r.pass_("нулевой контроль: пустая сцена CPU %.3f / GPU %.3f мс, связывает %s — %.0f%% бюджета %.2f мс, запас есть" % [
+				z_cpu, z_gpu, binding, z / budget * 100.0, budget])
 	else:
-		r.fail("нулевой контроль: пустая сцена уже %.3f мс из %.2f — доминирует НЕ наша нагрузка, свип меряет не заявленное" % [z, budget])
+		r.fail("нулевой контроль: пустая сцена уже CPU %.3f / GPU %.3f мс, связывает %s — %.0f%% бюджета %.2f мс. Доминирует НЕ наша нагрузка, свип меряет не заявленное" % [
+				z_cpu, z_gpu, binding, z / budget * 100.0, budget])
 
 
 ## Главная защита (PRACTICES §2.5). Если счётчик движка не растёт вместе с N,
@@ -285,10 +293,10 @@ func _check_gate(r: ProbeReport, label: String, data: Dictionary, expect_growth:
 
 
 func _check_refresh_stable(r: ProbeReport) -> void:
-	var now := _refresh_rate()
+	var now := ProbeBudget.current_hz()
 	if _refresh_at_start <= 1.0:
 		r.unkn("частота: не получена, устойчивость не проверялась")
-	elif is_equal_approx(now, _refresh_at_start):
+	elif ProbeBudget.same_hz(now, _refresh_at_start):
 		r.pass_("частота устойчива: %.1f Гц от начала до конца свипов" % now)
 	else:
 		r.fail("частота изменилась во время свипов: %.1f → %.1f Гц. ВСЕ свипы аннулированы — сравнивались разные миры" % [_refresh_at_start, now])

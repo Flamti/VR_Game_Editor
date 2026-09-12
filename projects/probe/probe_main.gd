@@ -27,6 +27,7 @@ const ProbeReport := preload("res://probe_report.gd")
 const ProbeCaps := preload("res://probe_caps.gd")
 const ProbeDrawCalls := preload("res://probe_drawcalls.gd")
 const ProbeSustained := preload("res://probe_sustained.gd")
+const ProbeBudget := preload("res://probe_budget.gd")
 
 var _report: ProbeReport = ProbeReport.new()
 var _caps: ProbeCaps = ProbeCaps.new()
@@ -90,6 +91,7 @@ func _run_all() -> void:
 	if xr_ok and not _skip_sustained:
 		_expected += _sustained.expected_checks()
 	_expected += 1   # сама проверка XR-вьюпорта
+	_expected += 1   # запрос максимальной частоты (ADR-0006)
 	_report.note("ожидается исполненных проверок: %d" % _expected)
 	_report.note("")
 
@@ -97,6 +99,8 @@ func _run_all() -> void:
 		_report.pass_("XR-вьюпорт: включён, рендер идёт в шлем")
 	else:
 		_report.fail("XR-вьюпорт: НЕ включён — замеры времени кадра меряли бы пустоту")
+
+	await _request_max_refresh(xr_ok)
 
 	_caps.run(_probe, _report)
 
@@ -115,6 +119,42 @@ func _run_all() -> void:
 		_report.note("фаза E пропущена (маркер %s или флаг)" % SKIP_MARKER)
 
 	_verdict()
+
+
+## Фаза B0: частота кадров. Запрашивается МАКСИМАЛЬНАЯ доступная (ADR-0006).
+##
+## Делается ДО свипов и до длинного прогона по двум причинам. Первая: все
+## числа ниже — производные от бюджета, а бюджет производен от частоты, и
+## менять её посреди измерений значит мерить два разных мира. Вторая: смена
+## частоты во время свипа его аннулирует, и _check_refresh_stable() покрасит
+## прогон в красное — правильно, но поздно.
+func _request_max_refresh(xr_ok: bool) -> void:
+	_report.note("")
+	_report.note("--- B0. Частота кадров (ADR-0006) ---")
+	if not xr_ok:
+		_report.unkn("частота: XR-сессии нет, запрашивать не у чего")
+		return
+
+	var d: Dictionary = await ProbeBudget.request_max(self)
+	_report.note("доступные частоты: %s" % str(ProbeBudget.available_hz()))
+	var got: float = d["got"]
+	_report.note("бюджет кадра: %.2f мс при %.1f Гц — ВСЕ числа ниже относятся к этой частоте" % [
+			ProbeBudget.ms_for_hz(got), got])
+
+	# Три исхода, а не два (PRACTICES §3.2). Отказ рантайма — это ФАКТ о
+	# платформе и он обязан быть красным: иначе прогон на 72 Гц выглядел бы
+	# неотличимо от прогона на 120.
+	match d["outcome"]:
+		"ok":
+			_report.pass_("частота: запрошен максимум %.1f Гц — получено %.1f (было %.1f)%s" % [
+					d["requested"], got, d["before"],
+					", %s" % d["reason"] if d["reason"] != "" else ", ждали %.0f мс" % d["waited_ms"]])
+		"denied":
+			_report.fail("частота: запрошено %.1f Гц, работаем на %.1f — %s. Бюджет %.2f мс вместо %.2f" % [
+					d["requested"], got, d["reason"],
+					ProbeBudget.ms_for_hz(got), ProbeBudget.ms_for_hz(d["requested"])])
+		_:
+			_report.unkn("частота: %s" % d["reason"])
 
 
 func _enable_xr() -> bool:
@@ -152,6 +192,10 @@ func _write_report() -> void:
 	f.store_line("- вендор: %s" % _probe.get_vendor_name())
 	f.store_line("- Vulkan API: %s" % _probe.get_vulkan_api_version())
 	f.store_line("- OpenXR активен: %s" % _probe.is_openxr_running())
+	# ADR-0006: число без частоты недействительно. Частота стоит в шапке, чтобы
+	# её нельзя было потерять при переносе чисел в docs/hardware-profile.md.
+	f.store_line("- частота: %.1f Гц, кадровый бюджет: %.2f мс" % [
+			ProbeBudget.current_hz(), ProbeBudget.current_ms()])
 	f.store_line("")
 	f.store_line("## Измеренные числа")
 	f.store_line("```")

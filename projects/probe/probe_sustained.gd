@@ -3,6 +3,7 @@ class_name ProbeSustained
 
 const ProbeReport := preload("res://probe_report.gd")
 const ProbeStats := preload("res://probe_stats.gd")
+const ProbeBudget := preload("res://probe_budget.gd")
 
 ## Фаза E: сколько держится целевой кадровый бюджет до вмешательства ОС.
 ##
@@ -57,13 +58,6 @@ func setup(host: Node, container_parent: Node) -> void:
 		gpu_quarters.append(ProbeStats.new())
 
 
-func _refresh_rate() -> float:
-	var iface := XRServer.find_interface("OpenXR")
-	if iface != null and iface.has_method("get_display_refresh_rate"):
-		return iface.get_display_refresh_rate()
-	return 0.0
-
-
 ## Нагрузка берётся из свипа, а не назначается: N, дающее ~75% бюджета.
 func _pick_load(sweep: Dictionary, budget_ms: float) -> int:
 	if is_nan(budget_ms) or sweep.is_empty():
@@ -85,8 +79,8 @@ func _pick_load(sweep: Dictionary, budget_ms: float) -> int:
 
 
 func run(r: ProbeReport, sweep: Dictionary, minutes: float = DEFAULT_MINUTES) -> void:
-	start_refresh = _refresh_rate()
-	var budget_ms := (1000.0 / start_refresh) if start_refresh > 1.0 else NAN
+	start_refresh = ProbeBudget.current_hz()
+	var budget_ms := ProbeBudget.ms_for_hz(start_refresh)
 	planned_seconds = minutes * 60.0
 	load_n = _pick_load(sweep, budget_ms)
 
@@ -133,8 +127,8 @@ func run(r: ProbeReport, sweep: Dictionary, minutes: float = DEFAULT_MINUTES) ->
 			var q := clampi(int(ran_seconds / maxf(planned_seconds / 4.0, 1.0)), 0, 3)
 			gpu_quarters[q].add(gpu)
 
-		var hz := _refresh_rate()
-		if first_drop_s < 0.0 and hz > 1.0 and start_refresh > 1.0 and not is_equal_approx(hz, start_refresh):
+		var hz := ProbeBudget.current_hz()
+		if first_drop_s < 0.0 and hz > 1.0 and start_refresh > 1.0 and not ProbeBudget.same_hz(hz, start_refresh):
 			first_drop_s = ran_seconds
 			first_drop_to = hz
 			# Момент смены — то самое искомое число. В лог немедленно.
@@ -165,11 +159,10 @@ func run(r: ProbeReport, sweep: Dictionary, minutes: float = DEFAULT_MINUTES) ->
 ## «троттлинг не наблюдался» опирался на смену частоты. Настоящим сигналом
 ## оказался дрейф времени кадра — см. _check_drift().
 func _report_available_rates(r: ProbeReport) -> void:
-	var iface := XRServer.find_interface("OpenXR")
-	if iface == null or not iface.has_method("get_available_display_refresh_rates"):
+	if not ProbeBudget.has_rate_api():
 		r.unkn("доступные частоты: API недоступен, судить о запасе вниз нельзя")
 		return
-	var rates: Array = iface.get_available_display_refresh_rates()
+	var rates: Array = ProbeBudget.available_hz()
 	if rates.is_empty():
 		r.unkn("доступные частоты: рантайм вернул пустой список")
 		return
@@ -177,7 +170,7 @@ func _report_available_rates(r: ProbeReport) -> void:
 	for v in rates:
 		lo = minf(lo, float(v))
 	r.note("доступные частоты: %s" % str(rates))
-	if start_refresh > 1.0 and is_equal_approx(start_refresh, lo):
+	if start_refresh > 1.0 and ProbeBudget.same_hz(start_refresh, lo):
 		# Не отказ проекта, а ограничение измерения — но назвать обязательно.
 		r.pass_("запас вниз: прогон идёт на САМОЙ НИЗКОЙ доступной частоте %.1f Гц — слежение за сменой частоты почти ничего не покажет, вывод строится на дрейфе времени кадра" % lo)
 	else:

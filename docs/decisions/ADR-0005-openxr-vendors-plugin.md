@@ -41,9 +41,16 @@ OpenXR не поднимается. Симптом на шлеме выгляд�
 2. Плагин поставляет `.aar`, а `.aar` вливается **только gradle-сборкой**. Поэтому в пресете
    обязательно `gradle_build/use_gradle_build=true`, и проекту нужен Android Build Template
    (`--install-android-build-template`).
-3. Для Quest включается вендор Meta: `xr_features/enable_meta_plugin=true`,
-   `xr_features/quest_3_support=true`. Именно он даёт расширения `XR_FB_*` и `XR_META_*`,
-   которые проверяет прибор.
+3. Для Quest включается вендор Meta: `xr_features/enable_meta_plugin=true`. Именно он даёт
+   расширения `XR_FB_*` и `XR_META_*`, которые проверяет прибор.
+
+   **Поправка 2026-09-12.** Здесь стояло ещё `xr_features/quest_3_support=true` — **такой опции
+   не существует**. Вендорские фичи плагин регистрирует под префиксом `meta_xr_features/`, а
+   Godot из `xr_features/` знает только `xr_mode` (`export_plugin.cpp:2257`). Ключ молча
+   игнорировался всё время. Ущерба не было по случайности: `quest3` и так входит в умолчание
+   плагина — манифест собранного APK показывает
+   `com.oculus.supportedDevices="quest2|quest3|quest3s|questpro"`. Проверено `aapt2 dump
+   xmltree`, а не чтением пресета. В пресете ключи исправлены на `meta_xr_features/*`.
 
 ## Отвергнутая альтернатива
 
@@ -64,3 +71,7 @@ OpenXR не поднимается. Симптом на шлеме выгляд�
 - Godot начал включать Android-загрузчик OpenXR в штатный шаблон приложения.
 - Появилась вторая целевая платформа — перейти на `enable_khronos_plugin`.
 - Вышла новая версия плагина: сверить `compatibility_minimum` и пин.
+- Понадобилась вендорская фича из `meta_xr_features/*`: проверять её действие **манифестом
+  собранного APK** (`aapt2 dump xmltree`), а не наличием строки в пресете. Опция
+  `meta_xr_features/hand_tracking=1` записана, но в манифест ничего не добавляет, и причина
+  не установлена — см. `docs/context.md`.

@@ -33,13 +33,15 @@ void initialize_vrge_probe_module(ModuleInitializationLevel p_level) {
 	//
 	// CORE исполняется до SERVERS — там инстанса ещё нет ни при каком порядке.
 #ifdef MODULE_OPENXR_ENABLED
-	// Счётчик входов: без него спор «не тот уровень» против «не доехал бинарь»
-	// не разрешить (PRACTICES §4.6). Строка помечена так, чтобы её нельзя было
-	// спутать со словами движка при грепе (§4.2).
-	print_line(vformat("VRGE_PROBE_MARK_B: init level=%d, openxr_api=%s", (int)p_level,
-			OpenXRAPI::get_singleton() ? "есть" : "нет"));
+	// Маркер уровня инициализации оставлен ОДНОЙ строкой и только на CORE.
+	//
+	// Он уже отработал: именно им был разрешён спор «не тот уровень» против
+	// «не доехал бинарь» (PRACTICES §4.6), когда регистрация падала на SERVERS.
+	// Строка уникальна, чтобы её нельзя было спутать со словами движка при
+	// грепе (§4.2) — и она же служит доказательством, что в сборке новый .so.
 	if (p_level == MODULE_INITIALIZATION_LEVEL_CORE) {
-		print_line("VRGE_PROBE_MARK_B: регистрирую обёртку на уровне CORE");
+		print_line(vformat("VRGE_PROBE_MARK_B: регистрирую обёртку на CORE, openxr_api=%s",
+				OpenXRAPI::get_singleton() ? "есть" : "нет"));
 		OpenXRAPI::register_extension_wrapper(memnew(VRGEProbeXRExtension));
 	}
 #endif

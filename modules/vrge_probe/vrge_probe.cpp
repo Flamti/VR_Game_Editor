@@ -7,6 +7,7 @@
 #include "core/object/class_db.h"
 #include "core/os/os.h"
 #include "servers/rendering/rendering_device.h"
+#include "servers/rendering/rendering_device_driver.h"
 
 #include "modules/modules_enabled.gen.h" // For openxr.
 
@@ -153,6 +154,41 @@ int VRGEProbe::has_openxr_extension(const String &p_name) const {
 #endif
 }
 
+Dictionary VRGEProbe::get_engine_features() const {
+	Dictionary d;
+	RenderingDevice *rd = RenderingDevice::get_singleton();
+	if (rd == nullptr) {
+		return d;
+	}
+	// Спрашивать надо RenderingDevice, а НЕ драйвер.
+	//
+	// Это стоило ложного вывода «движок не включил SUPPORTS_MULTIVIEW»:
+	// RenderingDeviceDriverVulkan::has_feature() не обрабатывает ни
+	// SUPPORTS_MULTIVIEW, ни SUPPORTS_ATTACHMENT_VRS — у него `default: return
+	// false`. Оба перехватывает слой выше, RenderingDevice::has_feature()
+	// (rendering_device.cpp:9035-9049), выводя их из capabilities драйвера.
+	//
+	// То есть запрос к драйверу молча отвечает «нет» на вопрос, которого он не
+	// понимает (PRACTICES §4.4: неверный адресат убивает обе ветки).
+	// Перечень выводится из одного места: имя строкой рядом с именованной
+	// константой, чтобы отчёт и запрос не могли разойтись (PRACTICES §1.8).
+#define VRGE_FEATURE(f) d[#f] = rd->has_feature(RenderingDeviceCommons::f)
+	VRGE_FEATURE(SUPPORTS_MULTIVIEW);
+	VRGE_FEATURE(SUPPORTS_HALF_FLOAT);
+	VRGE_FEATURE(SUPPORTS_ATTACHMENT_VRS);
+	VRGE_FEATURE(SUPPORTS_FRAGMENT_SHADER_WITH_ONLY_SIDE_EFFECTS);
+	VRGE_FEATURE(SUPPORTS_BUFFER_DEVICE_ADDRESS);
+	VRGE_FEATURE(SUPPORTS_IMAGE_ATOMIC_32_BIT);
+	VRGE_FEATURE(SUPPORTS_VULKAN_MEMORY_MODEL);
+	VRGE_FEATURE(SUPPORTS_FRAMEBUFFER_DEPTH_RESOLVE);
+	VRGE_FEATURE(SUPPORTS_POINT_SIZE);
+	VRGE_FEATURE(SUPPORTS_RAY_QUERY);
+	VRGE_FEATURE(SUPPORTS_RAYTRACING_PIPELINE);
+	VRGE_FEATURE(SUPPORTS_HDR_OUTPUT);
+#undef VRGE_FEATURE
+	return d;
+}
+
 Dictionary VRGEProbe::get_summary() const {
 	Dictionary d;
 	d["vulkan_api_version"] = get_vulkan_api_version();
@@ -178,6 +214,7 @@ void VRGEProbe::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("has_vulkan_device_extension", "name"), &VRGEProbe::has_vulkan_device_extension);
 	ClassDB::bind_method(D_METHOD("has_openxr_extension", "name"), &VRGEProbe::has_openxr_extension);
 	ClassDB::bind_method(D_METHOD("is_openxr_running"), &VRGEProbe::is_openxr_running);
+	ClassDB::bind_method(D_METHOD("get_engine_features"), &VRGEProbe::get_engine_features);
 	ClassDB::bind_method(D_METHOD("get_summary"), &VRGEProbe::get_summary);
 
 	BIND_ENUM_CONSTANT(AVAILABILITY_ABSENT);

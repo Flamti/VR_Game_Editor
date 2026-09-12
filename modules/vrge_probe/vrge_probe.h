@@ -56,6 +56,22 @@ public:
 	int has_openxr_extension(const String &p_name) const;
 	bool is_openxr_running() const;
 
+	// --- Вердикты самого движка ---
+	//
+	// Нужны потому, что «расширение доступно драйверу» и «движок его включил и
+	// станет использовать» — РАЗНЫЕ утверждения, и опираться в архитектуре можно
+	// только на второе.
+	//
+	// Почему через модуль, а не из GDScript: метод RenderingDevice.has_feature()
+	// привязан к скриптам, но константы самых нужных фич — нет. Из скрипта
+	// доступны только RAY_QUERY, RAYTRACING_PIPELINE, BUFFER_DEVICE_ADDRESS,
+	// IMAGE_ATOMIC_32_BIT, HDR_OUTPUT; SUPPORTS_MULTIVIEW, ATTACHMENT_VRS и
+	// FRAMEBUFFER_DEPTH_RESOLVE не биндятся (rendering_device.cpp:9760-9772).
+	// Обращаться к ним сырыми числами отвергнуто: при смене порядка enum в
+	// upstream прибор молча спросил бы не то (PRACTICES §4.4). Здесь имена
+	// проверяет компилятор.
+	Dictionary get_engine_features() const;
+
 	// Сводка для записи в docs/hardware-profile.md.
 	Dictionary get_summary() const;
 

@@ -11,6 +11,15 @@ VRGEProbeXRExtension *VRGEProbeXRExtension::singleton = nullptr;
 // Один перечень, из которого выводится и запрос, и отчёт: два независимых
 // списка разошлись бы — один обновят, второй забудут (PRACTICES §1.8).
 static const char *VRGE_PROBED_XR_EXTENSIONS[] = {
+	// КОНТРОЛЬНЫЙ СЛУЧАЙ (PRACTICES §1.5). Godot помечает это расширение
+	// "must be available" (openxr_vulkan_extension.cpp:43) — без него сессия
+	// не могла бы рендерить через Vulkan. Если оно доступно, а прибор говорит
+	// «нет», значит прибор СЛЕП, и всем остальным строкам верить нельзя.
+	//
+	// Без этого случая фальсификатор был ложно-зелёным: незарегистрированная
+	// обёртка оставляет ВСЕ флаги false, и «несуществующее имя дало ABSENT»
+	// выглядело как доказательство строгости прибора (PRACTICES §2.3).
+	"XR_KHR_vulkan_enable2",
 	"XR_KHR_composition_layer_cylinder",
 	"XR_KHR_composition_layer_equirect2",
 	"XR_KHR_composition_layer_depth",

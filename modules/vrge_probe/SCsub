@@ -6,6 +6,23 @@ Import("env_modules")
 
 env_vrge_probe = env_modules.Clone()
 
+# Прибор подписывается на расширения OpenXR через OpenXRExtensionWrapper,
+# а его заголовок тянет <openxr/openxr.h> из thirdparty Godot. Модуль openxr
+# добавляет этот путь только в СВОЁ окружение (modules/openxr/SCsub:43-49),
+# поэтому здесь путь надо добавить отдельно.
+#
+# Почему это не поймалось на Linux: в системе оказался пакет openxr, и
+# <openxr/openxr.h> нашёлся через системный include. Сборка прошла, дав ложную
+# уверенность. Под Android системного OpenXR нет — и всё вскрылось.
+# Урок: зависимость, удовлетворённая случайно, не считается удовлетворённой.
+#
+# Платформенные defines (XR_OS_*, XR_USE_PLATFORM_*) НЕ нужны: и
+# openxr_extension_wrapper.h, и openxr_api.h включают только базовый
+# openxr.h, без openxr_platform.h. Если это изменится — сборка упадёт громко,
+# а не деградирует молча.
+if env["module_openxr_enabled"]:
+    env_vrge_probe.Prepend(CPPPATH=["#thirdparty/openxr/include"])
+
 module_obj = []
 env_vrge_probe.add_source_files(module_obj, "*.cpp")
 env.modules_sources += module_obj

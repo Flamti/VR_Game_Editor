@@ -44,6 +44,10 @@ var _openxr_checks: PackedStringArray = PackedStringArray()
 # Имя обязано совпадать с фальсификатором в vrge_probe_xr.cpp.
 const OPENXR_FALSIFIER := "XR_VRGE_this_extension_does_not_exist"
 
+## Контрольный случай для OpenXR. Должен совпадать с первым элементом
+## VRGE_PROBED_XR_EXTENSIONS в vrge_probe_xr.cpp.
+const OPENXR_CONTROL := "XR_KHR_vulkan_enable2"
+
 # Сколько проверок ОБЯЗАНО исполниться.
 #
 # Выводится из тех же массивов, по которым идут циклы, а не перечисляется рядом:
@@ -61,7 +65,7 @@ var _expected_checks: int = 0
 
 func _compute_expected_checks() -> int:
 	# Семейство фовеации даёт ОДНУ проверку, а не по одной на член.
-	return 1 + 2 + VULKAN_REQUIRED.size() + 1 + _openxr_checks.size() + 1 + 1
+	return 1 + 1 + 2 + VULKAN_REQUIRED.size() + 1 + _openxr_checks.size() + 1 + 1
 
 var _passed := 0
 var _failed := 0
@@ -109,7 +113,7 @@ func run_probe() -> void:
 	# он проверяется отдельно и не должен попасть в обычные строки отчёта.
 	var summary: Dictionary = probe.get_summary()
 	for name in summary.get("probed_openxr_extensions", PackedStringArray()):
-		if name != OPENXR_FALSIFIER:
+		if name != OPENXR_FALSIFIER and name != OPENXR_CONTROL:
 			_openxr_checks.append(name)
 
 	_emit("устройство:   %s" % probe.get_device_name())
@@ -127,6 +131,7 @@ func run_probe() -> void:
 	_emit("")
 
 	_check_control_case(probe)
+	_check_openxr_control_case(probe)
 	_check_falsifiers(probe)
 	_check_vulkan(probe)
 	_check_foveation_family(probe)
@@ -147,6 +152,25 @@ func _check_control_case(probe) -> void:
 		_fail("контроль: %s — спросить негде. Прибор СЛЕП, остальным строкам верить нельзя" % VULKAN_CONTROL)
 	else:
 		_fail("контроль: %s отсутствует — так не бывает на Vulkan. Сломана фикстура" % VULKAN_CONTROL)
+
+
+## Контрольный случай OpenXR. Смотреть на него ВТОРЫМ, сразу за vk-контролем.
+##
+## Его отсутствие в первой версии прибора стоило целой половины паспорта:
+## незарегистрированная обёртка оставляла все флаги false, фальсификатор
+## («несуществующее имя → ABSENT») выглядел зелёным, а восемь настоящих
+## расширений сообщались как «рантайм не поддерживает» — и это была ложь.
+## Фальсификатор, зелёный по неверной причине, опаснее сломанного кода
+## (PRACTICES §2.3).
+func _check_openxr_control_case(probe) -> void:
+	var running: bool = probe.is_openxr_running()
+	var r: int = probe.has_openxr_extension(OPENXR_CONTROL)
+	if not running:
+		_unknown_result("контроль xr: рантайм не поднят — проверка не исполнялась")
+	elif r == 1:
+		_pass("контроль xr: %s доступно — прибор видит расширения рантайма" % OPENXR_CONTROL)
+	else:
+		_fail("контроль xr: %s недоступно при поднятом рантайме — ПРИБОР СЛЕП. Все строки xr_ext ниже недостоверны" % OPENXR_CONTROL)
 
 
 ## Фальсификаторы. Зелёный прибор без них не значит ничего (PRACTICES §2).

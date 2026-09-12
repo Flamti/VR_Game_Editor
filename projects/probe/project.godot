@@ -11,8 +11,25 @@ run/main_scene="res://main.tscn"
 
 [rendering]
 renderer/rendering_method="forward_plus"
+; Платформенный оверрайд ОБЯЗАТЕЛЕН: Godot по умолчанию ставит "mobile" для
+; мобильных (main.cpp:2492, 2648), а заданный без оверрайда forward_plus
+; навязывается и шлему. На Quest это валит создание Vulkan-устройства через
+; OpenXR: xrCreateVulkanDeviceKHR отвергает набор запрошенных фич с
+; XR_ERROR_VALIDATION_FAILURE, и движок не поднимает DisplayServer вообще.
+renderer/rendering_method.mobile="mobile"
 rendering_device/driver="vulkan"
+; ASTC/ETC2 обязателен для Android-экспорта (export_plugin.cpp:3148)
+; и это же целевой формат текстур для Quest.
+textures/vram_compression/import_etc2_astc=true
 
 [xr]
 openxr/enabled=true
 openxr/startup_alert=false
+; ОБЯЗАТЕЛЬНО для Android/Quest, и не только для шейдеров.
+; Обход issue #115924 (PR #116226) читает эту настройку в
+; java_godot_lib_jni.cpp:318 ДО того, как её объявит
+; rendering_server.cpp:3813 (GLOBAL_DEF_RST_BASIC, дефолт false).
+; Поэтому значение обязано лежать в project.godot: иначе ранний read её не
+; видит, обход не срабатывает, и xrCreateVulkanDeviceKHR падает с
+; XR_ERROR_VALIDATION_FAILURE — движок вообще не поднимает DisplayServer.
+shaders/enabled=true

@@ -14,7 +14,7 @@
 passed=0
 failed=0
 unknown=0
-EXPECTED_CHECKS=3     # пол по числу ИСПОЛНЕННЫХ проверок (PRACTICES §1.2)
+EXPECTED_CHECKS=4     # пол по числу ИСПОЛНЕННЫХ проверок (PRACTICES §1.2)
 
 pass() { echo "  PASS  $1"; passed=$((passed+1)); }
 fail() { echo "  FAIL  $1"; failed=$((failed+1)); }
@@ -23,8 +23,15 @@ unkn() { echo "  ????  $1"; unknown=$((unknown+1)); }
 # Артефактом может быть и Android-библиотека, и Linux-исполняемый файл.
 ARTIFACT="${1:-}"
 if [ -z "$ARTIFACT" ]; then
-    ARTIFACT="$(find "$VRGE_BIN" \( -name 'libgodot.android.*.so' -o -name 'godot.linuxbsd.*' \) \
-                -type f -print -quit 2>/dev/null || true)"
+    # Android: scons линкует .so в bin/, но затем ПЕРЕМЕЩАЕТ его в дерево gradle
+    # (см. Move(...) в конце лога сборки). Искать только в bin/ — значит получить
+    # «артефакт не найден» на совершенно исправной сборке.
+    ANDROID_LIBS="$VRGE_GODOT/platform/android/java/lib/libs"
+    ARTIFACT="$(find "$ANDROID_LIBS" -name 'libgodot_android.so' -type f -print -quit 2>/dev/null || true)"
+    if [ -z "$ARTIFACT" ]; then
+        ARTIFACT="$(find "$VRGE_BIN" \( -name 'libgodot.android.*.so' -o -name 'godot.linuxbsd.*' \) \
+                    -type f -print -quit 2>/dev/null || true)"
+    fi
 fi
 
 echo "проверка артефакта: ${ARTIFACT:-<не найден>}"
@@ -77,6 +84,23 @@ if [ -n "$ARTIFACT" ] && [ -f "$ARTIFACT" ] && [ -d "$VRGE_MODULES" ]; then
 else
     unkn "свежесть: проверка не исполнялась"
 fi
+
+# --- 4. Swappy слинкован (только для Android; ADR-0004) ---
+# Проверяем СОДЕРЖИМОЕ артефакта, а не отсутствие предупреждения в логе:
+# предупреждение исчезает от одного лишь наличия файлов, а нам нужен факт линковки.
+case "$ARTIFACT" in
+    *libgodot_android.so|*libgodot.android.*)
+        swappy_refs="$(strings "$ARTIFACT" | grep -ci 'swappy' || true)"
+        if [ "${swappy_refs:-0}" -gt 0 ]; then
+            pass "swappy: слинкован ($swappy_refs упоминаний) — кадровый пейсинг на месте"
+        else
+            fail "swappy: НЕ слинкован — сборка гарантированно будет дёргаться (ADR-0004)"
+        fi
+        ;;
+    *)
+        unkn "swappy: не Android-артефакт, проверка неприменима"
+        ;;
+esac
 
 total=$((passed + failed + unknown))
 echo ""

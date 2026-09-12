@@ -69,13 +69,28 @@ scons custom_modules=../modules   # модули подхватываются с
 Здесь **не должно быть чисел**, кроме подтверждённых. Всё измеренное живёт в
 `docs/hardware-profile.md` и берётся оттуда.
 
+**Измерено на устройстве 2026-09-12** (прибор, `passed=17 failed=2`, контроли и фальсификаторы
+зелёные):
+
+- Adreno 740, драйвер `V@0837.0.9`, Android 14 / SDK 34, рантайм Oculus 207.218.0, OpenXR 1.1.54.
+- **Vulkan 1.3.295**, 137 расширений устройства. Версии 1.4 нет.
+- `VK_KHR_dynamic_rendering_local_read` **отсутствует**; доступен вендорский тайловый набор
+  Adreno (`VK_QCOM_tile_properties`, `VK_QCOM_render_pass_store_ops`, `VK_EXT_load_store_op_none`,
+  `VK_QCOM_render_pass_shader_resolve` и др.).
+- `VK_KHR_multiview` есть; вендорские `VK_QCOM_multiview_per_view_viewports` и
+  `..._render_areas` тоже.
+- OpenXR: `composition_layer_cylinder`, `XR_FB_space_warp`, оба `foveation`,
+  `display_refresh_rate` — есть. `XR_META_environment_depth` — **нет**.
+- Swappy под OpenXR **принудительно отключается** движком; пейсинг — на композиторе шлема.
+
+Полный паспорт с оговорками — `docs/hardware-profile.md`.
+
 Подтверждено по вендорским источникам (не на железе):
 
 - Quest 3 / XR2 Gen 2: 2 производительных + 4 энергоэффективных ядра, TDP 4–6 Вт, 8 ГБ RAM,
   2064×2208 на глаз. CPU — узкое место, не GPU.
 - **Eye tracking отсутствует.** Gaze-интеракция возможна только как head-gaze.
 - ОС при перегреве принудительно сбрасывает частоту к базовым 72 Гц. Движок обязан адаптироваться.
-- Драйверы сообщают Vulkan 1.3.295 — **не 1.4**, вопреки исходному исследованию.
 
 Разбор того, что в исследовании неверно: `docs/research/source-review.md`.
 

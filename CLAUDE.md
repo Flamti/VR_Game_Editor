@@ -21,13 +21,33 @@
 
 ## Команды
 
-Статус помечен честно: `[?]` — ещё ни разу не исполнялось в этом окружении.
+Все проверены исполнением 2026-09-12: APK собран, развёрнут на Quest 3, прибор отработал.
 
 ```bash
-tools/build_quest.sh          # [?] сборка шаблона Android arm64, запускать ФОНОМ
-tools/verify_artifact.sh      # [?] проверка артефакта СОДЕРЖАНИЕМ, а не кодом возврата
-tools/deploy_quest.sh         # [?] adb install + запуск + сбор лога
-adb devices -l                # проверено: adb 1.0.41 есть, шлем на 2026-09-12 не подключён
+. tools/local.env                      # ANDROID_HOME, NDK, PATH, VRGE_JOBS=4
+tools/build_quest.sh template_debug    # сборка .so, ЗАПУСКАТЬ ФОНОМ и АБСОЛЮТНЫМ путём
+tools/verify_artifact.sh               # проверка артефакта СОДЕРЖАНИЕМ, а не кодом возврата
+tools/deploy_quest.sh <apk>            # adb install
+```
+
+Полная цепочка до APK на шлеме — четыре шага, **пропуск любого даёт старый бинарь**:
+
+```bash
+/home/flamti/Projects/VR_engine/tools/build_quest.sh template_debug     # 1. .so
+cd godot/platform/android/java && ./gradlew generateGodotTemplates      # 2. шаблон APK
+cp $R/godot/bin/android_debug.apk $R/godot/bin/android_source.zip \
+   ~/.local/share/godot/export_templates/4.7.2.stable/                  # 3. установить шаблон
+godot --headless --path projects/probe \
+      --install-android-build-template --export-debug "<пресет>"        # 4. экспорт
+```
+
+Каталог шаблонов — `4.7.2.stable` (это `GODOT_VERSION_FULL_CONFIG`, без имени сборки и хеша).
+
+Запуск на шлеме и чтение лога:
+
+```bash
+adb logcat -c && adb shell am start -n org.flamti.vrge.probe/com.godot.game.GodotAppLauncher
+adb logcat -d -s godot:V        # ТОЛЬКО тег godot: иначе лог тонет в шуме com.oculus.vrshell
 ```
 
 Окружение на 2026-09-12: git 2.55, scons, python 3.14.6, JDK 21, cmake, ninja, clang 22 — есть.
@@ -48,6 +68,27 @@ modules/       наши C++ модули (custom_modules)
 projects/      Godot-проекты: прототипы и стенды
 tools/         сборка, деплой, проверка артефактов
 ```
+
+## Ловушки, каждая из которых стоила прогона
+
+1. **`--install-android-build-template` нужен при КАЖДОМ экспорте** после пересборки `.so`.
+   Шаблон живёт внутри `projects/<имя>/android/build` и сам не обновляется: без флага экспорт
+   молча соберёт APK со старым движком.
+2. **Проверять сборку только уникальным маркером.** Греп по имени расширения даёт ложное
+   подтверждение: `XR_KHR_vulkan_enable2` содержит и сам Godot. В модуле есть маркер
+   `VRGE_PROBE_MARK_B` — грепать его.
+3. **Фоновые команды исполняются из текущего каталога сессии.** Относительный
+   `./tools/build_quest.sh` трижды не нашёлся. В фоне — только абсолютные пути.
+4. **`xr/shaders/enabled=true` обязателен в `project.godot`.** Обход issue #115924 читает его в
+   `java_godot_lib_jni.cpp:318` раньше объявления в `rendering_server.cpp:3813` (дефолт `false`).
+   Без записи в файле Vulkan-устройство через OpenXR не создаётся вообще.
+5. **`renderer/rendering_method.mobile="mobile"` обязателен.** Иначе шлему навязывается
+   `forward_plus`.
+6. **Регистрировать обёртки OpenXR на `MODULE_INITIALIZATION_LEVEL_CORE`.** На `SERVERS` поздно:
+   модуль `openxr` там же создаёт инстанс, а модули идут по алфавиту.
+7. **Память.** 14 ГиБ: `-j12` дважды убило сборку, `VRGE_JOBS=4`. После серии экспортов гасить
+   gradle-демон (`./gradlew --stop`) — он держит ~2.3 ГБ на простое.
+8. **logcat ломает UTF-8** в части вывода. Кириллица в логе может прийти мусором — это косметика.
 
 ## Архитектурные правила
 

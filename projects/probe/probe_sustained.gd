@@ -34,12 +34,15 @@ var interrupted: bool = false
 var load_n: int = 0
 var cpu_overall: ProbeStats
 var gpu_overall: ProbeStats
+## Четверти прогона: по ним считается дрейф. Одна общая статистика дрейф
+## СКРЫВАЕТ — среднее не различает ровный расход и направленный рост (§3.3).
+var gpu_quarters: Array[ProbeStats] = []
 
 
 func expected_checks() -> int:
-	# нагрузка подобрана 1, прогон дошёл до конца 1, вердикт по троттлингу 1,
-	# бюджет удержан 1
-	return 4
+	# нагрузка 1, прогон дошёл до конца 1, вердикт по частоте 1, бюджет 1,
+	# дрейф времени кадра 1, набор доступных частот 1
+	return 6
 
 
 func setup(host: Node, container_parent: Node) -> void:
@@ -50,6 +53,8 @@ func setup(host: Node, container_parent: Node) -> void:
 	_viewport_rid = host.get_viewport().get_viewport_rid()
 	cpu_overall = ProbeStats.new()
 	gpu_overall = ProbeStats.new()
+	for _i in 4:
+		gpu_quarters.append(ProbeStats.new())
 
 
 func _refresh_rate() -> float:
@@ -90,6 +95,7 @@ func run(r: ProbeReport, sweep: Dictionary, minutes: float = DEFAULT_MINUTES) ->
 	r.note("план: %.0f минут, выборка раз в %.0f с, нагрузка N=%d (~%d%% бюджета)" % [
 			minutes, SAMPLE_PERIOD_S, load_n, int(LOAD_FRACTION * 100)])
 	r.note("частота на старте: %.1f Гц, бюджет %.2f мс" % [start_refresh, budget_ms])
+	_report_available_rates(r)
 	r.note("ТРЕБУЕТСЯ НАДЕТЫЙ ШЛЕМ: иначе датчик присутствия усыпит сессию")
 	r.note("")
 
@@ -121,6 +127,11 @@ func run(r: ProbeReport, sweep: Dictionary, minutes: float = DEFAULT_MINUTES) ->
 		var calls := int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME))
 		cpu_overall.add(cpu)
 		gpu_overall.add(gpu)
+		if calls > 0:
+			# Пустые выборки (ноль отрисовок) в дрейф не берём: они занизили бы
+			# четверть, в которую попали. На прогоне 2026-09-12 таких было 9.
+			var q := clampi(int(ran_seconds / maxf(planned_seconds / 4.0, 1.0)), 0, 3)
+			gpu_quarters[q].add(gpu)
 
 		var hz := _refresh_rate()
 		if first_drop_s < 0.0 and hz > 1.0 and start_refresh > 1.0 and not is_equal_approx(hz, start_refresh):
@@ -143,6 +154,74 @@ func run(r: ProbeReport, sweep: Dictionary, minutes: float = DEFAULT_MINUTES) ->
 
 	interrupted = ran_seconds < planned_seconds * 0.98
 	_verdict(r, budget_ms, current_refresh)
+	_check_drift(r)
+
+
+## Набор доступных частот. Без него нельзя судить, чего стоит слежение за
+## сменой частоты: если прогон идёт на САМОЙ НИЗКОЙ доступной, сбрасывать
+## некуда, и проверка «частота не менялась» близка к пустой.
+##
+## Именно это и случилось в первом длинном прогоне: он шёл на 72 Гц, а вывод
+## «троттлинг не наблюдался» опирался на смену частоты. Настоящим сигналом
+## оказался дрейф времени кадра — см. _check_drift().
+func _report_available_rates(r: ProbeReport) -> void:
+	var iface := XRServer.find_interface("OpenXR")
+	if iface == null or not iface.has_method("get_available_display_refresh_rates"):
+		r.unkn("доступные частоты: API недоступен, судить о запасе вниз нельзя")
+		return
+	var rates: Array = iface.get_available_display_refresh_rates()
+	if rates.is_empty():
+		r.unkn("доступные частоты: рантайм вернул пустой список")
+		return
+	var lo := INF
+	for v in rates:
+		lo = minf(lo, float(v))
+	r.note("доступные частоты: %s" % str(rates))
+	if start_refresh > 1.0 and is_equal_approx(start_refresh, lo):
+		# Не отказ проекта, а ограничение измерения — но назвать обязательно.
+		r.pass_("запас вниз: прогон идёт на САМОЙ НИЗКОЙ доступной частоте %.1f Гц — слежение за сменой частоты почти ничего не покажет, вывод строится на дрейфе времени кадра" % lo)
+	else:
+		r.pass_("запас вниз: есть, минимальная доступная %.1f Гц против текущей %.1f Гц" % [lo, start_refresh])
+
+
+## Дрейф времени кадра — ПРЯМОЙ признак троттлинга тактовых частот: та же
+## нагрузка начинает считаться дольше. Сравниваются первая и последняя четверти
+## прогона, чтобы направленный рост отличался от шума (PRACTICES §3.5).
+func _check_drift(r: ProbeReport) -> void:
+	var n := gpu_quarters.size()
+	if n < 4 or gpu_quarters[0].count() == 0 or gpu_quarters[3].count() == 0:
+		r.unkn("дрейф времени кадра: выборок на четверти не хватило")
+		return
+	var first: float = gpu_quarters[0].mean()
+	var last: float = gpu_quarters[3].mean()
+
+	# Сравнивается ХУДШАЯ четверть с первой, а не последняя с первой.
+	#
+	# Первая версия смотрела first→last и на прогоне 18:05 дала +2.2% при
+	# фактической форме 10.588 → 10.991 → 11.047 → 10.817: рост в первые
+	# семь минут, плато, затем спад. Метрика по концам такой горб НЕ ВИДИТ, и
+	# её вердикт зависит от того, где прогон случайно закончился — обрыв на
+	# 14-й минуте дал бы +3.3%. Худшая четверть отвечает на правильный вопрос:
+	# «становилось ли хуже», а не «хуже ли стало к концу».
+	var worst: float = first
+	for q in gpu_quarters:
+		worst = maxf(worst, q.mean())
+	var rel := (worst - first) / maxf(first, 0.0001) * 100.0
+	var rel_end := (last - first) / maxf(first, 0.0001) * 100.0
+
+	r.note("дрейф по четвертям, GPU сред: %.3f → %.3f → %.3f → %.3f мс" % [
+			gpu_quarters[0].mean(), gpu_quarters[1].mean(),
+			gpu_quarters[2].mean(), gpu_quarters[3].mean()])
+	r.note("    худшая четверть против первой: %+.1f%%; конец против начала: %+.1f%%" % [rel, rel_end])
+
+	# Порог 5%. Измеренные значения: прогон 15:36 дал +0.2% по концам,
+	# прогон 18:05 — +2.2% по концам и +4.3% по худшей четверти. То есть запас
+	# до порога НЕ велик, и утверждать обратное нельзя: порог назначен по двум
+	# прогонам, а не выведен из природы явления (PRACTICES §3.1).
+	if rel < 5.0:
+		r.pass_("дрейф времени кадра: худшая четверть %+.1f%% от первой — направленного роста нет, троттлинга тактовых частот не видно" % rel)
+	else:
+		r.fail("дрейф времени кадра: худшая четверть %+.1f%% от первой — нагрузка стала считаться дольше, ПОХОЖЕ НА ТРОТТЛИНГ" % rel)
 
 
 func _spawn(n: int) -> void:
@@ -176,7 +255,7 @@ func _verdict(r: ProbeReport, budget_ms: float, final_refresh: float) -> void:
 		r.unkn("троттлинг: прогон прерван на %.0f с, вопрос открыт" % ran_seconds)
 	else:
 		# §3.2: «не наблюдался за N минут» — НЕ то же, что «его нет».
-		r.pass_("троттлинг НЕ НАБЛЮДАЛСЯ за %.1f мин при N=%d. Это не значит, что его нет — только что за это время и под этой нагрузкой он не наступил" % [
+		r.pass_("смена частоты НЕ зафиксирована за %.1f мин при N=%d. Слабый сигнал: если прогон шёл на минимальной доступной частоте, сбрасывать было некуда — судить по дрейфу времени кадра ниже" % [
 				ran_seconds / 60.0, load_n])
 
 	if is_nan(budget_ms):

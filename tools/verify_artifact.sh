@@ -92,7 +92,10 @@ case "$ARTIFACT" in
     *libgodot_android.so|*libgodot.android.*)
         swappy_refs="$(strings "$ARTIFACT" | grep -ci 'swappy' || true)"
         if [ "${swappy_refs:-0}" -gt 0 ]; then
-            pass "swappy: слинкован ($swappy_refs упоминаний) — кадровый пейсинг на месте"
+            # НЕ писать «кадровый пейсинг на месте»: под OpenXR движок Swappy
+            # принудительно отключает (ADR-0004), и такое сообщение врало бы
+            # ровно про VR-путь — основной для проекта.
+            pass "swappy: слинкован ($swappy_refs упоминаний). Под OpenXR будет отключён движком — значим только для не-XR сборок (ADR-0004)"
         else
             fail "swappy: НЕ слинкован — сборка гарантированно будет дёргаться (ADR-0004)"
         fi

@@ -4,6 +4,7 @@ class_name ProbeDrawCalls
 const ProbeReport := preload("res://probe_report.gd")
 const ProbeStats := preload("res://probe_stats.gd")
 const ProbeBudget := preload("res://probe_budget.gd")
+const ProbeWindow := preload("res://probe_window.gd")
 
 ## Фазы C–D: цена разогрева PSO и стоимость draw call.
 ##
@@ -25,8 +26,13 @@ const ProbeBudget := preload("res://probe_budget.gd")
 
 const SWEEP_POINTS := [0, 50, 100, 200, 400, 800, 1600]
 const VARIANCE_POINT_INDEX := 2   # на какой точке мерить разброс двух прогонов
-const WARMUP_FRAMES := 30         # отбрасываются: там компиляция PSO
-const MEASURE_FRAMES := 60        # по ним считается статистика
+## Окно измерения задаётся ВРЕМЕНЕМ, а не кадрами.
+##
+## Было 30 + 60 кадров. На 72 Гц это 1.25 с, на 120 Гц — 0.75 с: сравнение
+## частот шло при разной длительности окна и разном состоянии DVFS. Число
+## кадров теперь результат измерения, а не его настройка (см. probe_window.gd).
+const WARMUP_S := 1.0
+const MEASURE_S := 1.5
 
 var _host: Node
 var _container: Node3D
@@ -105,28 +111,11 @@ func _spawn_instanced(n: int) -> void:
 	_container.add_child(mmi)
 
 
-## Один замер: разогрев отбрасывается, затем MEASURE_FRAMES кадров статистики.
+## Один замер. Окно — общее для всех фаз (probe_window.gd): по стенным часам,
+## со счётчиком отрисовок по RID нашего вьюпорта и учётом промахов по дедлайну.
 func _measure() -> Dictionary:
-	var warm := ProbeStats.new()
-	for _i in WARMUP_FRAMES:
-		await _host.get_tree().process_frame
-		warm.add(RenderingServer.viewport_get_measured_render_time_cpu(_viewport_rid))
-
-	var cpu := ProbeStats.new()
-	var gpu := ProbeStats.new()
-	var calls_sum := 0
-	for _i in MEASURE_FRAMES:
-		await _host.get_tree().process_frame
-		cpu.add(RenderingServer.viewport_get_measured_render_time_cpu(_viewport_rid))
-		gpu.add(RenderingServer.viewport_get_measured_render_time_gpu(_viewport_rid))
-		calls_sum += int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME))
-
-	return {
-		"cpu": cpu,
-		"gpu": gpu,
-		"warm": warm,
-		"calls": int(round(float(calls_sum) / MEASURE_FRAMES)),
-	}
+	return await ProbeWindow.measure(_host, _viewport_rid, ProbeBudget.current_ms(),
+			WARMUP_S, MEASURE_S)
 
 
 func run(r: ProbeReport) -> void:
@@ -135,7 +124,7 @@ func run(r: ProbeReport) -> void:
 	r.note("")
 	r.note("--- C–D. Стоимость отрисовки ---")
 	r.note("частота обновления: %.1f Гц, кадровый бюджет: %.2f мс" % [_refresh_at_start, budget])
-	r.note("разогрев отбрасывается: %d кадров; статистика по %d кадрам" % [WARMUP_FRAMES, MEASURE_FRAMES])
+	r.note("окно: %.1f с разогрева + %.1f с замера по стенным часам (число кадров — результат, не настройка)" % [WARMUP_S, MEASURE_S])
 	r.note("")
 
 	await _sweep(r, "небатченый", unbatched, _spawn_unbatched, budget)
@@ -163,6 +152,7 @@ func _sweep(r: ProbeReport, label: String, out: Dictionary, spawn: Callable, bud
 		var gpu: ProbeStats = m["gpu"]
 		r.note("    N=%-5d draw calls движка=%-5d  CPU %s" % [n, m["calls"], cpu.brief()])
 		r.note("            %sGPU %s" % [" ".repeat(14), gpu.brief()])
+		r.note("            %s%s" % [" ".repeat(14), ProbeWindow.delivery_brief(m, ProbeBudget.current_hz())])
 		# Свип идёт до превышения бюджета — граница определяется сама,
 		# без заранее назначенного порога.
 		#
@@ -314,7 +304,7 @@ func _check_warmup(r: ProbeReport) -> void:
 	warmup_cost_ms = warm.maximum() - steady.median()
 	if warmup_cost_ms > 0.0:
 		r.pass_("разогрев PSO: пик первых %d кадров выше установившегося на %.3f мс (макс %.3f против мед %.3f)" % [
-				WARMUP_FRAMES, warmup_cost_ms, warm.maximum(), steady.median()])
+				warm.count(), warmup_cost_ms, warm.maximum(), steady.median()])
 	else:
 		r.pass_("разогрев PSO: пика не обнаружено (%.3f мс) — либо кэш PSO уже прогрет, либо шейдеры не новые" % warmup_cost_ms)
 

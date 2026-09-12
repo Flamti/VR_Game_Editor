@@ -85,7 +85,18 @@ static func max_available_hz() -> float:
 ##   "ok"          получено запрошенное (в том числе «уже были на нём»);
 ##   "denied"      спросили, рантайм не дал — ФАКТ о платформе;
 ##   "unavailable" спросить было негде — НЕ отказ и НЕ успех.
+## Запрос максимума — частный случай request_hz(). Отдельного кода у него нет,
+## иначе две ветки разошлись бы (PRACTICES §1.8).
 static func request_max(host: Node) -> Dictionary:
+	return await request_hz(host, max_available_hz())
+
+
+## Запрос КОНКРЕТНОЙ частоты. Нужен фазе матрицы: она ходит 72 → 120 → 72 → 120,
+## и «максимум» там не цель, а одна из ступеней.
+##
+## Если лестница частот пуста, max_available_hz() вернёт 0, и запрос честно
+## завершится исходом "unavailable": просить нечего — это не отказ платформы.
+static func request_hz(host: Node, want: float) -> Dictionary:
 	var d := {
 		"before": 0.0,
 		"requested": 0.0,
@@ -93,6 +104,7 @@ static func request_max(host: Node) -> Dictionary:
 		"outcome": "unavailable",
 		"waited_ms": 0.0,
 		"reason": "",
+		"listed": true,
 	}
 
 	var i := iface()
@@ -114,14 +126,23 @@ static func request_max(host: Node) -> Dictionary:
 		await host.get_tree().process_frame
 
 	var before := current_hz()
-	var want := max_available_hz()
 	d["before"] = before
 	d["got"] = before
 	d["requested"] = want
 
 	if want <= 1.0:
-		d["reason"] = "список доступных частот пуст — запрашивать нечего"
+		d["reason"] = "запрашивать нечего: цель %.1f Гц, список доступных пуст" % want
 		return d
+
+	# Запрашивать частоту, которой устройство не предлагает, — это проверка
+	# фальсификатора, а не ошибка вызова. Прибор обязан ЗАМЕТИТЬ отказ, поэтому
+	# запрос всё равно уходит, а несоответствие лестнице лишь помечается.
+	var listed := false
+	for v in available_hz():
+		if same_hz(float(v), want):
+			listed = true
+			break
+	d["listed"] = listed
 
 	if same_hz(want, before):
 		d["outcome"] = "ok"

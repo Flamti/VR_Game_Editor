@@ -33,3 +33,11 @@ openxr/startup_alert=false
 ; видит, обход не срабатывает, и xrCreateVulkanDeviceKHR падает с
 ; XR_ERROR_VALIDATION_FAILURE — движок вообще не поднимает DisplayServer.
 shaders/enabled=true
+; Отслеживание рук. Запись в манифест (com.oculus.permission.HAND_TRACKING,
+; oculus.software.handtracking) плагин вендора пишет ТОЛЬКО по этой настройке
+; (godot_openxr_vendors 5.1.0, meta_export_plugin.cpp:375). Опция пресета
+; meta_xr_features/hand_tracking лишь выбирает Optional/Required и без неё
+; молча ничего не делает — так простояла с 2026-09-12. Без записи в манифесте
+; оболочка считает контроллеры обязательными (RequiresControllersLaunchInterceptor).
+; Godot тоже регистрирует обёртку рук только по ней (openxr/register_types.cpp:230).
+openxr/extensions/hand_tracking=true

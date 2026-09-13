@@ -5,6 +5,42 @@
 
 ---
 
+## 2026-09-12 — сессия 1: исследование и фундамент
+
+**Сделано.**
+
+- Изучен `/home/flamti/Downloads/VR_Game_Editor_Research.pdf` (24 стр.) целиком. Выявлено 13
+  фактических ошибок, разбор → `docs/research/source-review.md`. Ключевые: у Quest 3 нет eye
+  tracking; Vision Pro не поддерживает OpenXR; `VK_NVX_multiview_per_view_attributes` — вендорское
+  имя NVIDIA вместо `VK_KHR_multiview`; имена OpenXR composition layers выдуманы; Vulkan 1.4 на
+  Quest 3 не подтверждается (драйверы сообщают 1.3.295); Azure Spatial Anchors выключены; Jai —
+  закрытая бета; IL2CPP вне Unity не существует; бюджеты draw calls внутри документа расходятся вчетверо.
+- Изучен `/home/flamti/Projects/sst/PRACTICES.md` — принят как обязательный метод работы.
+- Решения владельца: форк Godot + C++ модули; Quest 3 доступен; соло, длинный горизонт;
+  первая веха — шар-меню.
+- База форка уточнена с 4.6 на **4.7.2-stable** (18.08.2026): в 4.7 вошли улучшенные OpenXR
+  composition layers, Vulkan subsampled images, production-ready Android XR, стабильный GABE.
+- `git init` на ветке `main`. Создана структура каталогов, `.gitignore`, `CLAUDE.md`,
+  `docs/architecture.md`, `docs/roadmap.md`, `docs/research/source-review.md`, этот файл.
+
+**Чем проверено.**
+
+- Утверждения PDF — сверкой с вендорскими и Khronos-источниками (список в `source-review.md`).
+- Окружение — исполнением: `git 2.55`, `scons`, `python 3.14.6`, JDK 21, cmake 4.4, ninja 1.13,
+  clang 22, `adb 1.0.41` присутствуют.
+- Регрессия Godot «OpenXR+Vulkan на Android не стартует» (issue #115924) — проверено, закрыта PR #116226.
+
+**Открыто.**
+
+- **Ничего не проверено на железе.** Шлем при проверке `adb devices` не был подключён.
+- **Android SDK и NDK не установлены**, `ANDROID_HOME`/`ANDROID_NDK_ROOT` не заданы — блокер шага 0.3.
+- Наличие `VK_KHR_dynamic_rendering_local_read` на Adreno 740 не подтверждено ни в одну сторону.
+- `godot/` submodule ещё не добавлен.
+- Формат проекта и механизм экспорта как отдельного приложения — не решены, нужен ADR.
+- Ничего не закоммичено: коммит — по явной команде владельца (PRACTICES §7.2).
+
+---
+
 ## 2026-09-12 — сессия 1 (продолжение): прибор собран и фальсифицирован
 
 **Сделано.**

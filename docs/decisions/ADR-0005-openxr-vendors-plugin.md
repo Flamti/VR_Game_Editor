@@ -75,3 +75,9 @@ OpenXR не поднимается. Симптом на шлеме выгляд�
   собранного APK** (`aapt2 dump xmltree`), а не наличием строки в пресете. Опция
   `meta_xr_features/hand_tracking=1` записана, но в манифест ничего не добавляет, и причина
   не установлена — см. `docs/context.md`.
+
+  **Поправка 2026-09-13: причина установлена.** Плагин пишет запись о руках только по настройке
+  проекта `xr/openxr/extensions/hand_tracking` (`meta_export_plugin.cpp:375`); опция пресета
+  лишь выбирает Optional/Required. После `openxr/extensions/hand_tracking=true` в
+  `project.godot` манифест содержит `com.oculus.permission.HAND_TRACKING` и
+  `oculus.software.handtracking` — проверено `aapt2`. Ловушка 20 в `CLAUDE.md`.

@@ -63,7 +63,7 @@ javaVersion 17 (минимум; JDK 21 подходит). SCons доустано
 
 ```
 CLAUDE.md      этот файл — краткий контекст
-docs/          подробный контекст (см. docs/architecture.md)
+docs/          подробный контекст (см. docs/architecture.md); docs/design/ — проектные документы
 godot/         upstream Godot 4.7.2, submodule, НЕ ПРАВИМ
 modules/       наши C++ модули (custom_modules)
 projects/      Godot-проекты: прототипы и стенды
@@ -144,6 +144,11 @@ tools/         сборка, деплой, проверка артефактов
     переупаковывает библиотеку, и байты расходятся даже у верной сборки.
     `verify_artifact.sh` без аргумента брал первый найденный `.so` (старый release) — исправлено
     на самый свежий.
+20. **Руки в манифест пишет только `xr/openxr/extensions/hand_tracking=true` в `project.godot`.**
+    Опция пресета `meta_xr_features/hand_tracking` лишь выбирает Optional/Required и без настройки
+    молча ничего не делает (`meta_export_plugin.cpp:375`, плагин 5.1.0). Без записи оболочка
+    считает контроллеры обязательными — ловушка 13. Проверять `aapt2 dump xmltree`:
+    `com.oculus.permission.HAND_TRACKING` и `oculus.software.handtracking`.
 
 ## Архитектурные правила
 

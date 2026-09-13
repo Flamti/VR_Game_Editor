@@ -27,7 +27,11 @@ if [ -z "$ARTIFACT" ]; then
     # (см. Move(...) в конце лога сборки). Искать только в bin/ — значит получить
     # «артефакт не найден» на совершенно исправной сборке.
     ANDROID_LIBS="$VRGE_GODOT/platform/android/java/lib/libs"
-    ARTIFACT="$(find "$ANDROID_LIBS" -name 'libgodot_android.so' -type f -print -quit 2>/dev/null || true)"
+    # Самый СВЕЖИЙ, а не первый найденный: рядом лежат debug/ и release/, и
+    # `-print -quit` отдавал старый release после сборки template_debug —
+    # проверка краснела «свежестью» на исправной сборке (2026-09-13).
+    ARTIFACT="$(find "$ANDROID_LIBS" -name 'libgodot_android.so' -type f -printf '%T@ %p\n' 2>/dev/null \
+                | sort -nr | head -n 1 | cut -d' ' -f2- || true)"
     if [ -z "$ARTIFACT" ]; then
         ARTIFACT="$(find "$VRGE_BIN" \( -name 'libgodot.android.*.so' -o -name 'godot.linuxbsd.*' \) \
                     -type f -print -quit 2>/dev/null || true)"

@@ -86,8 +86,14 @@ static func _primitives(vp: RID) -> int:
 
 
 ## Замер. budget_ms нужен для учёта промахов; NAN — промахи не считаются.
+##
+## aux — второй вьюпорт, который рендерится в том же кадре (SubViewport слоя
+## или текстуры). Его время НЕ входит во время главного вьюпорта: у каждого
+## вьюпорта свои метки. Без отдельного счёта SubViewport выглядел бы бесплатным.
+## Промах по бюджету считается по сумме: кадр оплачивает оба.
 static func measure(host: Node, vp: RID, budget_ms: float,
-		warmup_s: float = WARMUP_S, measure_s: float = MEASURE_S) -> Dictionary:
+		warmup_s: float = WARMUP_S, measure_s: float = MEASURE_S,
+		aux: RID = RID()) -> Dictionary:
 	if quick:
 		warmup_s = QUICK_WARMUP_S
 		measure_s = QUICK_MEASURE_S
@@ -102,6 +108,8 @@ static func measure(host: Node, vp: RID, budget_ms: float,
 
 	var cpu := ProbeStats.new()
 	var gpu := ProbeStats.new()
+	var aux_cpu := ProbeStats.new()
+	var aux_gpu := ProbeStats.new()
 	var calls_sum := 0
 	var prims_sum := 0
 	var frames := 0
@@ -116,6 +124,13 @@ static func measure(host: Node, vp: RID, budget_ms: float,
 		var g := RenderingServer.viewport_get_measured_render_time_gpu(vp)
 		cpu.add(c)
 		gpu.add(g)
+		if aux.is_valid():
+			var ac := RenderingServer.viewport_get_measured_render_time_cpu(aux)
+			var ag := RenderingServer.viewport_get_measured_render_time_gpu(aux)
+			aux_cpu.add(ac)
+			aux_gpu.add(ag)
+			c += ac
+			g += ag
 		calls_sum += _calls(vp)
 		prims_sum += _primitives(vp)
 		frames += 1
@@ -131,6 +146,8 @@ static func measure(host: Node, vp: RID, budget_ms: float,
 	return {
 		"cpu": cpu,
 		"gpu": gpu,
+		"aux_cpu": aux_cpu,
+		"aux_gpu": aux_gpu,
 		"warm": warm,
 		"warm_frames": warm_frames,
 		"calls": int(round(float(calls_sum) / maxi(frames, 1))),

@@ -20,6 +20,8 @@ const SUSTAINED_MINUTES := 18.0
 var _skip_sustained := false
 var _skip_matrix := false
 var _skip_fill := false
+var _skip_layers := false
+var _skip_msaa_sweep := false
 var _minutes := SUSTAINED_MINUTES
 
 # preload, а не опора на class_name: глобальный кэш классов может быть ещё не
@@ -34,6 +36,8 @@ const ProbeState := preload("res://probe_state.gd")
 const ProbeHwStat := preload("res://probe_hwstat.gd")
 const ProbeFreqMatrix := preload("res://probe_freq_matrix.gd")
 const ProbeFill := preload("res://probe_fill.gd")
+const ProbeLayers := preload("res://probe_layers.gd")
+const ProbeMsaaSweep := preload("res://probe_msaa_sweep.gd")
 const ProbeWindow := preload("res://probe_window.gd")
 
 var _report: ProbeReport = ProbeReport.new()
@@ -44,6 +48,8 @@ var _state: ProbeState = ProbeState.new()
 var _hw: ProbeHwStat = ProbeHwStat.new()
 var _matrix: ProbeFreqMatrix = ProbeFreqMatrix.new()
 var _fill: ProbeFill = ProbeFill.new()
+var _layers: ProbeLayers = ProbeLayers.new()
+var _msaa_sweep: ProbeMsaaSweep = ProbeMsaaSweep.new()
 var _state_snapshot: Dictionary = {}
 var _expected := 0
 var _probe = null
@@ -75,6 +81,8 @@ const MINUTES_MARKER := "user://sustained_minutes"
 ## конфаунд, ради устранения которого матрица и делается).
 const SKIP_MATRIX_MARKER := "user://skip_matrix"
 const SKIP_FILL_MARKER := "user://skip_fill"
+const SKIP_LAYERS_MARKER := "user://skip_layers"
+const SKIP_MSAA_SWEEP_MARKER := "user://skip_msaa_sweep"
 
 ## Быстрый режим обкатки: окна укорачиваются так, что числа недействительны.
 ## Существует, чтобы прогнать все ветки арифметики до дорогого прогона.
@@ -88,6 +96,10 @@ func _parse_args() -> void:
 		_skip_matrix = true
 	if FileAccess.file_exists(SKIP_FILL_MARKER):
 		_skip_fill = true
+	if FileAccess.file_exists(SKIP_LAYERS_MARKER):
+		_skip_layers = true
+	if FileAccess.file_exists(SKIP_MSAA_SWEEP_MARKER):
+		_skip_msaa_sweep = true
 	if FileAccess.file_exists(QUICK_MARKER):
 		ProbeWindow.quick = true
 	if FileAccess.file_exists(MINUTES_MARKER):
@@ -101,6 +113,10 @@ func _parse_args() -> void:
 			_skip_matrix = true
 		elif a == "--vrge-skip-fill":
 			_skip_fill = true
+		elif a == "--vrge-skip-layers":
+			_skip_layers = true
+		elif a == "--vrge-skip-msaa-sweep":
+			_skip_msaa_sweep = true
 		elif a.begins_with("--vrge-minutes="):
 			_minutes = maxf(0.1, a.get_slice("=", 1).to_float())
 
@@ -129,6 +145,10 @@ func _run_all() -> void:
 		_expected += _matrix.expected_checks()
 	if xr_ok and not _skip_fill:
 		_expected += _fill.expected_checks()
+	if xr_ok and not _skip_layers:
+		_expected += _layers.expected_checks()
+	if xr_ok and not _skip_msaa_sweep:
+		_expected += _msaa_sweep.expected_checks()
 	if xr_ok and not _skip_sustained:
 		_expected += _sustained.expected_checks()
 	_expected += 1   # сама проверка XR-вьюпорта
@@ -169,6 +189,22 @@ func _run_all() -> void:
 	elif _skip_fill:
 		_report.note("")
 		_report.note("фаза P пропущена (маркер %s)" % SKIP_FILL_MARKER)
+
+	# Фаза L сама встаёт на целевую частоту: решения ADR-0003 принимаются для 90 Гц.
+	if xr_ok and not _skip_layers:
+		_layers.setup(self, self)
+		await _layers.run(_report)
+	elif _skip_layers:
+		_report.note("")
+		_report.note("фаза L пропущена (маркер %s)" % SKIP_LAYERS_MARKER)
+
+	# L4 после C–D: её контроль — наклон C–D того же прогона.
+	if xr_ok and not _skip_msaa_sweep:
+		_msaa_sweep.setup(self, self)
+		await _msaa_sweep.run(_report, _draws.us_per_drawcall_gpu)
+	elif _skip_msaa_sweep:
+		_report.note("")
+		_report.note("фаза L4 пропущена (маркер %s)" % SKIP_MSAA_SWEEP_MARKER)
 
 	# Матрица и ось оставили частоту на последней своей ступени. Длинный прогон
 	# обязан идти на рабочей частоте, а не на той, где случайно закончили.
@@ -311,6 +347,28 @@ func _write_report() -> void:
 	else:
 		for hz in _fill.by_freq:
 			f.store_line("%.1f Гц: %s мкс на Мпиксель" % [hz, _fmt(_fill.by_freq[hz]["us_per_mpx"])])
+	f.store_line("```")
+	f.store_line("")
+	f.store_line("## Ручки рендера и поверхности меню (фаза L)")
+	f.store_line("```")
+	if _layers.results.is_empty():
+		f.store_line("не измерялись")
+	else:
+		f.store_line("имя\tΔGPU мс\tΔCPU мс\tразброс мс\tзначимо")
+		for k in _layers.results:
+			var e: Dictionary = _layers.results[k]
+			f.store_line("%s\t%.3f\t%.3f\t%.3f\t%s" % [k, e["gpu"], e["cpu"], e["spread"], e["significant"]])
+	f.store_line("```")
+	f.store_line("")
+	f.store_line("## Цена draw call под MSAA (фаза L4)")
+	f.store_line("```")
+	if _msaa_sweep.results.is_empty():
+		f.store_line("не измерялась")
+	else:
+		f.store_line("MSAA\tмкс/вызов GPU\tмкс/вызов CPU\tразброс\tбаза GPU мс")
+		for m in _msaa_sweep.results:
+			var e: Dictionary = _msaa_sweep.results[m]
+			f.store_line("%s\t%.3f\t%.3f\t%.3f\t%.3f" % [ProbeMsaaSweep.NAMES[m], e["gpu_us"], e["cpu_us"], e["spread_us"], e["base_gpu"]])
 	f.store_line("```")
 	f.store_line("")
 	f.store_line("## Вердикт")

@@ -24,6 +24,10 @@ static const char *VRGE_PROBED_XR_EXTENSIONS[] = {
 	"XR_KHR_composition_layer_equirect2",
 	"XR_KHR_composition_layer_depth",
 	"XR_FB_space_warp",
+	// Godot 4.7 синтезирует кадры через это расширение, а не через FB space
+	// warp (openxr_frame_synthesis_extension.cpp:77). Второе есть — это ничего
+	// не говорит о первом (ADR-0003, проверка L0).
+	"XR_EXT_frame_synthesis",
 	"XR_FB_foveation",
 	"XR_FB_foveation_configuration",
 	"XR_META_environment_depth",

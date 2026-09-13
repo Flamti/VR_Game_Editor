@@ -38,8 +38,8 @@ tools/gpu_sampler.sh [файл] [период]   # клок GPU с хоста, �
 cd godot/platform/android/java && ./gradlew generateGodotTemplates      # 2. шаблон APK
 cp $R/godot/bin/android_debug.apk $R/godot/bin/android_source.zip \
    ~/.local/share/godot/export_templates/4.7.2.stable/                  # 3. установить шаблон
-godot --headless --path projects/probe \
-      --install-android-build-template --export-debug "<пресет>"        # 4. экспорт
+$R/godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/probe \
+      --install-android-build-template --export-debug "<пресет>"        # 4. экспорт (ловушка 19)
 ```
 
 Каталог шаблонов — `4.7.2.stable` (это `GODOT_VERSION_FULL_CONFIG`, без имени сборки и хеша).
@@ -137,6 +137,13 @@ tools/         сборка, деплой, проверка артефактов
     `RAYTRACING_PIPELINE`, `BUFFER_DEVICE_ADDRESS`, `IMAGE_ATOMIC_32_BIT`, `HDR_OUTPUT`.
     `SUPPORTS_MULTIVIEW` и `ATTACHMENT_VRS` — нет. Сырые числа вместо имён не использовать:
     при смене порядка enum прибор молча спросит не то. Идти через `VRGEProbe.get_engine_features()`.
+19. **`godot` в PATH — системный пакет 4.7.stable, а не наш редактор 4.7.2.** Он ищет шаблоны в
+    `4.7.stable`, экспорт падает с `Android build version mismatch`, и **старый APK остаётся на
+    месте** с видом свежего. Экспортировать только `godot/bin/godot.linuxbsd.editor.x86_64`.
+    Свежесть `.so` в APK проверять **build-id** (`llvm-readelf -n`), а не `cmp`: gradle
+    переупаковывает библиотеку, и байты расходятся даже у верной сборки.
+    `verify_artifact.sh` без аргумента брал первый найденный `.so` (старый release) — исправлено
+    на самый свежий.
 
 ## Архитектурные правила
 

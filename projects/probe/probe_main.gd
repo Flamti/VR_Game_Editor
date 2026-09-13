@@ -141,7 +141,7 @@ func _run_all() -> void:
 	else:
 		_report.fail("XR-вьюпорт: НЕ включён — замеры времени кадра меряли бы пустоту")
 
-	await _request_max_refresh(xr_ok)
+	await _request_target_refresh(xr_ok)
 
 	_caps.run(_probe, _report)
 	_state_snapshot = _state.run(get_viewport(), _report)
@@ -173,9 +173,9 @@ func _run_all() -> void:
 	# Матрица и ось оставили частоту на последней своей ступени. Длинный прогон
 	# обязан идти на рабочей частоте, а не на той, где случайно закончили.
 	if xr_ok and not _skip_sustained:
-		var back: Dictionary = await ProbeBudget.request_max(self)
+		var back: Dictionary = await ProbeBudget.request_target(self)
 		_report.note("")
-		_report.note("возврат на рабочую частоту перед фазой E: %.1f Гц" % back["got"])
+		_report.note("возврат на целевую частоту перед фазой E: %.1f Гц" % back["got"])
 
 	if xr_ok and not _skip_sustained:
 		_sustained.setup(self, self)
@@ -187,36 +187,41 @@ func _run_all() -> void:
 	_verdict()
 
 
-## Фаза B0: частота кадров. Запрашивается МАКСИМАЛЬНАЯ доступная (ADR-0006).
+## Фаза B0: частота кадров. Запрашивается ЦЕЛЕВАЯ — 90 Гц (ADR-0007).
+##
+## Прежде здесь просился максимум доступного (ADR-0006). Правило снято: максимум
+## оказался неопределён, а на 120 Гц треть кадров при 1600 объектах уже мимо
+## дедлайна. Частота назначается явно: цель 90 Гц, минимум 72 Гц.
 ##
 ## Делается ДО свипов и до длинного прогона по двум причинам. Первая: все
 ## числа ниже — производные от бюджета, а бюджет производен от частоты, и
 ## менять её посреди измерений значит мерить два разных мира. Вторая: смена
 ## частоты во время свипа его аннулирует, и _check_refresh_stable() покрасит
 ## прогон в красное — правильно, но поздно.
-func _request_max_refresh(xr_ok: bool) -> void:
+func _request_target_refresh(xr_ok: bool) -> void:
 	_report.note("")
-	_report.note("--- B0. Частота кадров (ADR-0006) ---")
+	_report.note("--- B0. Частота кадров (ADR-0007: цель %.0f, минимум %.0f Гц) ---" % [
+			ProbeBudget.TARGET_HZ, ProbeBudget.FLOOR_HZ])
 	if not xr_ok:
 		_report.unkn("частота: XR-сессии нет, запрашивать не у чего")
 		return
 
-	var d: Dictionary = await ProbeBudget.request_max(self)
-	_report.note("доступные частоты: %s" % str(ProbeBudget.available_hz()))
+	var d: Dictionary = await ProbeBudget.request_target(self)
+	_report.note("доступные частоты: %s (перечисление НЕисчерпывающе по замыслу вендора)" % str(ProbeBudget.available_hz()))
 	var got: float = d["got"]
 	_report.note("бюджет кадра: %.2f мс при %.1f Гц — ВСЕ числа ниже относятся к этой частоте" % [
 			ProbeBudget.ms_for_hz(got), got])
 
-	# Три исхода, а не два (PRACTICES §3.2). Отказ рантайма — это ФАКТ о
-	# платформе и он обязан быть красным: иначе прогон на 72 Гц выглядел бы
-	# неотличимо от прогона на 120.
+	# Три исхода, а не два (PRACTICES §3.2). Отказ — это ФАКТ о платформе и он
+	# обязан быть красным: иначе прогон на минимуме выглядел бы неотличимо от
+	# прогона на цели.
 	match d["outcome"]:
 		"ok":
-			_report.pass_("частота: запрошен максимум %.1f Гц — получено %.1f (было %.1f)%s" % [
+			_report.pass_("частота: запрошена цель %.1f Гц — получено %.1f (было %.1f)%s" % [
 					d["requested"], got, d["before"],
 					", %s" % d["reason"] if d["reason"] != "" else ", ждали %.0f мс" % d["waited_ms"]])
 		"denied":
-			_report.fail("частота: запрошено %.1f Гц, работаем на %.1f — %s. Бюджет %.2f мс вместо %.2f" % [
+			_report.fail("частота: ЦЕЛЬ %.1f Гц не получена, работаем на %.1f — %s. Бюджет %.2f мс вместо %.2f" % [
 					d["requested"], got, d["reason"],
 					ProbeBudget.ms_for_hz(got), ProbeBudget.ms_for_hz(d["requested"])])
 		_:

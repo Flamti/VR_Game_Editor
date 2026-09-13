@@ -29,8 +29,14 @@ const ProbeWindow := preload("res://probe_window.gd")
 const ProbeState := preload("res://probe_state.gd")
 const ProbeHwStat := preload("res://probe_hwstat.gd")
 
-## Ступени. Порядок с повтором — суть прибора, менять его нельзя, не поняв выше.
-const STEPS := [72.0, 120.0, 72.0, 120.0]
+## Ступени: минимум и цель (ADR-0007). Порядок с повтором — суть прибора,
+## менять его нельзя, не поняв объяснение выше.
+##
+## Было [72, 120]: тогда 120 Гц считались рабочей частотой по правилу «просить
+## максимум». Правило снято, рабочий диапазон теперь 72–90, и сравнивать надо
+## внутри него. Данные по паре 72/120 сохранены в docs/hardware-profile.md и
+## остаются верными для своих частот — интерполировать их на 90 нельзя.
+const STEPS := [ProbeBudget.FLOOR_HZ, ProbeBudget.TARGET_HZ, ProbeBudget.FLOOR_HZ, ProbeBudget.TARGET_HZ]
 
 ## Точки свипа: концы дают наклон, середина показывает, что он прямой.
 const SWEEP_POINTS := [0, 400, 1600]
@@ -38,17 +44,16 @@ const SWEEP_POINTS := [0, 400, 1600]
 ## Канарейка — неизменная нагрузка на всех ступенях.
 const CANARY_N := 400
 
-## Частота, которой у устройства нет. Фальсификатор запроса: прибор обязан
-## УВИДЕТЬ отказ, а не принять неизменившуюся частоту за успех.
+## Частота, которой у устройства нет без специальных свойств. Фальсификатор
+## запроса: прибор обязан УВИДЕТЬ отказ, а не принять неизменившуюся частоту
+## за успех.
 ##
 ## Здесь стояло 144 Гц — и обкатка показала, что это НЕ невозможная частота:
-## рантайм её дал, и доставка подтвердила 143.8 к/с. Значит перечисление
-## xrEnumerateDisplayRefreshRatesFB занижает потолок устройства (см. _check_ceiling).
-## Фальсификатору нужна величина, которой заведомо нет.
+## рантайм её дал, доставка подтвердила 143.8 к/с. Причина потом нашлась в
+## документации Meta: 72–207 Гц доступны без настройки, а перечисление
+## неисчерпывающе по замыслу. 240 Гц требуют debug.oculus.forceDisplayScaling,
+## которого мы не ставим, — и потому годятся в фальсификаторы.
 const IMPOSSIBLE_HZ := 240.0
-
-## Частота выше перечисленного потолка, работоспособность которой ИЗМЕРЕНА.
-const BEYOND_LIST_HZ := 144.0
 
 var _host: Node
 var _container: Node3D
@@ -58,13 +63,20 @@ var _log_path := "user://freq_matrix.tsv"
 ## Результаты по ступеням: по записи на каждую.
 var steps: Array[Dictionary] = []
 var falsifier_seen := false
+## Прошла ли проверка значимости. Атрибуция без неё бессмысленна.
+var _significant := false
 
 
 func expected_checks() -> int:
-	# фальсификатор частоты 1, потолок против перечисления 1, ступени дали
-	# запрошенное 1, заявленная частота подтверждена доставкой 1, состояние не
+	# фальсификатор частоты 1, ступени дали запрошенное 1, заявленная частота
+	# подтверждена доставкой 1, счётчик отрисовок сошёлся с N 1, состояние не
 	# менялось 1, живость резиденции 1, значимость разницы 1, принадлежность
 	# эффекта 1, канарейка 1
+	#
+	# Проверки потолка здесь больше нет. Она подтверждала, что 144 Гц работают
+	# вопреки перечислению; вопрос закрыт документацией вендора и записан в
+	# ADR-0006 с поправкой. Держать её значило бы гонять дисплей на 144 Гц в
+	# каждом прогоне ради факта, который уже установлен.
 	return 9
 
 
@@ -80,6 +92,22 @@ func setup(host: Node, parent: Node) -> void:
 func _clear() -> void:
 	for c in _container.get_children():
 		c.queue_free()
+
+
+## Очистка с ОЖИДАНИЕМ освобождения.
+##
+## queue_free() освобождает узлы в конце кадра, а после сотен объектов это
+## занимает не один кадр. Прогон 7 показал цену: нулевая точка ступени 2 дала
+## 3.374 мс против 2.708 на ступени 0 — первое окно поймало хвост уборки
+## предыдущей ступени. Через наклон (Δ/1600) это даёт 0.42 мкс на вызов, то
+## есть ровно тот масштаб, который проверка значимости приняла за шум и из-за
+## которого разница между 72 и 90 Гц не подтвердилась.
+func _clear_and_wait() -> void:
+	_clear()
+	var guard := 0
+	while _container.get_child_count() > 0 and guard < 60:
+		await _host.get_tree().process_frame
+		guard += 1
 
 
 ## Та же геометрия, что в фазе C–D: крошечные квады с уникальным материалом.
@@ -103,15 +131,19 @@ func run(r: ProbeReport) -> void:
 	r.note("ступени: %s Гц; свип %s; канарейка N=%d" % [str(STEPS), str(SWEEP_POINTS), CANARY_N])
 	r.note("порядок с повтором отделяет частоту от прогрева: эффект частоты переворачивается, эффект прогрева — нет")
 
+	# Кадр обязан быть пуст ДО первого измерения: предыдущая фаза ещё
+	# освобождает свои объекты, и первые окна ловят её, а не нашу нагрузку.
+	if not await ProbeWindow.wait_until_idle(_host, _vp):
+		r.note("ВНИМАНИЕ: кадр не опустел за отведённое время — первые точки могут быть загрязнены")
+
 	await _falsifier(r)
-	await _check_ceiling(r)
 
 	var f := FileAccess.open(_log_path, FileAccess.WRITE)
 	if f != null:
 		# unix-время первой колонкой: по нему этот TSV сводится с выводом
 		# tools/gpu_sampler.sh, который снимает клок с хоста (изнутри
 		# приложения /sys не открыть — см. probe_hwstat.gd).
-		f.store_line("# unix_время\tступень\tзапрошено\tполучено\tN\tCPU мед\tGPU мед\tкадров\tк/с\tсверх бюджета\tdraw calls\tклок Гц\tбуфер")
+		f.store_line("# unix_время\tтип\tступень\tзапрошено\tполучено\tN\tCPU мед\tGPU мед\tкадров\tк/с\tсверх бюджета\tdraw calls\tбуфер")
 
 	var denied := 0
 	for idx in STEPS.size():
@@ -129,27 +161,21 @@ func run(r: ProbeReport) -> void:
 
 		var sweep := {}
 		for n in SWEEP_POINTS:
-			_clear()
-			await _host.get_tree().process_frame
+			await _clear_and_wait()
 			_spawn(n)
 			var m: Dictionary = await ProbeWindow.measure(_host, _vp, budget)
 			sweep[n] = m
 			var cpu: ProbeStats = m["cpu"]
 			var gpu: ProbeStats = m["gpu"]
 			if f != null:
-				f.store_line("%.3f\t%d\t%.1f\t%.1f\t%d\t%.3f\t%.3f\t%d\t%.1f\t%d\t%d\t%d\t%s" % [
-						Time.get_unix_time_from_system(),
-						idx, want, got, n, cpu.median(), gpu.median(), m["frames"], m["fps"],
-						m["over"], m["calls"], ProbeHwStat.gpu_clock_hz(),
-						state.get("render_target_size", "?")])
-				f.flush()
+				_write_row(f, "свип", idx, want, got, n, m, state)
 
 		# Канарейка меряется последней на ступени: к этому моменту ступень
 		# прогрета так же, как была прогрета предыдущая, и сравнение честное.
-		_clear()
-		await _host.get_tree().process_frame
+		await _clear_and_wait()
 		_spawn(CANARY_N)
 		var canary: Dictionary = await ProbeWindow.measure(_host, _vp, budget)
+		_write_row(f, "канарейка", idx, want, got, CANARY_N, canary, state)
 		_clear()
 
 		var res_after := ProbeHwStat.clock_stats()
@@ -169,11 +195,28 @@ func run(r: ProbeReport) -> void:
 
 	_check_steps_granted(r, denied)
 	_check_hz_vs_delivery(r)
+	_check_calls_match(r)
 	_check_state_stable(r)
 	_check_residency_alive(r)
 	_check_significance(r)
 	_check_attribution(r)
 	_check_canary(r)
+
+
+## Одна строка данных. Общая для свипа и канарейки: раньше канарейка в файл не
+## попадала вовсе, и её всплеск на последней ступени нечем было сопоставить ни
+## со временем, ни с клоком.
+func _write_row(f: FileAccess, kind: String, idx: int, want: float, got: float,
+		n: int, m: Dictionary, state: Dictionary) -> void:
+	if f == null:
+		return
+	var cpu: ProbeStats = m["cpu"]
+	var gpu: ProbeStats = m["gpu"]
+	f.store_line("%.3f\t%s\t%d\t%.1f\t%.1f\t%d\t%.3f\t%.3f\t%d\t%.1f\t%d\t%d\t%s" % [
+			Time.get_unix_time_from_system(), kind, idx, want, got, n,
+			cpu.median(), gpu.median(), m["frames"], m["fps"], m["over"], m["calls"],
+			state.get("render_target_size", "?")])
+	f.flush()
 
 
 ## Фальсификатор запроса частоты: просим то, чего у устройства нет.
@@ -195,8 +238,7 @@ func _falsifier(r: ProbeReport) -> void:
 				IMPOSSIBLE_HZ, claimed])
 	elif res["outcome"] == "ok":
 		# Рантайм согласился. Спрашиваем не его, а кадры.
-		_clear()
-		await _host.get_tree().process_frame
+		await _clear_and_wait()
 		var m: Dictionary = await ProbeWindow.measure(_host, _vp, NAN)
 		var fps: float = m["fps"]
 		if not is_nan(fps) and absf(fps - claimed) > claimed * 0.15:
@@ -208,40 +250,6 @@ func _falsifier(r: ProbeReport) -> void:
 					claimed, fps])
 	else:
 		r.unkn("фальсификатор частоты: %s" % res["reason"])
-
-
-## Потолок устройства против его же перечисления.
-##
-## xrEnumerateDisplayRefreshRatesFB отдаёт [72, 80, 90, 120], и ADR-0006
-## строится на «просить максимум из лестницы». Обкатка 2026-09-13 показала, что
-## лестница НЕ полна: 144 Гц запрашиваются, даются и подтверждаются доставкой
-## 143.8 к/с. Значит «максимум доступного» вычислен не из того списка, а бюджет
-## на настоящем потолке — 6.94 мс, а не 8.33.
-##
-## Проверка не ищет потолок лестницей вверх: перебирать неизвестные режимы на
-## чужом шлеме — не дело прибора. Она проверяет ровно один измеренный факт.
-func _check_ceiling(r: ProbeReport) -> void:
-	var listed := ProbeBudget.max_available_hz()
-	var res: Dictionary = await ProbeBudget.request_hz(_host, BEYOND_LIST_HZ)
-	var claimed: float = res["got"]
-	if res["outcome"] != "ok":
-		r.pass_("потолок: %.0f Гц выше перечисленного максимума %.0f и НЕ даются — перечисление полно" % [
-				BEYOND_LIST_HZ, listed])
-		return
-
-	await ProbeWindow.settle(_host)
-	_clear()
-	await _host.get_tree().process_frame
-	var m: Dictionary = await ProbeWindow.measure(_host, _vp, NAN)
-	var fps: float = m["fps"]
-	if not is_nan(fps) and absf(fps - BEYOND_LIST_HZ) <= BEYOND_LIST_HZ * 0.15:
-		# Это не отказ прибора и не поломка: это факт о платформе, который
-		# опровергает посылку ADR-0006 о том, что потолок берётся из лестницы.
-		r.fail("потолок: перечисление отдаёт максимум %.0f Гц, но %.0f Гц работают и подтверждены доставкой %.1f к/с — лестница ЗАНИЖАЕТ потолок, бюджет на нём %.2f мс" % [
-				listed, BEYOND_LIST_HZ, fps, ProbeBudget.ms_for_hz(BEYOND_LIST_HZ)])
-	else:
-		r.pass_("потолок: рантайм согласился на %.0f Гц, но доставка %.1f к/с это не подтверждает — перечисление можно считать полным" % [
-				BEYOND_LIST_HZ, fps])
 
 
 func _report_step(r: ProbeReport, rec: Dictionary) -> void:
@@ -365,6 +373,36 @@ func _check_hz_vs_delivery(r: ProbeReport) -> void:
 		r.fail("частота против доставки: %s — заявленная частота не подтверждается кадрами, бюджеты этих ступеней посчитаны не от той величины" % "; ".join(bad))
 
 
+## Счётчик отрисовок обязан сойтись с числом заявленных объектов.
+##
+## Гейт §2.5, которого у матрицы не было, хотя у фазы C–D он есть с самого
+## начала. Прогон 8 показал, чем это кончается: первая ступень мерила 1175
+## вызовов вместо 1600, наклон считался по номинальному N и был занижен, а
+## увидеть это можно было только вручную в TSV. Теперь несовпадение называется
+## поимённо и красит прогон.
+func _check_calls_match(r: ProbeReport) -> void:
+	var off: Array[String] = []
+	var checked := 0
+	for rec in steps:
+		for n in rec["sweep"]:
+			if n <= 0:
+				continue
+			checked += 1
+			var actual: int = rec["sweep"][n]["calls"]
+			if absf(float(actual - n)) / float(n) > 0.05:
+				off.append("ступень %d N=%d→%d" % [rec["idx"], n, actual])
+		var c: int = rec["canary"]["calls"]
+		checked += 1
+		if absf(float(c - CANARY_N)) / float(CANARY_N) > 0.05:
+			off.append("ступень %d канарейка %d→%d" % [rec["idx"], CANARY_N, c])
+	if checked == 0:
+		r.unkn("счётчик отрисовок: точек нет")
+	elif off.is_empty():
+		r.pass_("счётчик отрисовок: сошёлся с заявленным на всех %d точках — наклоны считаются по настоящей нагрузке" % checked)
+	else:
+		r.fail("счётчик отрисовок НЕ сошёлся: %s — на этих точках наклон считался по номинальному N и занижен, ступени недействительны" % ", ".join(off))
+
+
 ## Значима ли разница между частотами. Порог не назначается: им служит разброс
 ## между двумя ступенями ОДНОЙ частоты, измеренный в этом же прогоне.
 func _check_significance(r: ProbeReport) -> void:
@@ -372,18 +410,23 @@ func _check_significance(r: ProbeReport) -> void:
 	if v.is_empty():
 		r.unkn("значимость разницы: наклон посчитан не на всех ступенях")
 		return
-	var m72: float = (v["s72"][0] + v["s72"][1]) / 2.0
-	var m120: float = (v["s120"][0] + v["s120"][1]) / 2.0
-	var spread: float = maxf(absf(v["s72"][0] - v["s72"][1]), absf(v["s120"][0] - v["s120"][1]))
-	var diff: float = absf(m72 - m120)
+	var m_lo: float = (v["lo"][0] + v["lo"][1]) / 2.0
+	var m_hi: float = (v["hi"][0] + v["hi"][1]) / 2.0
+	var spread: float = maxf(absf(v["lo"][0] - v["lo"][1]), absf(v["hi"][0] - v["hi"][1]))
+	var diff: float = absf(m_lo - m_hi)
+	# Подписи берутся из ФАКТИЧЕСКИ полученных частот, а не из констант: если
+	# рантайм дал не то, что просили, отчёт обязан назвать реальные ступени.
+	var hz_lo: float = steps[0]["got"]
+	var hz_hi: float = steps[1]["got"]
 
 	r.note("")
-	r.note("наклон по ступеням, мкс на вызов: 72 Гц %.3f и %.3f; 120 Гц %.3f и %.3f" % [
-			v["s72"][0], v["s72"][1], v["s120"][0], v["s120"][1]])
-	r.note("    среднее 72 Гц %.3f, 120 Гц %.3f, разница %.3f; разброс внутри частоты %.3f" % [
-			m72, m120, diff, spread])
+	r.note("наклон по ступеням, мкс на вызов: %.0f Гц %.3f и %.3f; %.0f Гц %.3f и %.3f" % [
+			hz_lo, v["lo"][0], v["lo"][1], hz_hi, v["hi"][0], v["hi"][1]])
+	r.note("    среднее %.0f Гц %.3f, %.0f Гц %.3f, разница %.3f; разброс внутри частоты %.3f" % [
+			hz_lo, m_lo, hz_hi, m_hi, diff, spread])
 
 	if diff > spread * 2.0:
+		_significant = true
 		r.pass_("значимость: разница между частотами %.3f мкс вдвое превышает разброс внутри частоты %.3f — разница настоящая" % [diff, spread])
 	else:
 		r.fail("значимость: разница между частотами %.3f мкс НЕ превышает вдвое разброс внутри частоты %.3f — на этих данных удвоение цены draw call не воспроизводится" % [diff, spread])
@@ -397,6 +440,15 @@ func _check_significance(r: ProbeReport) -> void:
 ## частоте не подчиняется. Разброс внутри частоты этого различить не может —
 ## он одинаков в обоих случаях.
 func _check_attribution(r: ProbeReport) -> void:
+	# Если значимость не прошла, атрибутировать нечего: форма ряда из четырёх
+	# точек, укладывающихся в шум, ничего не значит. Прогон 7 показал, зачем
+	# это нужно: значимость упала (0.436 против разброса 0.359), а атрибуция
+	# рядом отрапортовала «эффект принадлежит частоте» — и прочитать это можно
+	# было как подтверждение эффекта. Тот же дефект, что «наклон при
+	# непройденном гейте» в фазе P.
+	if not _significant:
+		r.unkn("принадлежность эффекта: значимость не подтверждена, атрибутировать нечего")
+		return
 	if steps.size() < 4:
 		r.unkn("принадлежность эффекта: ступеней меньше четырёх")
 		return
@@ -427,34 +479,53 @@ func _check_attribution(r: ProbeReport) -> void:
 func _slopes() -> Dictionary:
 	if steps.size() < 4:
 		return {}
-	var s72: Array[float] = [slope_us(steps[0]), slope_us(steps[2])]
-	var s120: Array[float] = [slope_us(steps[1]), slope_us(steps[3])]
-	for x in s72 + s120:
+	var lo: Array[float] = [slope_us(steps[0]), slope_us(steps[2])]
+	var hi: Array[float] = [slope_us(steps[1]), slope_us(steps[3])]
+	for x in lo + hi:
 		if is_nan(x):
 			return {}
-	return {"s72": s72, "s120": s120}
+	return {"lo": lo, "hi": hi}
 
 
-## Канарейка: одинаковая нагрузка на всех ступенях. Её ход по времени — дрейф
-## как таковой, без примеси свипа.
+## Канарейка: одинаковая нагрузка, сравниваемая ВНУТРИ одной частоты.
+##
+## Дефект, найденный прогоном 6. Прежняя версия брала худшую ступень против
+## первой поперёк всех четырёх и выдала «+50.2%» — но ступени идут на разных
+## частотах, а цена кадра от частоты зависит, и это ровно тот эффект, который
+## матрица измеряет. Канарейка мерила его же и называла дрейфом.
+##
+## Правильное сравнение — повтор той же частоты: 72 против 72, 90 против 90.
+## На данных прогона 6 это давало 72 Гц +4.2% против 120 Гц +49.9%: дрейф был,
+## но он жил на одной частоте, и прежняя формулировка это скрывала.
 func _check_canary(r: ProbeReport) -> void:
-	if steps.size() < 2:
-		r.unkn("канарейка: ступеней меньше двух")
+	if steps.size() < 4:
+		r.unkn("канарейка: ступеней меньше четырёх, повторов частоты нет")
 		return
-	var vals: Array[float] = []
+
 	var line: Array[String] = []
 	for rec in steps:
 		var g: ProbeStats = rec["canary"]["gpu"]
-		vals.append(g.median())
 		line.append("%.3f@%.0fГц" % [g.median(), rec["got"]])
 	r.note("канарейка N=%d, GPU мед по ступеням: %s мс" % [CANARY_N, ", ".join(line)])
 
-	var first := vals[0]
-	var worst := first
-	for v in vals:
-		worst = maxf(worst, v)
-	var rel := (worst - first) / maxf(first, 0.0001) * 100.0
-	if rel < 10.0:
-		r.pass_("канарейка: худшая ступень %+.1f%% от первой — прогрев за матрицу не съел сравнение" % rel)
+	var worst_hz := 0.0
+	var worst_rel := 0.0
+	var parts: Array[String] = []
+	# Пары повторов одной частоты: (0,2) и (1,3) — так устроен порядок STEPS.
+	for pair in [[0, 2], [1, 3]]:
+		var a: ProbeStats = steps[pair[0]]["canary"]["gpu"]
+		var b: ProbeStats = steps[pair[1]]["canary"]["gpu"]
+		var hz: float = steps[pair[0]]["got"]
+		var rel := (b.median() - a.median()) / maxf(a.median(), 0.0001) * 100.0
+		parts.append("%.0f Гц %+.1f%%" % [hz, rel])
+		if absf(rel) > absf(worst_rel):
+			worst_rel = rel
+			worst_hz = hz
+	r.note("    дрейф между повторами одной частоты: %s" % ", ".join(parts))
+
+	if absf(worst_rel) < 10.0:
+		r.pass_("канарейка: наибольший дрейф между повторами одной частоты %+.1f%% (на %.0f Гц) — условия за матрицу не уехали" % [
+				worst_rel, worst_hz])
 	else:
-		r.fail("канарейка: худшая ступень %+.1f%% от первой — за время матрицы условия уехали, ступени сравнивать опасно" % rel)
+		r.fail("канарейка: между повторами %.0f Гц нагрузка изменилась на %+.1f%% — условия уехали ВНУТРИ одной частоты, сравнение ступеней ненадёжно" % [
+				worst_hz, worst_rel])

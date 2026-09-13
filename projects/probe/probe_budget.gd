@@ -12,6 +12,16 @@ class_name ProbeBudget
 ## разошлись бы (PRACTICES §1.8). До этого файла свои `_refresh_rate()` и
 ## `_budget_ms()` были у probe_drawcalls.gd и у probe_sustained.gd.
 
+## Целевая и минимальная частота (ADR-0007).
+##
+## Раньше здесь действовало «просить максимум» (ADR-0006). Правило снято: максимум оказался
+## неопределён — перечисление устройства неисчерпывающе по замыслу вендора, — а на 120 Гц треть
+## кадров при 1600 объектах уже не укладывается в бюджет. Частота теперь назначается явно.
+##
+## 90 Гц — цель, 11.11 мс. 72 Гц — минимум, 13.89 мс. Оба режима поддерживаемые.
+const TARGET_HZ := 90.0
+const FLOOR_HZ := 72.0
+
 ## Допуск сравнения частот. Строгое равенство float здесь неуместно: числа
 ## приходят от рантайма, и 119.99 против 120.0 не должно читаться как отказ.
 const HZ_EPS := 0.5
@@ -49,6 +59,24 @@ static func current_ms() -> float:
 	return ms_for_hz(current_hz())
 
 
+## Бюджеты цели и минимума — чтобы их нигде не пришлось считать вручную.
+static func target_ms() -> float:
+	return ms_for_hz(TARGET_HZ)
+
+
+static func floor_ms() -> float:
+	return ms_for_hz(FLOOR_HZ)
+
+
+## Есть ли частота в перечислении устройства. Отдельно от «работает ли она»:
+## перечисление неисчерпывающе по замыслу вендора, 144 Гц тому пример.
+static func is_listed(hz: float) -> bool:
+	for v in available_hz():
+		if same_hz(float(v), hz):
+			return true
+	return false
+
+
 ## Есть ли вообще API частот. Нужен отдельно от available_hz(): пустой список
 ## и отсутствующий API — разные вещи, и путать их нельзя (PRACTICES §3.2).
 static func has_rate_api() -> bool:
@@ -60,13 +88,6 @@ static func available_hz() -> Array:
 	if not has_rate_api():
 		return []
 	return iface().get_available_display_refresh_rates()
-
-
-static func max_available_hz() -> float:
-	var best := 0.0
-	for v in available_hz():
-		best = maxf(best, float(v))
-	return best
 
 
 ## Запрос максимальной доступной частоты (ADR-0006).
@@ -85,17 +106,21 @@ static func max_available_hz() -> float:
 ##   "ok"          получено запрошенное (в том числе «уже были на нём»);
 ##   "denied"      спросили, рантайм не дал — ФАКТ о платформе;
 ##   "unavailable" спросить было негде — НЕ отказ и НЕ успех.
-## Запрос максимума — частный случай request_hz(). Отдельного кода у него нет,
-## иначе две ветки разошлись бы (PRACTICES §1.8).
-static func request_max(host: Node) -> Dictionary:
-	return await request_hz(host, max_available_hz())
+## Запрос ЦЕЛЕВОЙ частоты (ADR-0007). Частный случай request_hz(): отдельного
+## кода у него нет, иначе две ветки разошлись бы (PRACTICES §1.8).
+##
+## Функции request_max() больше нет намеренно. Пока она существовала рядом,
+## в приборе жили две политики частоты сразу, и любая новая фаза могла взять
+## не ту.
+static func request_target(host: Node) -> Dictionary:
+	return await request_hz(host, TARGET_HZ)
 
 
 ## Запрос КОНКРЕТНОЙ частоты. Нужен фазе матрицы: она ходит 72 → 120 → 72 → 120,
 ## и «максимум» там не цель, а одна из ступеней.
 ##
-## Если лестница частот пуста, max_available_hz() вернёт 0, и запрос честно
-## завершится исходом "unavailable": просить нечего — это не отказ платформы.
+## Запрос частоты <= 1 Гц завершается исходом "unavailable": просить нечего —
+## это не отказ платформы.
 static func request_hz(host: Node, want: float) -> Dictionary:
 	var d := {
 		"before": 0.0,

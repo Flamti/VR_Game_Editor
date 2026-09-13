@@ -74,6 +74,22 @@ func _clear() -> void:
 		c.queue_free()
 
 
+## Очистка с ОЖИДАНИЕМ освобождения.
+##
+## queue_free() освобождает узлы в конце кадра, а после сотен объектов это
+## занимает не один кадр. Прогон 7 показал цену: нулевая точка ступени 2 дала
+## 3.374 мс против 2.708 на ступени 0 — первое окно поймало хвост уборки
+## предыдущей ступени. Через наклон (Δ/1600) это даёт 0.42 мкс на вызов, то
+## есть ровно тот масштаб, который проверка значимости приняла за шум и из-за
+## которого разница между 72 и 90 Гц не подтвердилась.
+func _clear_and_wait() -> void:
+	_clear()
+	var guard := 0
+	while _container.get_child_count() > 0 and guard < 60:
+		await _host.get_tree().process_frame
+		guard += 1
+
+
 func _tiny_quad() -> Mesh:
 	var m := QuadMesh.new()
 	m.size = Vector2(0.01, 0.01)   # крошечный: мерим draw calls, не филлрейт
@@ -143,8 +159,7 @@ func run(r: ProbeReport) -> void:
 func _sweep(r: ProbeReport, label: String, out: Dictionary, spawn: Callable, budget: float) -> void:
 	r.note("свип «%s»:" % label)
 	for n in SWEEP_POINTS:
-		_clear()
-		await _host.get_tree().process_frame
+		await _clear_and_wait()
 		spawn.call(n)
 		var m: Dictionary = await _measure()
 		out[n] = m
@@ -178,8 +193,7 @@ func _variance(r: ProbeReport) -> void:
 	var a_med := 0.0
 	var b_med := 0.0
 	for pass_i in 2:
-		_clear()
-		await _host.get_tree().process_frame
+		await _clear_and_wait()
 		_spawn_unbatched(n)
 		var m: Dictionary = await _measure()
 		var st: ProbeStats = m["cpu"]

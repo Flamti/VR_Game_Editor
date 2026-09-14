@@ -41,3 +41,13 @@ shaders/enabled=true
 ; оболочка считает контроллеры обязательными (RequiresControllersLaunchInterceptor).
 ; Godot тоже регистрирует обёртку рук только по ней (openxr/register_types.cpp:230).
 openxr/extensions/hand_tracking=true
+; Свидетели жестов для фазы R (ADR-0008, фаза 0). Профиль XR_EXT_hand_interaction
+; даёт щипок и хват действиями карты (Godot регистрирует его только по настройке,
+; openxr_hand_interaction_extension.cpp:59). XR_FB_hand_tracking_aim — второй,
+; независимый свидетель щипка и единственный — жеста меню левой руки
+; (трекер /user/fbhandaim/left, вход menu_pressed).
+openxr/extensions/hand_interaction_profile=true
+openxr/extensions/meta/hand_tracking_aim=true
+; Модель руки от рантайма для визуализации в фазе R (OpenXRFbHandTrackingMesh
+; плагина читает эту настройку, openxr_fb_hand_tracking_mesh.cpp:100).
+openxr/extensions/meta/hand_tracking_mesh=true

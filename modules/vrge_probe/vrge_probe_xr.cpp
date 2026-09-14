@@ -31,6 +31,10 @@ static const char *VRGE_PROBED_XR_EXTENSIONS[] = {
 	"XR_FB_foveation",
 	"XR_FB_foveation_configuration",
 	"XR_META_environment_depth",
+	// Руки (ADR-0008): профиль жестов и модель руки от рантайма. Прогон 12
+	// показал, что жесты доходят, но наличие расширений прибор не спрашивал.
+	"XR_EXT_hand_interaction",
+	"XR_FB_hand_tracking_mesh",
 	"XR_FB_display_refresh_rate",
 	// Фальсификатор: обязан остаться false (PRACTICES §2.2).
 	"XR_VRGE_this_extension_does_not_exist",

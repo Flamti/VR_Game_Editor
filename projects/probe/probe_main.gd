@@ -22,6 +22,8 @@ var _skip_matrix := false
 var _skip_fill := false
 var _skip_layers := false
 var _skip_msaa_sweep := false
+var _hands := false
+var _skip_draws := false
 var _minutes := SUSTAINED_MINUTES
 
 # preload, а не опора на class_name: глобальный кэш классов может быть ещё не
@@ -38,6 +40,7 @@ const ProbeFreqMatrix := preload("res://probe_freq_matrix.gd")
 const ProbeFill := preload("res://probe_fill.gd")
 const ProbeLayers := preload("res://probe_layers.gd")
 const ProbeMsaaSweep := preload("res://probe_msaa_sweep.gd")
+const ProbeHands := preload("res://probe_hands.gd")
 const ProbeWindow := preload("res://probe_window.gd")
 
 var _report: ProbeReport = ProbeReport.new()
@@ -50,6 +53,7 @@ var _matrix: ProbeFreqMatrix = ProbeFreqMatrix.new()
 var _fill: ProbeFill = ProbeFill.new()
 var _layers: ProbeLayers = ProbeLayers.new()
 var _msaa_sweep: ProbeMsaaSweep = ProbeMsaaSweep.new()
+var _hands_phase: ProbeHands = ProbeHands.new()
 var _state_snapshot: Dictionary = {}
 var _expected := 0
 var _probe = null
@@ -83,6 +87,10 @@ const SKIP_MATRIX_MARKER := "user://skip_matrix"
 const SKIP_FILL_MARKER := "user://skip_fill"
 const SKIP_LAYERS_MARKER := "user://skip_layers"
 const SKIP_MSAA_SWEEP_MARKER := "user://skip_msaa_sweep"
+## Фаза R ИНТЕРАКТИВНАЯ и потому включается, а не выключается маркером: по
+## умолчанию её нет. Иначе любой прогон ждал бы жестов и доложил бы отказ рук.
+const HANDS_MARKER := "user://hands"
+const SKIP_DRAWS_MARKER := "user://skip_draws"
 
 ## Быстрый режим обкатки: окна укорачиваются так, что числа недействительны.
 ## Существует, чтобы прогнать все ветки арифметики до дорогого прогона.
@@ -100,6 +108,10 @@ func _parse_args() -> void:
 		_skip_layers = true
 	if FileAccess.file_exists(SKIP_MSAA_SWEEP_MARKER):
 		_skip_msaa_sweep = true
+	if FileAccess.file_exists(HANDS_MARKER):
+		_hands = true
+	if FileAccess.file_exists(SKIP_DRAWS_MARKER):
+		_skip_draws = true
 	if FileAccess.file_exists(QUICK_MARKER):
 		ProbeWindow.quick = true
 	if FileAccess.file_exists(MINUTES_MARKER):
@@ -139,7 +151,11 @@ func _run_all() -> void:
 
 	# Пол считается ДО проверок и выводится из тех же массивов, по которым идут
 	# циклы, а не перечисляется рядом (PRACTICES §1.8).
-	_expected = _caps.expected_checks(_probe) + _draws.expected_checks()
+	_expected = _caps.expected_checks(_probe)
+	if not _skip_draws:
+		_expected += _draws.expected_checks()
+	if xr_ok and _hands:
+		_expected += _hands_phase.expected_checks()
 	_expected += _state.expected_checks() + _hw.expected_checks()
 	if xr_ok and not _skip_matrix:
 		_expected += _matrix.expected_checks()
@@ -167,7 +183,15 @@ func _run_all() -> void:
 	_state_snapshot = _state.run(get_viewport(), _report)
 	_hw.run(_report)
 
-	if xr_ok:
+	# Фаза R — до нагрузочных фаз: человек в шлеме ждёт подсказок, а не минуту свипов.
+	if xr_ok and _hands:
+		_hands_phase.setup(self)
+		await _hands_phase.run(_report)
+
+	if _skip_draws:
+		_report.note("")
+		_report.note("фаза C–D пропущена (маркер %s)" % SKIP_DRAWS_MARKER)
+	elif xr_ok:
 		_draws.setup(self)
 		await _draws.run(_report)
 	else:

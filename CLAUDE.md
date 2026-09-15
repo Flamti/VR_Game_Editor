@@ -1,7 +1,9 @@
 # VR Game Editor — рабочие правила
 
-Компактный контекст. Подробности — в `docs/`. Метод работы — `/home/flamti/Projects/sst/PRACTICES.md`
-(приборы, фальсификаторы, диагностика); он обязателен к применению.
+Компактный контекст. Подробности — в `docs/`. Метод работы (приборы, фальсификаторы,
+диагностика) — `docs/practices.md`; он обязателен к применению. Это практики **этого** проекта:
+отделены от `sst/PRACTICES.md` 2026-09-15 и с ним не синхронизируются. «PRACTICES §N» в документах
+проекта — ссылка на `docs/practices.md`.
 
 ## Назначение
 
@@ -33,6 +35,16 @@ tools/gpu_mem.sh [файл] [период]       # память GPU процес
 tools/gpu_stages.sh enable|disable     # детальный режим Adreno — ДО запуска приложения
 tools/gpu_stages.sh [файл] [окно] [пауза]  # режим рендера и бины поверхностей (ovrgpuprofiler -t)
 tools/join_windows.py окна.tsv --clock … [--mem …] [--stages …]  # свод окон прибора с хостом
+tools/bake_goldberg.py                 # запечь сетки глобуса шар-меню в projects/sphere_menu/menu/geo/
+```
+
+Шар-меню (`projects/sphere_menu/`): настольные проверки и дымовой прогон — без шлема, до экспорта:
+
+```bash
+godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
+    --script res://tests/run_tests.gd [-- --falsify=<имя>]    # пол, 13 фальсификаторов
+godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
+    --script res://tests/smoke_menu.gd                         # интеграция, push_input панели
 ```
 
 Исследовательские фазы прибора включаются маркерами в `user://`: `hands` (R), `curve` (K),
@@ -70,7 +82,8 @@ javaVersion 17 (минимум; JDK 21 подходит). SCons доустано
 
 ```
 CLAUDE.md      этот файл — краткий контекст
-docs/          подробный контекст (см. docs/architecture.md); docs/design/ — проектные документы
+docs/          подробный контекст (см. docs/architecture.md); docs/design/ — проектные документы;
+               docs/practices.md — метод работы проекта
 godot/         upstream Godot 4.7.2, submodule, НЕ ПРАВИМ
 modules/       наши C++ модули (custom_modules)
 projects/      Godot-проекты: прототипы и стенды

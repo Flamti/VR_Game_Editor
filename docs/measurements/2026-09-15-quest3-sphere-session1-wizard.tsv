@@ -1,0 +1,310 @@
+# сессия 2026-09-15T19:51:37
+1789483898.212	folder		0.00	8						{ "folder": "", "view": "browse", "items": 5 }
+1789483898.212	toggle		0.00	8						{ "open": true }
+1789483898.580	intent		0.00	8						{ "do": "none", "view": "browse", "folder": "" }
+1789483911.987	toggle		0.00	8						{ "open": false }
+1789483911.987	самопроверка		0.00	8				FAIL		{ "глобус m=8, 642 ячеек, вращение": { "gpu95": 2.75600004196167, "cpu95": 0.23999999463558, "proc95": 5.328, "over": 0 }, "линза α=0.044, 700 ячеек, вращение": { "gpu95": 3.34299993515015, "cpu95": 0.15999999642372, "proc95": 45.76, "over": 0 } }
+1789483912.009	folder		0.00	6						{ "folder": "", "view": "browse", "items": 5 }
+1789483912.009	toggle		0.00	6						{ "open": true }
+1789483912.009	мастер_старт		0.00	6						
+1789483925.844	мастер_значение		0.00	6						surface=globe
+1789483926.289	мастер_значение		0.00	6						surface=lens
+1789483926.619	мастер_значение		0.00	6						surface=globe
+1789483926.893	мастер_значение		0.00	6						surface=lens
+1789483927.512	мастер_значение		0.00	6						surface=lens
+1789483928.023	мастер_значение		0.00	6						surface=globe
+1789483928.567	мастер_значение		0.00	6						surface=lens
+1789483929.167	мастер_значение		0.00	6						surface=globe
+1789483929.833	мастер_значение		0.00	6						surface=globe
+1789483930.333	мастер_значение		0.00	6						surface=lens
+1789483930.889	мастер_значение		0.00	6						surface=lens
+1789483931.324	мастер_значение		0.00	6						surface=globe
+1789483932.444	мастер_значение		0.00	6						surface=lens
+1789483933.514	мастер_значение		0.00	6						surface=globe
+1789483934.333	мастер_значение		0.00	6						surface=lens
+1789483935.302	мастер_значение		0.00	6						surface=globe
+1789483936.944	мастер_значение		0.00	6						surface=lens
+1789483938.369	мастер_значение		0.00	6						surface=globe
+1789483951.724	мастер_значение		0.00	6						surface=lens
+1789483952.813	мастер_значение		0.00	6						surface=lens
+1789483953.370	мастер_значение		0.00	6						surface=globe
+1789483953.890	мастер_значение		0.00	6						surface=lens
+1789483954.413	мастер_значение		0.00	6						surface=globe
+1789483955.145	мастер_значение		0.00	6						surface=lens
+1789483955.759	мастер_значение		0.00	6						surface=globe
+1789483966.404	мастер_значение		0.00	6						surface=globe
+1789483966.858	мастер_значение		0.00	6						surface=lens
+1789483968.370	мастер_умолчание		0.00	6						surface
+1789483972.410	мастер_значение		0.00	7						radius_cm=13
+1789483977.482	мастер_умолчание		0.00	6						radius_cm
+1789483984.643	мастер_значение		0.00	5						cell_cm=3.0
+1789483985.860	мастер_значение		0.00	4						cell_cm=3.6
+1789483986.202	мастер_значение		0.00	4						cell_cm=4.2
+1789483990.272	мастер_назад		0.00	4						radius_cm
+1789483991.394	мастер_назад		0.00	4						surface
+1789483995.395	мастер_значение		0.00	4						surface=globe
+1789483996.005	мастер_значение		0.00	4						surface=lens
+1789484000.984	мастер_подтверждено		0.00	4						surface
+1789484004.945	мастер_значение		0.00	3						radius_cm=9
+1789484005.561	мастер_значение		0.00	4						radius_cm=11
+1789484006.094	мастер_значение		0.00	4						radius_cm=13
+1789484008.039	мастер_значение		0.00	5						radius_cm=15
+1789484008.308	мастер_значение		0.00	6						radius_cm=18
+1789484008.492	мастер_значение		0.00	6						radius_cm=18
+1789484009.328	мастер_значение		0.00	5						radius_cm=15
+1789484009.579	мастер_значение		0.00	4						radius_cm=13
+1789484011.095	мастер_значение		0.00	5						radius_cm=15
+1789484011.769	мастер_значение		0.00	4						radius_cm=13
+1789484017.296	мастер_подтверждено		0.00	4						radius_cm
+1789484020.575	мастер_значение		0.00	4						cell_cm=4.2
+1789484020.864	мастер_значение		0.00	4						cell_cm=4.2
+1789484021.174	мастер_значение		0.00	5						cell_cm=3.6
+1789484021.643	мастер_значение		0.00	6						cell_cm=3.0
+1789484022.093	мастер_значение		0.00	7						cell_cm=2.5
+1789484022.450	мастер_значение		0.00	6						cell_cm=3.0
+1789484023.061	мастер_значение		0.00	5						cell_cm=3.6
+1789484023.257	мастер_значение		0.00	4						cell_cm=4.2
+1789484023.428	мастер_значение		0.00	4						cell_cm=4.2
+1789484023.596	мастер_значение		0.00	4						cell_cm=4.2
+1789484023.774	мастер_значение		0.00	4						cell_cm=4.2
+1789484023.996	мастер_значение		0.00	4						cell_cm=4.2
+1789484024.163	мастер_значение		0.00	4						cell_cm=4.2
+1789484025.362	мастер_значение		0.00	5						cell_cm=3.6
+1789484026.026	мастер_значение		0.00	4						cell_cm=4.2
+1789484026.241	мастер_значение		0.00	4						cell_cm=4.2
+1789484026.397	мастер_значение		0.00	4						cell_cm=4.2
+1789484026.597	мастер_значение		0.00	4						cell_cm=4.2
+1789484026.786	мастер_значение		0.00	4						cell_cm=4.2
+1789484026.987	мастер_значение		0.00	4						cell_cm=4.2
+1789484027.551	мастер_значение		0.00	5						cell_cm=3.6
+1789484027.798	мастер_значение		0.00	6						cell_cm=3.0
+1789484028.036	мастер_значение		0.00	7						cell_cm=2.5
+1789484028.280	мастер_значение		0.00	8						cell_cm=2.0
+1789484028.504	мастер_значение		0.00	8						cell_cm=1.6
+1789484028.700	мастер_значение		0.00	8						cell_cm=1.6
+1789484028.865	мастер_значение		0.00	8						cell_cm=1.6
+1789484029.374	мастер_значение		0.00	8						cell_cm=2.0
+1789484030.665	мастер_значение		0.00	7						cell_cm=2.5
+1789484030.878	мастер_значение		0.00	6						cell_cm=3.0
+1789484031.045	мастер_значение		0.00	5						cell_cm=3.6
+1789484031.196	мастер_значение		0.00	4						cell_cm=4.2
+1789484031.461	мастер_значение		0.00	4						cell_cm=4.2
+1789484031.652	мастер_значение		0.00	4						cell_cm=4.2
+1789484031.730	мастер_значение		0.00	4						cell_cm=4.2
+1789484031.907	мастер_значение		0.00	4						cell_cm=4.2
+1789484032.130	мастер_значение		0.00	4						cell_cm=4.2
+1789484032.352	мастер_значение		0.00	4						cell_cm=4.2
+1789484032.830	мастер_значение		0.00	4						cell_cm=4.2
+1789484033.086	мастер_значение		0.00	4						cell_cm=4.2
+1789484033.308	мастер_значение		0.00	4						cell_cm=4.2
+1789484033.375	мастер_значение		0.00	5						cell_cm=3.6
+1789484033.569	мастер_значение		0.00	4						cell_cm=4.2
+1789484034.010	мастер_значение		0.00	4						cell_cm=4.2
+1789484034.164	мастер_значение		0.00	4						cell_cm=4.2
+1789484034.375	мастер_значение		0.00	4						cell_cm=4.2
+1789484034.576	мастер_значение		0.00	4						cell_cm=4.2
+1789484034.853	мастер_значение		0.00	4						cell_cm=4.2
+1789484035.099	мастер_значение		0.00	4						cell_cm=4.2
+1789484035.297	мастер_значение		0.00	4						cell_cm=4.2
+1789484035.453	мастер_значение		0.00	4						cell_cm=4.2
+1789484036.599	мастер_подтверждено		0.00	4						cell_cm
+1789484038.554	мастер_значение		0.00	4						stick_speed=1.6
+1789484043.965	мастер_подтверждено		0.00	4						stick_speed
+1789484049.023	мастер_значение		0.00	4						grab_friction=7.0
+1789484049.699	мастер_значение		0.00	4						grab_friction=4.0
+1789484051.621	мастер_значение		0.00	4						grab_friction=2.5
+1789484051.977	мастер_значение		0.00	4						grab_friction=1.5
+1789484052.488	мастер_значение		0.00	4						grab_friction=1.5
+1789484054.311	мастер_значение		0.00	4						grab_friction=1.5
+1789484054.565	мастер_значение		0.00	4						grab_friction=1.5
+1789484054.744	мастер_значение		0.00	4						grab_friction=1.5
+1789484054.821	мастер_значение		0.00	4						grab_friction=2.5
+1789484056.154	мастер_значение		0.00	4						grab_friction=4.0
+1789484056.400	мастер_значение		0.00	4						grab_friction=7.0
+1789484056.600	мастер_значение		0.00	4						grab_friction=12.0
+1789484056.832	мастер_значение		0.00	4						grab_friction=12.0
+1789484056.999	мастер_значение		0.00	4						grab_friction=12.0
+1789484057.355	мастер_значение		0.00	4						grab_friction=12.0
+1789484057.689	мастер_значение		0.00	4						grab_friction=12.0
+1789484058.277	мастер_значение		0.00	4						grab_friction=7.0
+1789484061.955	мастер_значение		0.00	4						grab_friction=4.0
+1789484062.967	мастер_значение		0.00	4						grab_friction=7.0
+1789484066.066	мастер_значение		0.00	4						grab_friction=4.0
+1789484066.266	мастер_значение		0.00	4						grab_friction=2.5
+1789484066.489	мастер_значение		0.00	4						grab_friction=1.5
+1789484069.778	мастер_значение		0.00	4						grab_friction=2.5
+1789484070.435	мастер_значение		0.00	4						grab_friction=1.5
+1789484071.789	мастер_значение		0.00	4						grab_friction=2.5
+1789484075.979	мастер_значение		0.00	4						grab_friction=4.0
+1789484079.746	мастер_значение		0.00	4						grab_friction=7.0
+1789484081.802	мастер_значение		0.00	4						grab_friction=4.0
+1789484087.779	мастер_значение		0.00	4						grab_friction=2.5
+1789484090.635	мастер_значение		0.00	4						grab_friction=1.5
+1789484093.701	мастер_значение		0.00	4						grab_friction=1.5
+1789484099.635	мастер_подтверждено		0.00	4						grab_friction
+1789484102.670	мастер_значение		0.00	4						detent=20.0
+1789484103.236	мастер_значение		0.00	4						detent=14.0
+1789484105.937	мастер_значение		0.00	4						detent=20.0
+1789484106.848	мастер_значение		0.00	4						detent=20.0
+1789484113.771	мастер_значение		0.00	4						detent=20.0
+1789484122.605	мастер_значение		0.00	4						detent=20.0
+1789484129.750	мастер_значение		0.00	4						detent=14.0
+1789484136.362	мастер_значение		0.00	4						detent=20.0
+1789484137.139	мастер_значение		0.00	4						detent=14.0
+1789484138.306	мастер_значение		0.00	4						detent=20.0
+1789484138.584	мастер_значение		0.00	4						detent=14.0
+1789484139.506	мастер_значение		0.00	4						detent=20.0
+1789484140.673	мастер_значение		0.00	4						detent=20.0
+1789484146.684	мастер_значение		0.00	4						detent=14.0
+1789484149.685	мастер_значение		0.00	4						detent=10.0
+1789484150.485	мастер_подтверждено		0.00	4						detent
+1789484155.162	мастер_значение		0.00	4						hysteresis=0.25
+1789484155.785	мастер_значение		0.00	4						hysteresis=0.35
+1789484164.130	мастер_значение		0.00	4						hysteresis=0.25
+1789484172.609	мастер_подтверждено		0.00	4						hysteresis
+1789484175.998	мастер_подтверждено		0.00	4						hold_ms
+1789484179.020	мастер_подтверждено		0.00	4						panel_side
+1789484186.387	мастер_подтверждено		0.00	4						haptics
+1789484192.077	мастер_сохранено		0.00	4						summary
+1789484192.200	intent		0.00	4						{ "do": "none", "view": "browse", "folder": "" }
+1789484200.090	folder		0.00	4		assets				{ "folder": "assets", "view": "browse", "items": 7 }
+1789484200.090	intent		0.00	4		assets				{ "do": "reload", "view": "browse", "folder": "assets" }
+1789484202.035	folder		0.00	4		assets				{ "folder": "assets", "view": "actions", "items": 7 }
+1789484202.035	intent		0.00	4		assets				{ "do": "reload", "view": "actions", "folder": "assets" }
+1789484204.945	folder		0.00	4		assets				{ "folder": "assets", "view": "browse", "items": 7 }
+1789484204.946	intent		0.00	4		assets				{ "do": "reload", "view": "browse", "folder": "assets" }
+1789484211.890	folder		0.00	4		assets				{ "folder": "assets", "view": "actions", "items": 7 }
+1789484211.890	intent		0.00	4		assets				{ "do": "reload", "view": "actions", "folder": "assets" }
+1789484214.702	select		0.00	4		assets				{ "do": "default", "view": "browse", "folder": "assets", "item": "asset_bridge", "title": "Мост" }
+1789484214.702	toggle		0.00	4		assets				{ "open": false }
+1789484218.602	folder		0.00	4		assets				{ "folder": "assets", "view": "browse", "items": 7 }
+1789484218.602	toggle		0.00	4		assets				{ "open": true }
+1789484220.679	folder		0.00	4						{ "folder": "", "view": "browse", "items": 5 }
+1789484220.680	intent		0.00	4						{ "do": "reload", "view": "browse", "folder": "" }
+1789484222.736	folder		0.00	4		images				{ "folder": "images", "view": "browse", "items": 7 }
+1789484222.736	intent		0.00	4		images				{ "do": "reload", "view": "browse", "folder": "images" }
+1789484225.179	select		0.00	4		images				{ "do": "default", "view": "browse", "folder": "images", "item": "img_map", "title": "Карта" }
+1789484226.080	folder		0.00	4		images				{ "folder": "images", "view": "actions", "items": 7 }
+1789484226.080	intent		0.00	4		images				{ "do": "reload", "view": "actions", "folder": "images" }
+1789484228.357	select		0.00	4		images				{ "do": "default", "view": "browse", "folder": "images", "item": "img_map", "title": "Карта" }
+1789484228.924	folder		0.00	4		images				{ "folder": "images", "view": "actions", "items": 7 }
+1789484228.924	intent		0.00	4		images				{ "do": "reload", "view": "actions", "folder": "images" }
+1789484230.358	select		0.00	4		images				{ "do": "default", "view": "browse", "folder": "images", "item": "img_sunset", "title": "Закат" }
+1789484233.247	folder		0.00	4		images				{ "folder": "images", "view": "actions", "items": 7 }
+1789484233.247	intent		0.00	4		images				{ "do": "reload", "view": "actions", "folder": "images" }
+1789484234.614	intent		0.00	4		images				{ "do": "none", "view": "actions", "folder": "images" }
+1789484235.880	select		0.00	4		images				{ "do": "default", "view": "browse", "folder": "images", "item": "img_sunset", "title": "Закат" }
+1789484238.094	folder		0.00	4		images				{ "folder": "images", "view": "actions", "items": 8 }
+1789484238.094	intent		0.00	4		images				{ "do": "reload", "view": "actions", "folder": "images" }
+1789484241.981	intent		0.00	4		images				{ "do": "none", "view": "actions", "folder": "images" }
+1789484242.603	intent		0.00	4		images				{ "do": "none", "view": "actions", "folder": "images" }
+1789484243.069	intent		0.00	4		images				{ "do": "none", "view": "actions", "folder": "images" }
+1789484243.269	intent		0.00	4		images				{ "do": "none", "view": "actions", "folder": "images" }
+1789484243.914	intent		0.00	4		images				{ "do": "none", "view": "actions", "folder": "images" }
+1789484244.658	intent		0.00	4		images				{ "do": "none", "view": "actions", "folder": "images" }
+1789484245.759	intent		0.00	4		images				{ "do": "none", "view": "actions", "folder": "images" }
+1789484247.570	intent		0.00	4		images				{ "do": "none", "view": "actions", "folder": "images" }
+1789484252.337	intent		0.00	4		images				{ "do": "none", "view": "actions", "folder": "images" }
+1789484252.982	folder		0.00	4		images				{ "folder": "images", "view": "browse", "items": 7 }
+1789484252.982	intent		0.00	4		images				{ "do": "reload", "view": "browse", "folder": "images" }
+1789484258.859	select		0.00	4		images				{ "do": "default", "view": "browse", "folder": "images", "item": "img_sunset", "title": "Закат" }
+1789484259.471	select		0.00	4		images				{ "do": "default", "view": "browse", "folder": "images", "item": "img_sunset", "title": "Закат" }
+1789484262.760	folder		0.00	4		images				{ "folder": "images", "view": "actions", "items": 7 }
+1789484262.760	intent		0.00	4		images				{ "do": "reload", "view": "actions", "folder": "images" }
+1789484272.531	folder		0.00	4		images				{ "folder": "images", "view": "browse", "items": 8 }
+1789484272.531	intent		0.00	4		images				{ "do": "reload", "view": "browse", "folder": "images" }
+1789484279.150	select		0.00	4		images				{ "do": "default", "view": "browse", "folder": "images", "item": "img_mountains", "title": "Горы" }
+1789484279.973	folder		0.00	4		images				{ "folder": "images", "view": "actions", "items": 7 }
+1789484279.973	intent		0.00	4		images				{ "do": "reload", "view": "actions", "folder": "images" }
+1789484281.874	folder		0.00	4		images				{ "folder": "images", "view": "browse", "items": 9 }
+1789484281.874	intent		0.00	4		images				{ "do": "reload", "view": "browse", "folder": "images" }
+1789484286.973	select		0.00	4		images				{ "do": "default", "view": "browse", "folder": "images", "item": "img_sunset", "title": "Закат" }
+1789484287.629	select		0.00	4		images				{ "do": "default", "view": "browse", "folder": "images", "item": "img_sunset", "title": "Закат" }
+1789484287.961	select		0.00	4		images				{ "do": "default", "view": "browse", "folder": "images", "item": "img_sunset", "title": "Закат" }
+1789484289.317	select		0.00	4		images				{ "do": "default", "view": "browse", "folder": "images", "item": "img_sunset", "title": "Закат" }
+1789484291.073	select		0.00	4		images				{ "do": "default", "view": "browse", "folder": "images", "item": "img_sky", "title": "Небо" }
+1789484296.807	folder		0.00	4						{ "folder": "", "view": "browse", "items": 5 }
+1789484296.807	intent		0.00	4						{ "do": "reload", "view": "browse", "folder": "" }
+1789484298.120	folder		0.00	4		settings				{ "folder": "settings", "view": "browse", "items": 4 }
+1789484298.120	intent		0.00	4		settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789484299.563	intent		0.00	4		settings				{ "do": "redraw", "view": "browse", "folder": "settings" }
+1789484304.896	intent		0.00	4		settings				{ "do": "redraw", "view": "browse", "folder": "settings" }
+1789484305.665	folder		0.00	4		settings				{ "folder": "settings", "view": "actions", "items": 5 }
+1789484305.665	intent		0.00	4		settings				{ "do": "reload", "view": "actions", "folder": "settings" }
+1789484307.508	intent		0.00	4		settings				{ "do": "none", "view": "actions", "folder": "settings" }
+1789484308.308	intent		0.00	4		settings				{ "do": "none", "view": "actions", "folder": "settings" }
+1789484308.776	intent		0.00	4		settings				{ "do": "none", "view": "actions", "folder": "settings" }
+1789484310.342	intent		0.00	4		settings				{ "do": "none", "view": "actions", "folder": "settings" }
+1789484311.064	folder		0.00	4		settings				{ "folder": "settings", "view": "browse", "items": 4 }
+1789484311.064	intent		0.00	4		settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789484315.175	intent		0.00	4		settings				{ "do": "redraw", "view": "browse", "folder": "settings" }
+1789484316.099	folder		0.00	4		settings				{ "folder": "settings", "view": "actions", "items": 3 }
+1789484316.099	intent		0.00	4		settings				{ "do": "reload", "view": "actions", "folder": "settings" }
+1789484317.642	folder		0.00	4		settings				{ "folder": "settings", "view": "browse", "items": 4 }
+1789484317.642	intent		0.00	4		settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789484319.565	folder		0.00	4		settings				{ "folder": "settings", "view": "actions", "items": 5 }
+1789484319.565	intent		0.00	4		settings				{ "do": "reload", "view": "actions", "folder": "settings" }
+1789484323.309	folder		0.00	4		settings				{ "folder": "settings", "view": "browse", "items": 4 }
+1789484323.310	intent		0.00	4		settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789484324.210	folder		0.00	4						{ "folder": "", "view": "browse", "items": 5 }
+1789484324.210	intent		0.00	4						{ "do": "reload", "view": "browse", "folder": "" }
+1789484326.266	folder		0.00	4		settings				{ "folder": "settings", "view": "browse", "items": 4 }
+1789484326.266	intent		0.00	4		settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789484326.889	folder		0.00	4		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 12 }
+1789484326.889	intent		0.00	4		settings_sphere				{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789484356.557	folder		0.00	4		settings				{ "folder": "settings", "view": "browse", "items": 4 }
+1789484356.557	intent		0.00	4		settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789484358.924	folder		0.00	4						{ "folder": "", "view": "browse", "items": 5 }
+1789484358.924	intent		0.00	4						{ "do": "reload", "view": "browse", "folder": "" }
+1789484380.547	toggle		0.00	4						{ "open": false }
+1789484384.292	folder		0.00	4						{ "folder": "", "view": "browse", "items": 5 }
+1789484384.292	toggle		0.00	4						{ "open": true }
+1789484387.159	folder		0.00	4		assets				{ "folder": "assets", "view": "browse", "items": 7 }
+1789484387.159	intent		0.00	4		assets				{ "do": "reload", "view": "browse", "folder": "assets" }
+1789484389.673	folder		0.00	4		assets				{ "folder": "assets", "view": "browse", "items": 7 }
+1789484389.673	intent		0.00	4		assets				{ "do": "reload", "view": "browse", "folder": "assets" }
+1789484391.062	folder		0.00	4		assets				{ "folder": "assets", "view": "browse", "items": 7 }
+1789484391.062	intent		0.00	4		assets				{ "do": "reload", "view": "browse", "folder": "assets" }
+1789484394.860	toggle		0.00	4		assets				{ "open": false }
+1789484395.360	folder		0.00	4		assets				{ "folder": "assets", "view": "browse", "items": 7 }
+1789484395.360	toggle		0.00	4		assets				{ "open": true }
+1789484396.171	folder		0.00	4						{ "folder": "", "view": "browse", "items": 5 }
+1789484396.171	intent		0.00	4						{ "do": "reload", "view": "browse", "folder": "" }
+1789484397.226	folder		0.00	4		assets				{ "folder": "assets", "view": "browse", "items": 7 }
+1789484397.226	intent		0.00	4		assets				{ "do": "reload", "view": "browse", "folder": "assets" }
+1789484398.026	select		0.00	4		assets				{ "do": "default", "view": "browse", "folder": "assets", "item": "asset_bridge", "title": "Мост" }
+1789484398.026	toggle		0.00	4		assets				{ "open": false }
+1789484399.349	folder		0.00	4		assets				{ "folder": "assets", "view": "browse", "items": 7 }
+1789484399.349	toggle		0.00	4		assets				{ "open": true }
+1789484400.193	folder		0.00	4						{ "folder": "", "view": "browse", "items": 5 }
+1789484400.193	intent		0.00	4						{ "do": "reload", "view": "browse", "folder": "" }
+1789484403.972	folder		0.00	4		logic				{ "folder": "logic", "view": "browse", "items": 5 }
+1789484403.972	intent		0.00	4		logic				{ "do": "reload", "view": "browse", "folder": "logic" }
+1789484408.504	select		0.00	4		logic				{ "do": "default", "view": "browse", "folder": "logic", "item": "logic_quest", "title": "Квест" }
+1789484408.505	toggle		0.00	4		logic				{ "open": false }
+1789484410.294	folder		0.00	4		logic				{ "folder": "logic", "view": "browse", "items": 5 }
+1789484410.295	toggle		0.00	4		logic				{ "open": true }
+1789484413.072	folder		0.00	4						{ "folder": "", "view": "browse", "items": 5 }
+1789484413.072	intent		0.00	4						{ "do": "reload", "view": "browse", "folder": "" }
+1789484420.195	folder		0.00	4		scenes				{ "folder": "scenes", "view": "browse", "items": 7 }
+1789484420.195	intent		0.00	4		scenes				{ "do": "reload", "view": "browse", "folder": "scenes" }
+1789484426.829	folder		0.00	4		scenes				{ "folder": "scenes", "view": "actions", "items": 7 }
+1789484426.829	intent		0.00	4		scenes				{ "do": "reload", "view": "actions", "folder": "scenes" }
+1789484430.130	folder		0.00	4		scenes				{ "folder": "scenes", "view": "browse", "items": 8 }
+1789484430.130	intent		0.00	4		scenes				{ "do": "reload", "view": "browse", "folder": "scenes" }
+1789484435.996	folder		0.00	4		drafts				{ "folder": "drafts", "view": "browse", "items": 2 }
+1789484435.996	intent		0.00	4		drafts				{ "do": "reload", "view": "browse", "folder": "drafts" }
+1789484438.297	select		0.00	4		drafts				{ "do": "default", "view": "browse", "folder": "drafts", "item": "scene_draft2", "title": "Проба света" }
+1789484438.297	toggle		0.00	4		drafts				{ "open": false }
+1789484441.352	folder		0.00	4		drafts				{ "folder": "drafts", "view": "browse", "items": 2 }
+1789484441.352	toggle		0.00	4		drafts				{ "open": true }
+1789484447.585	intent		0.00	4		drafts				{ "do": "none", "view": "browse", "folder": "drafts" }
+1789484448.264	folder		0.00	4		scenes				{ "folder": "scenes", "view": "browse", "items": 8 }
+1789484448.264	intent		0.00	4		scenes				{ "do": "reload", "view": "browse", "folder": "scenes" }
+1789484451.453	folder		0.00	4						{ "folder": "", "view": "browse", "items": 5 }
+1789484451.453	intent		0.00	4						{ "do": "reload", "view": "browse", "folder": "" }
+1789484464.609	folder		0.00	4		images				{ "folder": "images", "view": "browse", "items": 7 }
+1789484464.610	intent		0.00	4		images				{ "do": "reload", "view": "browse", "folder": "images" }
+1789484465.598	select		0.00	4		images				{ "do": "default", "view": "browse", "folder": "images", "item": "img_mountains", "title": "Горы" }
+1789484468.265	folder		0.00	4						{ "folder": "", "view": "browse", "items": 5 }
+1789484468.265	intent		0.00	4						{ "do": "reload", "view": "browse", "folder": "" }

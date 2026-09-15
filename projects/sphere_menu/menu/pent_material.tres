@@ -1,0 +1,9 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+; Материал пятиугольников: тот же шейдер, sides = 5 (кант по сторонам). Прогревается
+; menu/warm.tscn через pent_mesh.tres, как и материал шестиугольников.
+[ext_resource type="Shader" path="res://menu/cell.gdshader" id="1_shader"]
+
+[resource]
+shader = ExtResource("1_shader")
+shader_parameter/sides = 5.0

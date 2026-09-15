@@ -1,0 +1,6 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+; Материал луча правого контроллера — ресурс (см. panel_material.tres, ADR-0003 п. 9).
+[resource]
+shading_mode = 0
+albedo_color = Color(0.5, 0.8, 1, 1)

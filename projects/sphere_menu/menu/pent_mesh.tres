@@ -1,0 +1,14 @@
+[gd_resource type="CylinderMesh" load_steps=2 format=3]
+
+; Ячейка: плоский цилиндр радиуса 1, 5 сегментов. Вершина 0 — на +Z
+; (primitive_meshes.cpp, CylinderMesh::create_mesh_array: x = sin, z = cos),
+; крышка смотрит по +Y. Рендер ставит Y по нормали шара, Z — на вершину ячейки.
+[ext_resource type="Material" path="res://menu/pent_material.tres" id="1_mat"]
+
+[resource]
+material = ExtResource("1_mat")
+top_radius = 1.0
+bottom_radius = 1.0
+height = 0.06
+radial_segments = 5
+rings = 0

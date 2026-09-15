@@ -1,0 +1,33 @@
+[gd_scene load_steps=5 format=3]
+
+; Прогрев конвейеров ячеек при загрузке (ADR-0003 п. 9, прогон 20: предзагруженный
+; вариант 4.6 мс против 1097 мс на холодном кэше). Невидим: документация Godot —
+; достаточно, чтобы сцена была инстанцирована хотя бы раз.
+;
+; Прогревается ТОТ ЖЕ путь, которым рисуются ячейки: MultiMesh с custom data. W2
+; проверял обычный MeshInstance3D, а инстансинг и INSTANCE_CUSTOM — другой вариант
+; шейдера. Сработал ли прогрев, проверяет самопроверка на шлеме по пику первого открытия.
+[ext_resource type="CylinderMesh" path="res://menu/hex_mesh.tres" id="1_hex"]
+[ext_resource type="CylinderMesh" path="res://menu/pent_mesh.tres" id="2_pent"]
+
+[sub_resource type="MultiMesh" id="mm_hex"]
+transform_format = 1
+use_custom_data = true
+instance_count = 1
+mesh = ExtResource("1_hex")
+
+[sub_resource type="MultiMesh" id="mm_pent"]
+transform_format = 1
+use_custom_data = true
+instance_count = 1
+mesh = ExtResource("2_pent")
+
+[node name="CellWarm" type="Node3D"]
+
+[node name="Hex" type="MultiMeshInstance3D" parent="."]
+visible = false
+multimesh = SubResource("mm_hex")
+
+[node name="Pent" type="MultiMeshInstance3D" parent="."]
+visible = false
+multimesh = SubResource("mm_pent")

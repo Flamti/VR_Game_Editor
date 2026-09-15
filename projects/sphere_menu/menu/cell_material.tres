@@ -1,0 +1,9 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+; Материал ячеек — ресурс на меше, а НЕ material_override, собранный в кадре
+; (ADR-0003 п. 9: override на холодном кэше стоит один кадр ≈1 с). Предзагружается
+; сценой menu/warm.tscn, инстанцированной в main.tscn при загрузке.
+[ext_resource type="Shader" path="res://menu/cell.gdshader" id="1_shader"]
+
+[resource]
+shader = ExtResource("1_shader")

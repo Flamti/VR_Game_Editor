@@ -1,0 +1,59 @@
+; Прототип шар-меню (этап 1, Ф2; docs/design/sphere-menu.md, ADR-0008).
+; Настройки XR и рендера перенесены из projects/probe вместе с обоснованиями ловушек —
+; каждая из них там стоила прогона.
+
+config_version=5
+
+[application]
+config/name="VRGE Sphere Menu"
+config/features=PackedStringArray("4.7", "Forward Plus")
+run/disable_stdout=false
+run/main_scene="res://main.tscn"
+
+[rendering]
+renderer/rendering_method="forward_plus"
+; Платформенный оверрайд ОБЯЗАТЕЛЕН: Godot по умолчанию ставит "mobile" для
+; мобильных (main.cpp:2492, 2648), а заданный без оверрайда forward_plus
+; навязывается и шлему. На Quest это валит создание Vulkan-устройства через
+; OpenXR: xrCreateVulkanDeviceKHR отвергает набор запрошенных фич с
+; XR_ERROR_VALIDATION_FAILURE, и движок не поднимает DisplayServer вообще.
+renderer/rendering_method.mobile="mobile"
+rendering_device/driver="vulkan"
+; ASTC/ETC2 обязателен для Android-экспорта (export_plugin.cpp:3148)
+; и это же целевой формат текстур для Quest.
+textures/vram_compression/import_etc2_astc=true
+; MSAA 2x (ADR-0003 п. 6) — в настройках, а не в _ready. Конвейер зависит от формата
+; кадра (число сэмплов): при MSAA, включённом позже загрузки, menu/warm.tscn прогревал
+; вариант без MSAA, и первое открытие меню компилировало конвейер в кадре
+; (самопроверка 2026-09-15: surface 2 за 30 кадров, пик 281 мс).
+anti_aliasing/quality/msaa_3d=1
+
+[xr]
+openxr/enabled=true
+openxr/startup_alert=false
+; ОБЯЗАТЕЛЬНО для Android/Quest, и не только для шейдеров.
+; Обход issue #115924 (PR #116226) читает эту настройку в
+; java_godot_lib_jni.cpp:318 ДО того, как её объявит
+; rendering_server.cpp:3813 (GLOBAL_DEF_RST_BASIC, дефолт false).
+; Поэтому значение обязано лежать в project.godot: иначе ранний read её не
+; видит, обход не срабатывает, и xrCreateVulkanDeviceKHR падает с
+; XR_ERROR_VALIDATION_FAILURE — движок вообще не поднимает DisplayServer.
+shaders/enabled=true
+; Отслеживание рук. Запись в манифест (com.oculus.permission.HAND_TRACKING,
+; oculus.software.handtracking) плагин вендора пишет ТОЛЬКО по этой настройке
+; (godot_openxr_vendors 5.1.0, meta_export_plugin.cpp:375). Опция пресета
+; meta_xr_features/hand_tracking лишь выбирает Optional/Required и без неё
+; молча ничего не делает — так простояла с 2026-09-12. Без записи в манифесте
+; оболочка считает контроллеры обязательными (RequiresControllersLaunchInterceptor).
+; Godot тоже регистрирует обёртку рук только по ней (openxr/register_types.cpp:230).
+openxr/extensions/hand_tracking=true
+; Свидетели жестов (ADR-0008, фаза 0; в шаге 2 Ф2 — ввод руками). Профиль XR_EXT_hand_interaction
+; даёт щипок и хват действиями карты (Godot регистрирует его только по настройке,
+; openxr_hand_interaction_extension.cpp:59). XR_FB_hand_tracking_aim — второй,
+; независимый свидетель щипка и единственный — жеста меню левой руки
+; (трекер /user/fbhandaim/left, вход menu_pressed).
+openxr/extensions/hand_interaction_profile=true
+openxr/extensions/meta/hand_tracking_aim=true
+; Модель руки от рантайма для визуализации рук (OpenXRFbHandTrackingMesh
+; плагина читает эту настройку, openxr_fb_hand_tracking_mesh.cpp:100).
+openxr/extensions/meta/hand_tracking_mesh=true

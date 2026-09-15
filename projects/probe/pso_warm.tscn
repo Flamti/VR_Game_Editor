@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+; Предзагрузка варианта A (фаза W2): инстанцируется в main.tscn при загрузке,
+; невидимым. Документация Godot 4.4+: конвейер предкомпилируется, если сцена
+; инстанцирована хотя бы раз, «even if it's completely invisible».
+[ext_resource type="SphereMesh" path="res://pso_mesh_a.tres" id="1_mesh"]
+
+[node name="PsoWarm" type="MeshInstance3D"]
+visible = false
+mesh = ExtResource("1_mesh")

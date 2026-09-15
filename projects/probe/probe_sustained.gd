@@ -5,6 +5,7 @@ const ProbeReport := preload("res://probe_report.gd")
 const ProbeStats := preload("res://probe_stats.gd")
 const ProbeBudget := preload("res://probe_budget.gd")
 const ProbeHwStat := preload("res://probe_hwstat.gd")
+const ProbeWindow := preload("res://probe_window.gd")
 
 ## Фаза E: сколько держится целевой кадровый бюджет до вмешательства ОС.
 ##
@@ -45,20 +46,23 @@ var gpu_quarters: Array[ProbeStats] = []
 var clk_quarters: Array[ProbeStats] = []
 var clk_overall: ProbeStats
 var residency_start: PackedInt64Array = PackedInt64Array()
+## Выборки, где счётчик отрисовок не равен нагрузке. До крепления нагрузки к
+## камере таких было 70 из 1078 (ProbeWindow.attach_load) — и они шли в дрейф.
+var samples_full := 0
+var samples_short: Array[String] = []
 
 
 func expected_checks() -> int:
 	# нагрузка 1, прогон дошёл до конца 1, вердикт по частоте 1, бюджет 1,
 	# дрейф времени кадра 1, набор доступных частот 1, просадка клока GPU 1,
-	# резиденция за прогон 1
-	return 8
+	# резиденция за прогон 1, полнота выборок 1
+	return 9
 
 
 func setup(host: Node, container_parent: Node) -> void:
 	_host = host
 	_container = Node3D.new()
-	_container.position = Vector3(0, 0, -2)
-	container_parent.add_child(_container)
+	ProbeWindow.attach_load(host, container_parent, _container)
 	_viewport_rid = host.get_viewport().get_viewport_rid()
 	cpu_overall = ProbeStats.new()
 	gpu_overall = ProbeStats.new()
@@ -108,10 +112,15 @@ func run(r: ProbeReport, sweep: Dictionary, minutes: float = DEFAULT_MINUTES) ->
 		r.pass_("нагрузка подобрана из свипа: N=%d" % load_n)
 	else:
 		r.unkn("нагрузка не подобрана (свип пуст или частота неизвестна) — прогон идёт без нагрузки")
+	# Первая выборка не должна поймать кадр до появления нагрузки: гейт полноты
+	# назвал бы её неполной, и 18 минут прогона ушли бы в красное из-за спавна.
+	await ProbeWindow.settle(_host)
 
 	var f := FileAccess.open(_log_path, FileAccess.WRITE)
 	if f != null:
-		f.store_line("# секунда\tчастота\tCPU мс\tGPU мс\tdraw calls\tклок GPU Гц")
+		# unix-время — для свода с tools/gpu_sampler.sh: изнутри приложения клок
+		# не читается (ловушка 16), колонка «клок» здесь всегда 0.
+		f.store_line("# секунда\tчастота\tCPU мс\tGPU мс\tdraw calls\tклок GPU Гц\tunix_время")
 
 	residency_start = ProbeHwStat.clock_stats()
 	var t0 := Time.get_ticks_msec()
@@ -129,14 +138,21 @@ func run(r: ProbeReport, sweep: Dictionary, minutes: float = DEFAULT_MINUTES) ->
 
 		var cpu := RenderingServer.viewport_get_measured_render_time_cpu(_viewport_rid)
 		var gpu := RenderingServer.viewport_get_measured_render_time_gpu(_viewport_rid)
-		var calls := int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME))
-		cpu_overall.add(cpu)
-		gpu_overall.add(gpu)
-		if calls > 0:
-			# Пустые выборки (ноль отрисовок) в дрейф не берём: они занизили бы
-			# четверть, в которую попали. На прогоне 2026-09-12 таких было 9.
+		# Счётчик по RID нашего вьюпорта, а не глобальный Performance.
+		var calls := ProbeWindow._calls(_viewport_rid)
+		# В дрейф и в итог идут только ПОЛНЫЕ выборки. Прежде отсекались лишь
+		# пустые (calls > 0), а частичные — 59 штук во втором прогоне — занижали
+		# четверти, в которые попали.
+		if calls == load_n:
+			samples_full += 1
+			cpu_overall.add(cpu)
+			gpu_overall.add(gpu)
 			var q := clampi(int(ran_seconds / maxf(planned_seconds / 4.0, 1.0)), 0, 3)
 			gpu_quarters[q].add(gpu)
+		elif samples_short.size() < 20:
+			samples_short.append("%.0fс:%d" % [ran_seconds, calls])
+		else:
+			samples_short.append("")
 
 		var clk := ProbeHwStat.gpu_clock_hz()
 		if clk > 0:
@@ -152,7 +168,8 @@ func run(r: ProbeReport, sweep: Dictionary, minutes: float = DEFAULT_MINUTES) ->
 			r.note("!!! СМЕНА ЧАСТОТЫ на %.0f с: %.1f → %.1f Гц" % [ran_seconds, start_refresh, hz])
 		current_refresh = hz
 
-		var line := "%.0f\t%.1f\t%.3f\t%.3f\t%d\t%d" % [ran_seconds, hz, cpu, gpu, calls, clk]
+		var line := "%.0f\t%.1f\t%.3f\t%.3f\t%d\t%d\t%.3f" % [ran_seconds, hz, cpu, gpu, calls, clk,
+				Time.get_unix_time_from_system()]
 		if f != null:
 			f.store_line(line)
 			f.flush()   # немедленно на диск: прерванный прогон не должен потерять данные
@@ -164,10 +181,31 @@ func run(r: ProbeReport, sweep: Dictionary, minutes: float = DEFAULT_MINUTES) ->
 		f.close()
 
 	interrupted = ran_seconds < planned_seconds * 0.98
+	_check_samples(r)
 	_verdict(r, budget_ms, current_refresh)
 	_check_drift(r)
 	_check_clock_drop(r)
 	_check_residency(r)
+
+
+## Полнота выборок: каждая обязана видеть ровно load_n отрисовок.
+##
+## Порог — ноль неполных, а не доля: нагрузка висит на камере, и отсечь её
+## нечему. Любая неполная выборка значит, что причина не та, что найдена, и
+## называется поимённо (§1.4). Гейт прогнан на старых TSV офлайн: 70 неполных
+## во втором прогоне и 9 в первом — он краснеет на известном дефекте (§2.4).
+func _check_samples(r: ProbeReport) -> void:
+	var short := samples_short.size()
+	var named := samples_short.filter(func(x): return x != "")
+	if load_n == 0:
+		r.unkn("полнота выборок: нагрузки нет, сверять не с чем")
+	elif samples_full == 0:
+		r.fail("полнота выборок: ни одной полной выборки из %d" % short)
+	elif short == 0:
+		r.pass_("полнота выборок: все %d выборок видели ровно N=%d отрисовок" % [samples_full, load_n])
+	else:
+		r.fail("полнота выборок: %d неполных при %d полных (%s%s) — нагрузка выпадала из кадра, причина НЕ отсечение по пирамиде" % [
+				short, samples_full, ", ".join(named), " …" if short > named.size() else ""])
 
 
 ## Набор доступных частот. Без него нельзя судить, чего стоит слежение за

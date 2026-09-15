@@ -46,6 +46,23 @@
 
 ---
 
+**Профилирование GPU и памяти, App SpaceWarp** (сверка 2026-09-14, правило 8 `CLAUDE.md`):
+
+- `developers.meta.com/horizon/documentation/unity/ts-ovrgpuprofiler/` — `ovrgpuprofiler -e` (детальный
+  режим, действует на приложения, запущенные после), `-t` — трасса стадий по поверхностям: число и
+  размер бинов, режим (Direct/HwBinning/SwBinning/HwDirect), Binning/Render/Store. **Подтверждено
+  прибором** (прогон 19): формат строки совпал, бины 288×448 и режим HwBinning получены без патча
+  `godot/`. Документация не упоминает стадию `Preempt` — она есть в трассах этой прошивки.
+- `developers.meta.com/horizon/documentation/unity/ts-gpumeminfo/` — `gpumeminfo -p PID`, память GPU
+  по процессу и типам. Подтверждено (прогон 19, `tools/gpu_mem.sh`).
+- `developers.meta.com/horizon/documentation/unity/os-app-spacewarp/` — артефакты (прозрачность,
+  быстрые объекты вблизи, вращение, чистый фон, объекты без векторов), свидетель в logcat
+  `FPS=36/72` и `ASW=72, Type=App`, оверлей `debug.oculus.MVOverlay`. **Расхождение:** в строке
+  `VrApi` нашей прошивки поля `ASW` нет; `FPS=приложение/дисплей` и `Stale` есть и работают
+  (прогон 23).
+
+---
+
 ## B. Документация Godot по XR
 
 `docs.godotengine.org/en/stable/tutorials/xr/` — на 2026-09-13 «stable» соответствует **4.7**,
@@ -85,6 +102,20 @@ OpenXR в манифесте, и приложение запускалось п�
 `enable_khronos_plugin`, а не к отсутствию плагина вообще. **Проверяется одним экспортом без
 плагина и разбором манифеста через `aapt2`.** До проверки действует ADR-0005: он опирается на
 измерение, а документация — на утверждение.
+
+---
+
+**Компиляция конвейеров** — `docs.godotengine.org/en/4.5/tutorials/performance/pipeline_compilations.html`
+(сверка 2026-09-14): предкомпиляция при загрузке видит то, что `RenderingServer` получил при загрузке;
+`material_override` так не предкомпилируется; сцену с нужными материалами достаточно инстанцировать
+хотя бы невидимой; shader baker даёт только промежуточный формат, конвейер собирает драйвер.
+**Подтверждено прибором** (прогоны 18, 20): предзагрузка 4.6 мс против 1097 мс, baker задержку не
+снимает. Не упомянуто: baker при экспорте с `--headless` молча выключается (ловушка 22).
+
+**Issue #118902 / PR #118901** (`github.com/godotengine/godot`) — краш frame synthesis на Quest 3 в
+4.7-dev. Фикс в нашем пине 4.7.2 проверен **содержанием** (`on_pre_draw_viewport` в
+`openxr_frame_synthesis_extension.cpp`), не хешем: история сабмодуля неглубокая. Не упомянуто в
+документации: расширение стартует с `enabled=true` (ловушка 24).
 
 ---
 

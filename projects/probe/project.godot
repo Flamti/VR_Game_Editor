@@ -51,3 +51,9 @@ openxr/extensions/meta/hand_tracking_aim=true
 ; Модель руки от рантайма для визуализации в фазе R (OpenXRFbHandTrackingMesh
 ; плагина читает эту настройку, openxr_fb_hand_tracking_mesh.cpp:100).
 openxr/extensions/meta/hand_tracking_mesh=true
+; Frame synthesis (XR_EXT_frame_synthesis) — ТОЛЬКО в сборке с тегом vrge_synthesis
+; (пресет «Quest synthesis», фаза S). Включённое расширение стартует с enabled=true
+; вопреки документации (openxr_frame_synthesis_extension.cpp, on_instance_created) и
+; создаёт свопчейны векторов движения, даже когда выключено, — в штатной сборке это
+; вмешалось бы во все замеры. Проверять по is_available() в логе фазы S.
+openxr/extensions/frame_synthesis.vrge_synthesis=true

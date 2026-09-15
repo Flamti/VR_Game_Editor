@@ -1,0 +1,17 @@
+[gd_resource type="SphereMesh" load_steps=2 format=3]
+
+; Фаза W2, эпизод A: материал НА ПОВЕРХНОСТИ меша, не material_override.
+; Документация Godot: override при загрузке не предкомпилируется, материал меша —
+; да, если меш виден RenderingServer при загрузке (pso_warm.tscn в main.tscn).
+; Набор фич уникален во всём приборе: иначе вариант уже был бы в кэше.
+[sub_resource type="StandardMaterial3D" id="mat_a"]
+transparency = 2
+vertex_color_use_as_albedo = true
+emission_enabled = true
+emission = Color(0.4, 0.2, 0.05, 1)
+backlight_enabled = true
+
+[resource]
+material = SubResource("mat_a")
+radius = 0.05
+height = 0.1

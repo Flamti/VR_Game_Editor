@@ -24,6 +24,8 @@ var _skip_layers := false
 var _skip_msaa_sweep := false
 var _hands := false
 var _skip_draws := false
+var _curve := false
+var _synthesis := false
 var _minutes := SUSTAINED_MINUTES
 
 # preload, а не опора на class_name: глобальный кэш классов может быть ещё не
@@ -42,6 +44,9 @@ const ProbeLayers := preload("res://probe_layers.gd")
 const ProbeMsaaSweep := preload("res://probe_msaa_sweep.gd")
 const ProbeHands := preload("res://probe_hands.gd")
 const ProbeWindow := preload("res://probe_window.gd")
+const ProbeCurve := preload("res://probe_curve.gd")
+const ProbeSynthesis := preload("res://probe_synthesis.gd")
+const ProbePso := preload("res://probe_pso.gd")
 
 var _report: ProbeReport = ProbeReport.new()
 var _caps: ProbeCaps = ProbeCaps.new()
@@ -54,12 +59,17 @@ var _fill: ProbeFill = ProbeFill.new()
 var _layers: ProbeLayers = ProbeLayers.new()
 var _msaa_sweep: ProbeMsaaSweep = ProbeMsaaSweep.new()
 var _hands_phase: ProbeHands = ProbeHands.new()
+var _curve_phase: ProbeCurve = ProbeCurve.new()
+var _synthesis_phase: ProbeSynthesis = ProbeSynthesis.new()
+var _pso: ProbePso = ProbePso.new()
 var _state_snapshot: Dictionary = {}
 var _expected := 0
 var _probe = null
 
 
 func _ready() -> void:
+	# Первым делом: время старта и счётчики компиляций при загрузке (фаза W).
+	_pso.capture_startup()
 	_parse_args()
 	await _run_all()
 	get_tree().quit(0 if _report.failed == 0 else 1)
@@ -91,6 +101,11 @@ const SKIP_MSAA_SWEEP_MARKER := "user://skip_msaa_sweep"
 ## умолчанию её нет. Иначе любой прогон ждал бы жестов и доложил бы отказ рук.
 const HANDS_MARKER := "user://hands"
 const SKIP_DRAWS_MARKER := "user://skip_draws"
+## Исследовательские фазы — включаются, а не выключаются: штатный прогон ими
+## не удлиняется. K — форма кривой вызовов (~6 мин), S — frame synthesis
+## (сборка пресета «Quest synthesis», ~4 мин с визуальным отрезком под шлемом).
+const CURVE_MARKER := "user://curve"
+const SYNTHESIS_MARKER := "user://synthesis"
 
 ## Быстрый режим обкатки: окна укорачиваются так, что числа недействительны.
 ## Существует, чтобы прогнать все ветки арифметики до дорогого прогона.
@@ -112,6 +127,10 @@ func _parse_args() -> void:
 		_hands = true
 	if FileAccess.file_exists(SKIP_DRAWS_MARKER):
 		_skip_draws = true
+	if FileAccess.file_exists(CURVE_MARKER):
+		_curve = true
+	if FileAccess.file_exists(SYNTHESIS_MARKER):
+		_synthesis = true
 	if FileAccess.file_exists(QUICK_MARKER):
 		ProbeWindow.quick = true
 	if FileAccess.file_exists(MINUTES_MARKER):
@@ -148,6 +167,9 @@ func _run_all() -> void:
 	# XR-вьюпорт. Без него рендера в шлем нет вообще, и все замеры времени
 	# кадра меряли бы пустоту. Прошлый прогон именно этим и был испорчен.
 	var xr_ok := _enable_xr()
+	# Сборка с тегом vrge_synthesis стартует с синтезом ВКЛЮЧЁННЫМ: до любых
+	# замеров он выключается, фаза S включает его сама.
+	_report.note("frame synthesis: %s" % ProbeSynthesis.disable_if_present())
 
 	# Пол считается ДО проверок и выводится из тех же массивов, по которым идут
 	# циклы, а не перечисляется рядом (PRACTICES §1.8).
@@ -157,6 +179,12 @@ func _run_all() -> void:
 	if xr_ok and _hands:
 		_expected += _hands_phase.expected_checks()
 	_expected += _state.expected_checks() + _hw.expected_checks()
+	if xr_ok:
+		_expected += _pso.expected_checks()
+	if xr_ok and _curve:
+		_expected += _curve_phase.expected_checks()
+	if xr_ok and _synthesis:
+		_expected += _synthesis_phase.expected_checks()
 	if xr_ok and not _skip_matrix:
 		_expected += _matrix.expected_checks()
 	if xr_ok and not _skip_fill:
@@ -182,6 +210,12 @@ func _run_all() -> void:
 	_caps.run(_probe, _report)
 	_state_snapshot = _state.run(get_viewport(), _report)
 	_hw.run(_report)
+
+	# Фаза W — до всего, что спавнит объекты: её вариант материала обязан быть
+	# новым для процесса, иначе кэш конвейеров уже прогрет чужой фазой.
+	if xr_ok:
+		_pso.setup(self, self)
+		await _pso.run(_report)
 
 	# Фаза R — до нагрузочных фаз: человек в шлеме ждёт подсказок, а не минуту свипов.
 	if xr_ok and _hands:
@@ -229,6 +263,13 @@ func _run_all() -> void:
 	elif _skip_msaa_sweep:
 		_report.note("")
 		_report.note("фаза L4 пропущена (маркер %s)" % SKIP_MSAA_SWEEP_MARKER)
+
+	if xr_ok and _curve:
+		_curve_phase.setup(self, self)
+		await _curve_phase.run(_report)
+	if xr_ok and _synthesis:
+		_synthesis_phase.setup(self, self)
+		await _synthesis_phase.run(_report)
 
 	# Матрица и ось оставили частоту на последней своей ступени. Длинный прогон
 	# обязан идти на рабочей частоте, а не на той, где случайно закончили.
@@ -337,7 +378,10 @@ func _write_report() -> void:
 	f.store_line("```")
 	f.store_line("мкс на draw call (небатченый):  %s" % _fmt(_draws.us_per_drawcall))
 	f.store_line("мкс на инстанс:                 %s" % _fmt(_draws.us_per_instance))
-	f.store_line("цена разогрева PSO, мс:         %s" % _fmt(_draws.warmup_cost_ms))
+	f.store_line("цена разогрева PSO, мс:         %s (пик N=100 фазы C–D; компиляцией не подтверждён — см. W)" % _fmt(_draws.warmup_cost_ms))
+	f.store_line("старт до _ready, мс:            %d (baker %s)" % [_pso.startup_ms, "вкл" if ProbePso.has_baked_shaders() else "выкл"])
+	f.store_line("W: компиляций DRAW новый/повтор: %d / %d, пик %s мс" % [
+			_pso.first_draw_compiles, _pso.repeat_draw_compiles, _fmt(_pso.first_spike_ms)])
 	f.store_line("разброс прогонов, мс:           %s" % _fmt(_draws.variance_ms))
 	f.store_line("буфер глаза:                    %s" % _state_snapshot.get("render_target_size", "не измерено"))
 	f.store_line("фовеация (уровень/динамика):    %s / %s" % [

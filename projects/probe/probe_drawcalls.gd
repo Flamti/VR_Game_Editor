@@ -51,6 +51,14 @@ var us_per_instance_gpu: float = NAN
 var variance_ms: float = NAN
 var sweep_step_ms: float = NAN
 
+## Фальсификатор гейта по точкам (PRACTICES §2.4): при маркере точка N=400
+## небатченого свипа намеренно получает на четверть меньше объектов. Гейт
+## обязан покраснеть и назвать «N=400→300». Проверка по всем точкам была
+## добавлена после «N=800 → 658» и ни разу не видела отказа.
+const FALSIFY_GATE_MARKER := "user://falsify_gate"
+const FALSIFY_GATE_N := 400
+var _falsify_gate := false
+
 
 func expected_checks() -> int:
 	# нулевой контроль 1, гейт небатченый 1, гейт инстансный 1, разброс 1,
@@ -61,12 +69,12 @@ func expected_checks() -> int:
 func setup(host: Node) -> void:
 	_host = host
 	_container = Node3D.new()
-	# Перед камерой на 2 м: объекты обязаны быть ВИДИМЫ, иначе отсечение
-	# выбросит их и свип не задействует draw calls вообще.
-	_container.position = Vector3(0, 0, -2)
-	host.add_child(_container)
+	# Перед камерой на 2 м и НА камере: объекты обязаны быть видимы при любом
+	# повороте головы, иначе отсечение выбросит часть (ProbeWindow.attach_load).
+	ProbeWindow.attach_load(host, host, _container)
 	_viewport_rid = host.get_viewport().get_viewport_rid()
 	RenderingServer.viewport_set_measure_render_time(_viewport_rid, true)
+	_falsify_gate = FileAccess.file_exists(FALSIFY_GATE_MARKER)
 
 
 func _clear() -> void:
@@ -100,7 +108,10 @@ func _tiny_quad() -> Mesh:
 ## материала, поэтому отдельные ресурсы дают отдельные вызовы отрисовки.
 func _spawn_unbatched(n: int) -> void:
 	var mesh := _tiny_quad()
-	for i in n:
+	var count := n
+	if _falsify_gate and n == FALSIFY_GATE_N:
+		count = n * 3 / 4
+	for i in count:
 		var mi := MeshInstance3D.new()
 		mi.mesh = mesh
 		var mat := StandardMaterial3D.new()
@@ -141,6 +152,9 @@ func run(r: ProbeReport) -> void:
 	r.note("--- C–D. Стоимость отрисовки ---")
 	r.note("частота обновления: %.1f Гц, кадровый бюджет: %.2f мс" % [_refresh_at_start, budget])
 	r.note("окно: %.1f с разогрева + %.1f с замера по стенным часам (число кадров — результат, не настройка)" % [WARMUP_S, MEASURE_S])
+	if _falsify_gate:
+		r.note("!!! ФАЛЬСИФИКАТОР ГЕЙТА: точка N=%d получит %d объектов — гейт обязан покраснеть, числа свипа недействительны !!!" % [
+				FALSIFY_GATE_N, FALSIFY_GATE_N * 3 / 4])
 	r.note("")
 
 	await _sweep(r, "небатченый", unbatched, _spawn_unbatched, budget)
@@ -277,14 +291,16 @@ func _check_gate(r: ProbeReport, label: String, data: Dictionary, expect_growth:
 			var actual: int = data[n]["calls"]
 			if claimed > 0 and absf(float(actual - claimed)) / float(claimed) > 0.05:
 				off.append("N=%d→%d" % [claimed, actual])
-		if not off.is_empty():
-			r.note("        точки с расхождением заявленного и счётчика движка: %s" % ", ".join(off))
-
 		var ratio := float(d_calls) / float(max(d_n, 1))
-		if ratio > 0.5:
-			r.pass_("гейт «%s»: ΔN=%d → Δdraw calls=%d (%.2f на объект)%s" % [
-					label, d_n, d_calls, ratio,
-					" — случай задевает гейт" if off.is_empty() else " — гейт задет, но %d точек с расхождением (см. выше)" % off.size()])
+		if not off.is_empty():
+			# Прежде это была заметка при зелёном вердикте: наклон по концам мог
+			# пройти, а середина кривой — считаться по недобору. Теперь отказ.
+			r.fail("гейт «%s»: точки с расхождением заявленного и счётчика движка: %s — СВИП НЕВАЛИДЕН" % [
+					label, ", ".join(off)])
+			_invalidated = label
+		elif ratio > 0.5:
+			r.pass_("гейт «%s»: ΔN=%d → Δdraw calls=%d (%.2f на объект), все точки сошлись с N — случай задевает гейт" % [
+					label, d_n, d_calls, ratio])
 		else:
 			r.fail("гейт «%s»: ΔN=%d, а Δdraw calls=%d — батчинг склеил объекты. СВИП НЕВАЛИДЕН, наклон не считать" % [label, d_n, d_calls])
 			_invalidated = label

@@ -83,8 +83,7 @@ func expected_checks() -> int:
 func setup(host: Node, parent: Node) -> void:
 	_host = host
 	_container = Node3D.new()
-	_container.position = Vector3(0, 0, -2)
-	parent.add_child(_container)
+	ProbeWindow.attach_load(host, parent, _container)
 	_vp = host.get_viewport().get_viewport_rid()
 	RenderingServer.viewport_set_measure_render_time(_vp, true)
 

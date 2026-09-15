@@ -1,6 +1,25 @@
 extends RefCounted
 class_name ProbeHands
 
+## Фаза R v4: гейт контекста щипка, запас щипка, кулак при вращении кистью.
+##
+## Что добавлено к v3 и почему (открытые вопросы сессии 8).
+##
+## 1. **Гейт контекста щипка** (ProbeHandFeatures.PINCH_OTHERS_MAX): свободная рука
+##    сама замыкала щипок. Классификатор с гейтом ведёт вердикты; классификатор v3
+##    без гейта идёт параллельно — его срабатывания в тех же окнах показывают, что
+##    гейт снял. Окно rest_relaxed — расслабленные руки, где v3 обязан сработать
+##    хоть раз, иначе окно не задело гейт (§2.5).
+## 2. **Риск гейта — расслабленный щипок.** Окно pinch_relax_R: щипок «как удобно».
+##    Если гейт его теряет, гейт не годится, как бы чисто он ни снимал свободную руку.
+## 3. **Запас щипка**: pinch_slow_R — медленное сведение до касания по сигналу;
+##    минимум расстояния в слоте показывает, насколько глубоко за порог уходит
+##    настоящий щипок.
+## 4. **Кулак при вращении кистью**: rot_fist_L — вращение шара кистью и сжатие
+##    одновременно, как в компакте ADR-0008.
+##
+## Ниже — описание v3, действует без изменений.
+##
 ## Фаза R v3: жесты ПО СИГНАЛУ, ладонь к лицу / от лица, пороги прогона 13.
 ##
 ## ИНТЕРАКТИВНАЯ: жесты делает человек в шлеме по подсказкам. Включается только
@@ -74,6 +93,15 @@ const STEPS := [
 		"text": "ЛЕВАЯ: кулак по сигналу"},
 	{"id": "poke_R", "kind": "free", "s": 12.0,
 		"text": "ПРАВАЯ: коснитесь синего шарика\nуказательным пальцем РОВНО 3 раза"},
+	# --- v4 ---
+	{"id": "rest_relaxed", "kind": "free", "s": 15.0,
+		"text": "Обе руки РАССЛАБЛЕНЫ, как на отдыхе.\nПальцы не держать, не щипать специально."},
+	{"id": "pinch_relax_R", "kind": "cued", "hand": "R", "class": "pinch", "group": "relax", "reps": 4, "on_s": 1.5, "off_s": 1.5,
+		"text": "ПРАВАЯ: щипок КАК УДОБНО,\nрасслабленно, не выпрямляя пальцы"},
+	{"id": "pinch_slow_R", "kind": "cued", "hand": "R", "class": "pinch", "group": "slow", "reps": 3, "on_s": 3.0, "off_s": 2.0,
+		"text": "ПРАВАЯ: МЕДЛЕННО сведите большой\nи указательный до касания, потом разведите"},
+	{"id": "rot_fist_L", "kind": "cued", "hand": "L", "class": "fist", "group": "rot", "reps": 4, "on_s": 2.0, "off_s": 2.0,
+		"text": "ЛЕВАЯ: всё время ВРАЩАЙТЕ кистью,\nпо сигналу — кулак, не прекращая вращать"},
 ]
 const GESTURE_NAMES := {"pinch": "ЩИПОК", "fist": "КУЛАК"}
 const PAUSE_S := 3.0
@@ -104,6 +132,12 @@ var _prev_cls: Dictionary = {"L": "", "R": ""}
 var _release_since: Dictionary = {"L": -1, "R": -1}
 ## Срабатывания классификатора: [{step, hand, class, t}] — t в секундах от начала окна.
 var _events: Array[Dictionary] = []
+## Классификатор v3 без гейта контекста — параллельный канал, та же форма.
+var _prev_v3: Dictionary = {"L": "", "R": ""}
+var _release_v3: Dictionary = {"L": -1, "R": -1}
+var _events_v3: Array[Dictionary] = []
+## Минимум расстояния щипка по слотам pinch_slow_R: слот → метры.
+var _slow_min: Dictionary = {}
 ## Слоты окон: step → [{kind, t0, t1, idx}]
 var _slots: Dictionary = {}
 ## Признаки ладони по слотам: step → "to"|"away" → {"palm_head": [], "palm_y_head": [], "aim_pose": n, "frames": n}
@@ -120,7 +154,9 @@ func expected_checks() -> int:
 	# контроль 1; трекинг L/R 2; суставы 1; фальсификаторы 2; ладонь L/R 2;
 	# свидетель позы левой 1; щипок R/L 2; кулак 1; касания 1; перекрёстные 1;
 	# TSV 1; сетка руки 1
-	return 1 + 2 + 1 + 2 + 2 + 1 + 2 + 1 + 1 + 1 + 1 + 1
+	# v4: фальсификатор расслабленных рук 1; эффект гейта 1; расслабленный щипок 1;
+	# медленный щипок и запас 1; кулак при вращении 1
+	return 1 + 2 + 1 + 2 + 2 + 1 + 2 + 1 + 1 + 1 + 1 + 1 + 5
 
 
 func setup(host: Node) -> void:
@@ -155,10 +191,11 @@ func _place_label() -> void:
 
 func run(r: ProbeReport) -> void:
 	r.note("")
-	r.note("--- R v3. Руки: жесты по сигналу, ладонь к лицу/от лица (интерактивная, ADR-0008) ---")
-	r.note("пороги: кулак вход %.2f / выход %.2f по min-сгибу; щипок вход %.4f / выход %.3f м при не-кулаке; отпускание %.0f мс" % [
+	r.note("--- R v4. Руки: гейт контекста щипка, запас, кулак при вращении (интерактивная, ADR-0008) ---")
+	r.note("пороги: кулак вход %.2f / выход %.2f по min-сгибу; щипок вход %.4f / выход %.3f м при не-кулаке; отпускание %.0f мс; гейт щипка: сгиб среднего и безымянного < %.3f" % [
 			ProbeHandFeatures.FIST_ENTER, ProbeHandFeatures.FIST_EXIT,
-			ProbeHandFeatures.PINCH_ENTER, ProbeHandFeatures.PINCH_EXIT, ProbeHandFeatures.RELEASE_S * 1000.0])
+			ProbeHandFeatures.PINCH_ENTER, ProbeHandFeatures.PINCH_EXIT, ProbeHandFeatures.RELEASE_S * 1000.0,
+			ProbeHandFeatures.PINCH_OTHERS_MAX])
 	for s in STEPS:
 		_slots[s["id"]] = []
 		_tracked[s["id"]] = {"L": [0, 0], "R": [0, 0]}
@@ -176,6 +213,8 @@ func run(r: ProbeReport) -> void:
 		_step = s["id"]
 		_prev_cls = {"L": "", "R": ""}
 		_release_since = {"L": -1, "R": -1}
+		_prev_v3 = {"L": "", "R": ""}
+		_release_v3 = {"L": -1, "R": -1}
 		_step_t0 = Time.get_ticks_msec()
 		match s["kind"]:
 			"free":
@@ -286,10 +325,16 @@ func _frame() -> Dictionary:
 			var ct := XRServer.get_tracker(CONTROLLER_TRACKERS[hand]) as XRPositionalTracker
 			if ct != null and ct.profile != "":
 				_profiles[hand] = ct.profile
-		var cls := _debounced(hand, ProbeHandFeatures.classify(d, _prev_cls[hand]))
+		var cls := _debounced(hand, ProbeHandFeatures.classify(d, _prev_cls[hand]), _prev_cls, _release_since)
 		if cls != "" and cls != _prev_cls[hand]:
 			_events.append({"step": _step, "hand": hand, "class": cls, "t": _elapsed()})
 		_prev_cls[hand] = cls
+		var v3 := _debounced(hand, ProbeHandFeatures.classify(d, _prev_v3[hand], false), _prev_v3, _release_v3)
+		if v3 != "" and v3 != _prev_v3[hand]:
+			_events_v3.append({"step": _step, "hand": hand, "class": v3, "t": _elapsed()})
+		_prev_v3[hand] = v3
+		if _step == "pinch_slow_R" and hand == "R" and _slot != "" and d["tracked"]:
+			_slow_min[_slot] = minf(_slow_min.get(_slot, INF), d["pinch_m"])
 		_write_row(now, hand, d, cls)
 	if _step == "poke_R":
 		_sample_poke()
@@ -299,17 +344,17 @@ func _frame() -> Dictionary:
 ## Отпускание удерживаемого класса — только если сырой класс отличается дольше
 ## RELEASE_S (одиночные выбросы расстояния щипка, прогон 14). Вход не задержан:
 ## задержка входа добавила бы лаг к каждому жесту.
-func _debounced(hand: String, raw: String) -> String:
-	var held: String = _prev_cls[hand]
+func _debounced(hand: String, raw: String, prev: Dictionary, since: Dictionary) -> String:
+	var held: String = prev[hand]
 	if held == "" or raw == held:
-		_release_since[hand] = -1
+		since[hand] = -1
 		return raw
 	var now := Time.get_ticks_usec()
-	if _release_since[hand] < 0:
-		_release_since[hand] = now
-	if float(now - _release_since[hand]) / 1000000.0 < ProbeHandFeatures.RELEASE_S:
+	if since[hand] < 0:
+		since[hand] = now
+	if float(now - since[hand]) / 1000000.0 < ProbeHandFeatures.RELEASE_S:
 		return held
-	_release_since[hand] = -1
+	since[hand] = -1
 	return raw
 
 
@@ -399,9 +444,9 @@ func _share(step: String, hand: String) -> float:
 	return float(t[0]) / float(t[1]) if t[1] > 0 else 0.0
 
 
-func _events_of(step: String, hand: String = "", cls: String = "") -> Array[Dictionary]:
+func _events_of(step: String, hand: String = "", cls: String = "", v3: bool = false) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	for e in _events:
+	for e in (_events_v3 if v3 else _events):
 		if e["step"] == step and (hand == "" or e["hand"] == hand) and (cls == "" or e["class"] == cls):
 			out.append(e)
 	return out
@@ -467,6 +512,8 @@ func _report(r: ProbeReport) -> void:
 		r.fail("R касания шарика: %d вместо %d" % [_poke_hits, POKE_REQUESTED])
 
 	_cross_talk(r)
+
+	_v4_checks(r)
 
 	if _rows > 0:
 		r.pass_("R лог признаков: %d строк" % _rows)
@@ -558,7 +605,7 @@ func _palm_witness(r: ProbeReport) -> void:
 
 ## Жесты по сигналу: в каждом слоте ровно одно срабатывание целевого класса
 ## на целевой руке; срабатывания целевого класса вне слотов — лишние.
-func _cued_check(r: ProbeReport, cls: String, hand: String) -> void:
+func _cued_check(r: ProbeReport, cls: String, hand: String, group: String = "") -> void:
 	var hits := 0
 	var slots_total := 0
 	var misses: PackedStringArray = []
@@ -566,7 +613,7 @@ func _cued_check(r: ProbeReport, cls: String, hand: String) -> void:
 	var extras: PackedStringArray = []
 	var tracked := false
 	for s in STEPS:
-		if s["kind"] != "cued" or s["class"] != cls or s["hand"] != hand:
+		if s["kind"] != "cued" or s["class"] != cls or s["hand"] != hand or s.get("group", "") != group:
 			continue
 		var id: String = s["id"]
 		if _share(id, hand) > 0.0:
@@ -591,7 +638,7 @@ func _cued_check(r: ProbeReport, cls: String, hand: String) -> void:
 		for i in ev.size():
 			if not used[i]:
 				extras.append("%s@%.1f" % [id, ev[i]["t"]])
-	var label := "%s %s по сигналу" % [cls, hand]
+	var label := "%s %s по сигналу%s" % [cls, hand, " (%s)" % group if group != "" else ""]
 	if not tracked:
 		r.unkn("R %s: рука не отслеживалась" % label)
 	elif hits == slots_total and extras.is_empty():
@@ -607,7 +654,7 @@ func _cross_talk(r: ProbeReport) -> void:
 	var bad: PackedStringArray = []
 	for s in STEPS:
 		var id: String = s["id"]
-		if id == "rest" or id == "wrist_L":
+		if id == "rest" or id == "wrist_L" or id == "rest_relaxed":
 			continue
 		for e in _events_of(id):
 			var ok: bool = s["kind"] == "cued" and e["hand"] == s["hand"] and e["class"] == s["class"]
@@ -617,3 +664,59 @@ func _cross_talk(r: ProbeReport) -> void:
 		r.pass_("R перекрёстные срабатывания: нет")
 	else:
 		r.fail("R перекрёстные срабатывания: %s" % ", ".join(bad))
+
+
+# --- v4 ---------------------------------------------------------------------
+
+func _v4_checks(r: ProbeReport) -> void:
+	# Фальсификатор расслабленных рук: гейт молчит, а v3 обязан сработать хоть
+	# раз — иначе окно не создало случая, который гейт должен снимать (§2.5).
+	var relaxed := _events_of("rest_relaxed")
+	var relaxed_v3 := _events_of("rest_relaxed", "", "pinch", true)
+	if _share("rest_relaxed", "L") == 0.0 and _share("rest_relaxed", "R") == 0.0:
+		r.unkn("R фальсификатор 3 (расслабленные руки): руки не отслеживались")
+	elif not relaxed.is_empty():
+		r.fail("R фальсификатор 3 (расслабленные руки): с гейтом %d срабатываний, первое %s:%s@%.1f" % [
+				relaxed.size(), relaxed[0]["hand"], relaxed[0]["class"], relaxed[0]["t"]])
+	elif relaxed_v3.is_empty():
+		r.unkn("R фальсификатор 3 (расслабленные руки): молчат оба классификатора — окно не задело гейт, свободного щипка не было")
+	else:
+		r.pass_("R фальсификатор 3 (расслабленные руки): с гейтом молчит, без гейта %d щипков — гейт снял все" % relaxed_v3.size())
+
+	# Эффект гейта по всем окнам: что снял и не потерял ли щипков по сигналу.
+	var removed: PackedStringArray = []
+	var added: PackedStringArray = []
+	var lost_cued: PackedStringArray = []
+	for s in STEPS:
+		var id: String = s["id"]
+		for hand in ["L", "R"]:
+			var a := _events_of(id, hand, "pinch", true).size()
+			var b := _events_of(id, hand, "pinch").size()
+			if a > b:
+				removed.append("%s/%s −%d" % [id, hand, a - b])
+				if s["kind"] == "cued" and s["class"] == "pinch" and s["hand"] == hand:
+					lost_cued.append("%s/%s −%d" % [id, hand, a - b])
+			elif b > a:
+				added.append("%s/%s +%d" % [id, hand, b - a])
+	if not added.is_empty():
+		r.fail("R эффект гейта: гейт ДОБАВИЛ щипки %s — он обязан только снимать" % ", ".join(added))
+	elif lost_cued.is_empty():
+		r.pass_("R эффект гейта: снято %s; в окнах щипка по сигналу не снято ни одного" % (
+				", ".join(removed) if not removed.is_empty() else "ничего"))
+	else:
+		r.fail("R эффект гейта: снято в окнах щипка по сигналу %s — гейт теряет настоящие щипки" % ", ".join(lost_cued))
+
+	_cued_check(r, "pinch", "R", "relax")
+
+	# Медленный щипок: счёт по сигналу и глубина касания за порогом входа.
+	var mins: PackedStringArray = []
+	var worst := 0.0
+	for k in _slow_min:
+		mins.append("%s %.1f мм" % [k, _slow_min[k] * 1000.0])
+		worst = maxf(worst, _slow_min[k])
+	if not _slow_min.is_empty():
+		r.note("  медленный щипок: минимум расстояния по слотам %s; порог входа %.1f мм, запас худшего слота %.1f мм" % [
+				", ".join(mins), ProbeHandFeatures.PINCH_ENTER * 1000.0, (ProbeHandFeatures.PINCH_ENTER - worst) * 1000.0])
+	_cued_check(r, "pinch", "R", "slow")
+
+	_cued_check(r, "fist", "L", "rot")

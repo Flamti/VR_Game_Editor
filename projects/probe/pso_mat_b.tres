@@ -1,0 +1,10 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+; Фаза W2, эпизод B (контроль): тот же путь, что у фазы W, — material_override,
+; без предзагрузки. На холодном кэше обязан дать пик компиляции; иначе сравнение
+; A против B ничего не решает. Набор фич уникален во всём приборе.
+[resource]
+transparency = 3
+clearcoat_enabled = true
+anisotropy_enabled = true
+albedo_color = Color(0.3, 0.8, 0.4, 1)

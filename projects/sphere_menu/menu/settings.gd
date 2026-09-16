@@ -58,6 +58,9 @@ const SPEC := {
 	"hysteresis": {"title": "Липкость активной", "kind": "number", "default": 0.15, "min": 0.0, "max": 0.5,
 		"round": 0.01, "unit": "", "marks": [[0.05, "слабая"], [0.2, "средняя"], [0.4, "сильная"]],
 		"hint": "Насколько надо довернуть за границу ячейки, чтобы активной стала соседняя: у границы активная не мигает."},
+	"shake": {"title": "Встряхивание", "kind": "choice", "default": "normal",
+		"options": [["off", "выкл"], ["low", "низкая"], ["normal", "средняя"], ["high", "высокая"]],
+		"hint": "Встряхнуть шар — вернуться на верхний уровень меню, не закрывая его. Чем выше чувствительность, тем слабее достаточно тряхнуть."},
 	"hand_smoothing": {"title": "Сглаживание руки", "kind": "number", "default": 0.5, "min": 0.0, "max": 1.0,
 		"round": 0.05, "unit": "", "marks": [[0.0, "нет"], [0.5, "среднее"], [1.0, "сильное"]],
 		"hint": "Гасит дрожь и рывки кисти. 0 — шар повторяет руку в точности."},
@@ -68,7 +71,7 @@ const MAIN := ["surface", "hand_rotation", "radius_cm", "cell_cm", "stick_speed"
 		"hold_ms", "panel_side", "haptics"]
 ## «Дополнительно» — в настройках, не в мастере: владелец не понял, что они делают;
 ## у каждой — демонстрация.
-const ADVANCED := ["grab_friction", "hysteresis", "hand_smoothing"]
+const ADVANCED := ["grab_friction", "hysteresis", "shake", "hand_smoothing"]
 const ORDER := MAIN + ADVANCED
 ## Поверхность → семейство сетки (menu/goldberg.gd). Линзы нет: у неё своя решётка.
 const FAMILY := {"globe": "icosa", "globe_hex": "icosa", "octa": "octa", "rings": "rings", "fib": "fib"}

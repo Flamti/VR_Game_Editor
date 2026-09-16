@@ -31,6 +31,10 @@ const TEXT_KEYS := ["Й", "Ц", "У", "К", "Е", "Н", "Г", "Ш", "Щ", "З", 
 		"О", "Л", "Д", "Ж", "Э", "Я", "Ч", "С", "М", "И", "Т", "Ь", "Б", "Ю", "Ё", "␣", "⌫", "C"]
 ## Кончик у панели: расстояние до плоскости квада, м.
 const TIP_GAP := 0.02
+## Окно пояснения под значением и окно итога мастера, px.
+const HINT_WIDTH := 416.0
+const HINT_HEIGHT := 84.0
+const SUMMARY_HEIGHT := 440.0
 
 var edit: SettingEdit = null
 ## Строка под значением (например, фактический размер ячейки глобуса).
@@ -41,6 +45,7 @@ var _e_title: Label
 var _e_value: Label
 var _e_hint: Label
 var _number_box: Control
+var _e_scroll: ScrollContainer
 var _slider: HSlider
 var _marks_box: Control
 var _choice_box: VBoxContainer
@@ -65,13 +70,27 @@ var last_pointer: Variant = null
 func _ready() -> void:
 	super._ready()
 	for c in viewport.get_children():
-		if c is CanvasItem and not (c is Panel):
+		# кнопки прокрутки не принадлежат режиму информации: они обслуживают и итог
+		# мастера, а их видимость считает _sync_scroll_ui по активному окну
+		if c is CanvasItem and not (c is Panel) and c != _up_btn and c != _down_btn:
 			_info_nodes.append(c)
 	_build_editor()
 
 
 func interactive() -> bool:
 	return _editor != null and _editor.visible
+
+
+## Окно прокрутки: в правке и итоге мастера — своё, иначе содержимое панели.
+func active_scroll() -> ScrollContainer:
+	return _e_scroll if interactive() else super.active_scroll()
+
+
+## Панель берёт указатель: правка открыта либо содержимое не влезло и его надо
+## прокрутить. Пока прокручивать нечего, луч в режиме информации проходит мимо
+## панели к ячейкам шара под ней.
+func pointer_active() -> bool:
+	return interactive() or scrollable()
 
 
 ## Кнопка указателя зажата на панели (перетаскивание ползунка ушло за край квада).
@@ -122,7 +141,8 @@ func open_summary(title: String, lines: PackedStringArray, buttons: Array) -> vo
 	_e_title.text = title
 	_e_value.text = ""
 	_e_hint.text = "\n".join(lines)
-	_e_hint.size = Vector2(464, 440)
+	_e_scroll.size = Vector2(HINT_WIDTH, SUMMARY_HEIGHT)
+	scroll_reset()
 	_number_box.visible = false
 	_choice_box.visible = false
 	_text_box.visible = false
@@ -140,7 +160,8 @@ func open_text(title: String, buttons: Array) -> void:
 	_e_title.text = title
 	_e_value.text = "_"
 	_e_hint.text = "временно: ввод на панели — системная клавиатура Meta будет модулем"
-	_e_hint.size = Vector2(464, 84)
+	_e_scroll.size = Vector2(HINT_WIDTH, HINT_HEIGHT)
+	scroll_reset()
 	_number_box.visible = false
 	_choice_box.visible = false
 	_text_box.visible = true
@@ -167,7 +188,8 @@ func close_editor() -> void:
 func refresh() -> void:
 	if edit == null:
 		return
-	_e_hint.size = Vector2(464, 84)
+	_e_scroll.size = Vector2(HINT_WIDTH, HINT_HEIGHT)
+	scroll_reset()
 	_e_value.text = edit.text()
 	var hint: String = edit.spec()["hint"]
 	var note: String = note_fn.call() if note_fn.is_valid() else ""
@@ -223,7 +245,7 @@ func _to_px(p: Vector3) -> Variant:
 func pointer_update(px: Variant, pressed: bool, source: String = "user") -> void:
 	if synthetic_lock and source == "user":
 		return
-	if px == null or not interactive():
+	if px == null or not pointer_active():
 		_pointer_release()
 		return
 	last_pointer = px
@@ -237,6 +259,13 @@ func pointer_update(px: Variant, pressed: bool, source: String = "user") -> void
 		else:
 			_await_release = false
 	var pos: Vector2 = px
+	# Перетаскивание содержимого лучом (режим информации): указатель ведёт панель за
+	# собой 1:1. Отвергнуто: штатное touch-перетаскивание ScrollContainer через
+	# InputEventScreenTouch/Drag — оно зависит от эмуляции касаний во вьюпорте, тогда
+	# как мышиный путь push_input уже отлажен на ползунке; колесо мыши даёт ступени,
+	# а не ход за рукой.
+	if not interactive() and _pointer_down and _pointer_px.x >= 0.0 and not over_scroll_button(pos):
+		scroll_by(_pointer_px.y - pos.y)
 	if pos != _pointer_px:
 		var mm := InputEventMouseMotion.new()
 		mm.position = pos
@@ -279,6 +308,7 @@ func _pointer_release() -> void:
 func _set_info_visible(on: bool) -> void:
 	for n in _info_nodes:
 		n.visible = on
+	scroll_reset()
 
 
 func _build_editor() -> void:
@@ -290,7 +320,13 @@ func _build_editor() -> void:
 
 	_e_title = _elabel(Vector2(24, 14), Vector2(464, 44), 30, Color.WHITE)
 	_e_value = _elabel(Vector2(24, 58), Vector2(464, 48), 34, Color(1.0, 0.85, 0.35))
-	_e_hint = _elabel(Vector2(24, 106), Vector2(464, 84), 19, Color(0.80, 0.84, 0.90))
+	# Пояснение и итог мастера — в окне прокрутки: длинный итог обрезался по clip_text
+	# так же, как содержимое панели (отзыв сессии 3). Ширина 416 — колонка кнопок ▲/▼.
+	_e_scroll = make_scroll(Rect2(24, 106, HINT_WIDTH, HINT_HEIGHT))
+	_editor.add_child(_e_scroll)
+	_e_hint = _elabel(Vector2.ZERO, Vector2(HINT_WIDTH, HINT_HEIGHT), 19, Color(0.80, 0.84, 0.90), _e_scroll)
+	_e_hint.clip_text = false
+	_e_hint.custom_minimum_size = Vector2(HINT_WIDTH, 0)
 
 	_number_box = Control.new()
 	_number_box.position = Vector2(0, 192)
@@ -365,7 +401,7 @@ func _build_editor() -> void:
 	_editor.add_child(_buttons_box)
 
 
-func _elabel(pos: Vector2, size: Vector2, font: int, color: Color) -> Label:
+func _elabel(pos: Vector2, size: Vector2, font: int, color: Color, parent: Node = null) -> Label:
 	var l := Label.new()
 	l.position = pos
 	l.size = size
@@ -374,7 +410,10 @@ func _elabel(pos: Vector2, size: Vector2, font: int, color: Color) -> Label:
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	l.add_theme_font_size_override("font_size", font)
 	l.add_theme_color_override("font_color", color)
-	_editor.add_child(l)
+	if parent != null:
+		parent.add_child(l)
+	else:
+		_editor.add_child(l)
 	return l
 
 

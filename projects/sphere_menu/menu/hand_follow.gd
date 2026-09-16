@@ -12,7 +12,16 @@ extends RefCounted
 ##           контроллер смотрит почти вертикально, курс вырожден: его изменение
 ##           гасится, пока горизонтальная доля направления меньше STAND_HOLD;
 ##   face  — лицом к шлему: рука задаёт только положение, шар повёрнут к голове,
-##           активная ячейка не меняется, крутят стиком и захватом.
+##           активная ячейка не меняется, крутят стиком и захватом. «Верх» шара
+##           берётся из ориентации шлема. Отвергнуто: мировой верх — им шар
+##           ориентировался до сессии 3, и меню крутилось вокруг оси взгляда само
+##           по себе: шар держат ниже головы, направление на неё почти вертикально
+##           (to_head.y ≈ 0.8…0.95), а там азимут базиса вырожден — сдвиг кисти на
+##           пару сантиметров разворачивает шар на десятки градусов. Верх головы
+##           при взгляде на шар в руке почти перпендикулярен направлению на него:
+##           вырождения в рабочей позе нет. Отвергнуто и другое: мировой верх с
+##           замороженным по гистерезису азимутом — скрытое состояние и заметный
+##           «отпуск» после возврата руки вниз.
 ##
 ## Сглаживание — фильтр one-euro (Casiez, Roussel, Vogel, CHI 2012,
 ## gery.casiez.net/1euro): частота среза растёт со скоростью, поэтому медленное
@@ -45,6 +54,8 @@ var mode := "ball"
 var demo_offset := Quaternion.IDENTITY
 ## 0…1: 0 — без сглаживания, 1 — самое сильное.
 var smoothing := 0.5
+## Фальсификатор «faceup»: прежний мировой верх в режиме «лицом к шлему».
+var falsify_world_up := false
 
 var _q := Quaternion.IDENTITY
 var _raw_prev := Quaternion.IDENTITY
@@ -68,10 +79,11 @@ func rotating() -> bool:
 	return _speed > ROTATING
 
 
-## hand — ориентация руки в мире; ball_pos, head_pos — положения в мире.
+## hand — ориентация руки в мире; ball_pos — положение шара, head — поза шлема в мире
+## (нужна не только точка: «лицом к шлему» берёт из неё верх).
 ## Возвращает ориентацию шара в мире.
-func update(hand: Quaternion, ball_pos: Vector3, head_pos: Vector3, dt: float) -> Quaternion:
-	var raw := target(demo_offset * hand, ball_pos, head_pos)
+func update(hand: Quaternion, ball_pos: Vector3, head: Transform3D, dt: float) -> Quaternion:
+	var raw := target(demo_offset * hand, ball_pos, head)
 	if not _started or dt <= 0.0:
 		_q = raw
 		_raw_prev = raw
@@ -93,17 +105,19 @@ func update(hand: Quaternion, ball_pos: Vector3, head_pos: Vector3, dt: float) -
 
 
 ## Ориентация без сглаживания.
-func target(hand: Quaternion, ball_pos: Vector3, head_pos: Vector3) -> Quaternion:
+func target(hand: Quaternion, ball_pos: Vector3, head: Transform3D) -> Quaternion:
 	match mode:
 		"stand":
 			return Quaternion(Vector3.UP, _heading(hand))
 		"face":
-			var to_head := head_pos - ball_pos
+			var to_head := head.origin - ball_pos
 			if to_head.length_squared() < 1e-8:
 				return _q
 			to_head = to_head.normalized()
-			# голова строго над шаром: мировой верх вырожден, держим прежний верх шара
-			var up := Vector3.UP if absf(to_head.y) < 0.98 else _q * Vector3.UP
+			var up := Vector3.UP if falsify_world_up else head.basis.y.normalized()
+			# смотрят вдоль собственного верха — базис вырожден, держим прежний верх шара
+			if absf(to_head.dot(up)) > 0.98:
+				up = _q * Vector3.UP
 			# +Z шара — на голову, как «перёд» поверхностей по умолчанию
 			return Basis.looking_at(-to_head, up).get_rotation_quaternion()
 	return hand

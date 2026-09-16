@@ -40,7 +40,11 @@ extends SceneTree
 ##   --falsify=hexhide    глобус без пятиугольников раздаёт пункты и на них — краснеет только
 ##                        «скрытые дефекты»;
 ##   --falsify=demo       путь стика в демонстрации без последнего отрезка —
-##                        краснеет только «демонстрации».
+##                        краснеет только «демонстрации»;
+##   --falsify=faceup     «лицом к шлему» строит шар от МИРОВОГО верха (как до сессии 3) —
+##                        краснеет только «лицом к шлему устойчиво»;
+##   --falsify=shake      отрезок встряхивания засчитывается без порога пройденного пути —
+##                        краснеет только «встряхивание» (на контроле «дрожь 6 Гц»).
 
 const Report := preload("res://probe_report.gd")
 const Goldberg := preload("res://menu/goldberg.gd")
@@ -60,6 +64,9 @@ const Wizard := preload("res://menu/wizard.gd")
 const Navigator := preload("res://menu/navigator.gd")
 const Stick := preload("res://menu/stick.gd")
 const HandFollow := preload("res://menu/hand_follow.gd")
+const ShakeRes := preload("res://menu/shake.gd")
+## Разгон и торможение вспышки встряхивания в проверке, с.
+const SHAKE_RAMP := 0.15
 const SettingEdit := preload("res://menu/setting_edit.gd")
 const DemoRes := preload("res://menu/demo.gd")
 const ExportRes := preload("res://session/export.gd")
@@ -86,7 +93,8 @@ const STATE_CHECKS := ["стек и прокрутка", "назад на кор
 const CATALOG_CHECKS := ["состав", "представление"]
 const MODEL_CHECKS := ["короткое и удержание", "трекбол", "настройки", "мастер", "шар действий",
 		"действие по умолчанию", "изменения и отмена", "множественный выбор", "сортировка и переходы",
-		"опасное без удержания", "стик", "вращение рукой", "сглаживание руки", "правка значения", "демонстрации",
+		"опасное без удержания", "стик", "вращение рукой", "лицом к шлему устойчиво",
+		"вращение и мир", "сглаживание руки", "встряхивание", "правка значения", "демонстрации",
 		"корень", "избранное", "плюс", "поиск", "выход"]
 const SHARED_COPIES := ["probe_window.gd", "probe_stats.gd", "probe_report.gd", "probe_budget.gd"]
 
@@ -1087,18 +1095,21 @@ func _hand_checks() -> void:
 	var hf = HandFollow.new()
 	var ball := Vector3(0.1, 1.2, -0.3)
 	var headp := Vector3(0.0, 1.6, 0.2)
+	# Голова смотрит вниз на шар в руке: её верх завален вперёд, и «лицом к шлему»
+	# берёт верх именно отсюда.
+	var head_xf := Transform3D(Basis(Vector3.RIGHT, -deg_to_rad(40.0)), headp)
 	# собственные наклон (вокруг X кисти) и крен (вокруг её оси −Z)
 	var tilt := Quaternion(Vector3.RIGHT, 0.5) * Quaternion(Vector3.BACK, 0.3)
 	var yaw := Quaternion(Vector3.UP, 0.7)
 	hf.mode = "stand"
-	var stand_tilt: Quaternion = hf.target(tilt, ball, headp)
-	var stand_yaw: Quaternion = hf.target(yaw * tilt, ball, headp)
+	var stand_tilt: Quaternion = hf.target(tilt, ball, head_xf)
+	var stand_yaw: Quaternion = hf.target(yaw * tilt, ball, head_xf)
 	hf.mode = "face"
-	var face_a: Quaternion = hf.target(tilt, ball, headp)
-	var face_b: Quaternion = hf.target(yaw, ball, headp)
+	var face_a: Quaternion = hf.target(tilt, ball, head_xf)
+	var face_b: Quaternion = hf.target(yaw, ball, head_xf)
 	var face_z: float = (face_a * Vector3.BACK).angle_to(headp - ball)
 	hf.mode = "ball"
-	var ball_t: Quaternion = hf.target(tilt, ball, headp)
+	var ball_t: Quaternion = hf.target(tilt, ball, head_xf)
 	if stand_tilt.angle_to(Quaternion.IDENTITY) < QTOL and stand_yaw.angle_to(yaw) < QTOL \
 			and face_a.angle_to(face_b) < QTOL and face_z < QTOL and ball_t.angle_to(tilt) < QTOL:
 		r.pass_("вращение рукой: подставка — наклон с креном 0 рад, курс 0.7 при наклоне с креном; лицом к шлему — рука не влияет, +Z на голову; как шар — рука")
@@ -1106,18 +1117,74 @@ func _hand_checks() -> void:
 		r.fail("вращение рукой: подставка наклон %.4f, курс %.4f; лицом %.4f, на голову %.4f; шар %.4f" % [
 				stand_tilt.angle_to(Quaternion.IDENTITY), stand_yaw.angle_to(yaw), face_a.angle_to(face_b), face_z, ball_t.angle_to(tilt)])
 
+	# Устойчивость «лицом к шлему»: рука ходит в рабочей позе — шар ниже и впереди
+	# головы, сдвиги вбок ±10 см и дуга вперёд. Крен шара вокруг оси взгляда
+	# относительно верха головы обязан стоять: содержимое линзы прибито к осям шара,
+	# и любой крен — это вращение всего меню «само по себе» (отзыв сессии 3).
+	# Контроль на той же траектории — прежняя формула с мировым верхом.
+	var live = HandFollow.new()
+	live.mode = "face"
+	live.falsify_world_up = falsify == "faceup"
+	var world_up_hf = HandFollow.new()
+	world_up_hf.mode = "face"
+	world_up_hf.falsify_world_up = true
+	var live_roll: Array[float] = []
+	var old_roll: Array[float] = []
+	var front_err := 0.0
+	for i in 61:
+		var t := i / 60.0
+		var hand_p := headp + Vector3(lerpf(-0.10, 0.10, t), -0.45, -0.25 - 0.08 * sin(t * PI))
+		var ql: Quaternion = live.target(Quaternion.IDENTITY, hand_p, head_xf)
+		live_roll.append(_roll_about_view(ql, head_xf.basis.y))
+		old_roll.append(_roll_about_view(world_up_hf.target(Quaternion.IDENTITY, hand_p, head_xf), head_xf.basis.y))
+		front_err = maxf(front_err, (ql * Vector3.BACK).angle_to(headp - hand_p))
+	var live_span := _total_variation(live_roll)
+	var old_span := _total_variation(old_roll)
+	if live_span < 0.01 and front_err < QTOL and old_span > 0.2:
+		r.pass_("лицом к шлему устойчиво: на ходе руки ±10 см крен шара %.4f рад, +Z на голову (%.4f); мировой верх на той же траектории — %.2f рад" % [live_span, front_err, old_span])
+	else:
+		r.fail("лицом к шлему устойчиво: крен %.4f рад (нужно < 0.01), +Z на голову %.4f, контроль с мировым верхом %.4f (нужно > 0.2)" % [live_span, front_err, old_span])
+
+	# Поворот рукой обязан двигать содержимое в мире одинаково у глобуса и у линзы:
+	# жалоба сессии 3 звучала как «линза крутится в обратную сторону». У линзы
+	# содержимое хранится сдвигом плоскости, а «перёд» пересчитывается каждый кадр
+	# (sphere_menu._update_front) — здесь та же математика без сцены.
+	var wr_bad: Array[String] = []
+	for axis in [Vector3.UP, Vector3.RIGHT, Vector3(1, 1, 0.5).normalized()]:
+		var step := Quaternion(axis, 0.02)
+		for lens_mode in [false, true]:
+			var sf = Lens.new(0.22) if lens_mode else Globe.new(3, "icosa", false)
+			_sim_front(sf, Basis(), ball, headp, lens_mode)
+			sf.assign(20)
+			var key = sf.cell_at_direction(sf.front)
+			var b := Basis()
+			var w0: Vector3 = b * sf.direction_of(key)
+			var total := Quaternion.IDENTITY
+			for _i in 15:
+				b = Basis(step) * b
+				total = step * total
+				_sim_front(sf, b, ball, headp, lens_mode)
+			var w1: Vector3 = b * sf.direction_of(key)
+			var err: float = w1.angle_to(total * w0)
+			if err > 0.02:
+				wr_bad.append("%s ось %.2f,%.2f,%.2f: %.4f рад" % ["линза" if lens_mode else "глобус", axis.x, axis.y, axis.z, err])
+	if wr_bad.is_empty():
+		r.pass_("вращение и мир: поворот шара на 0.3 рад по трём осям — ячейка, бывшая в переде, уходит в мире ровно на поворот, и у глобуса, и у линзы")
+	else:
+		r.fail("вращение и мир: %s" % "; ".join(wr_bad))
+
 	# Сглаживание: рывок кисти на 1 рад — шар догоняет монотонно, без перелёта, не за
 	# один кадр, и за секунду; «кисть вращается» поднят на рывке и снят после.
 	var sm = HandFollow.new()
 	sm.mode = "ball"
 	sm.smoothing = 0.0 if falsify == "smooth" else 0.5
 	var dt := 1.0 / 90.0
-	sm.update(Quaternion.IDENTITY, ball, headp, dt)
+	sm.update(Quaternion.IDENTITY, ball, head_xf, dt)
 	var goal := Quaternion(Vector3.UP, 1.0)
 	var trace: Array[float] = []
 	var rot_on := false
 	for i in 90:
-		var got_q: Quaternion = sm.update(goal, ball, headp, dt)
+		var got_q: Quaternion = sm.update(goal, ball, head_xf, dt)
 		trace.append(got_q.angle_to(Quaternion.IDENTITY))
 		if i == 0:
 			rot_on = sm.rotating()
@@ -1132,7 +1199,96 @@ func _hand_checks() -> void:
 		r.fail("сглаживание руки: первый кадр %.3f (нужно < 0.9), за 1 с %.4f, монотонно %s, перелёт %s, вращается на рывке %s, после %s" % [
 				trace[0], trace.back(), mono, over, rot_on, sm.rotating()])
 
+	_shake_checks()
 	_edit_checks()
+
+
+## Крен шара вокруг оси взгляда относительно верха головы, рад.
+static func _roll_about_view(q: Quaternion, head_up: Vector3) -> float:
+	var f: Vector3 = (q * Vector3.BACK).normalized()
+	var ref := (head_up - f * head_up.dot(f)).normalized()
+	var bu: Vector3 = q * Vector3.UP
+	bu = (bu - f * bu.dot(f)).normalized()
+	return atan2(f.dot(ref.cross(bu)), ref.dot(bu))
+
+
+## Полный ход угла по ряду: сумма модулей приращений. Размах max−min соврал бы на
+## переходе через ±π.
+static func _total_variation(values: Array[float]) -> float:
+	var sum := 0.0
+	for i in range(1, values.size()):
+		sum += absf(wrapf(values[i] - values[i - 1], -PI, PI))
+	return sum
+
+
+## «Перёд» поверхности по позе шара — те же две строки, что в sphere_menu._update_front:
+## у линзы смена переда сопровождается обратным поворотом содержимого.
+static func _sim_front(sf, b: Basis, ball_pos: Vector3, head_pos: Vector3, lens_mode: bool) -> void:
+	var nf: Vector3 = (b.inverse() * (head_pos - ball_pos)).normalized()
+	var old: Vector3 = sf.front
+	sf.front = nf
+	if lens_mode and old.angle_to(nf) > 1e-5:
+		sf.apply_rotation(Quaternion(nf, old))
+
+
+## Трасса руки: вспышки встряхивания вдоль X с трапециевидным окном (разгон, полка,
+## торможение), снос руки относительно головы (carry, м/с) и общий перенос головы и
+## руки (walk, м/с — ходьба: в разности hand−head он обязан гаситься).
+func _shake_feed(sh, seconds: float, amp: float, freq: float, bursts: Array,
+		carry: float = 0.0, walk: float = 0.0) -> Array[float]:
+	var dt := 1.0 / 90.0
+	var fires: Array[float] = []
+	for i in int(seconds / dt):
+		var t := i * dt
+		var head := Vector3(0.0, 1.6, -walk * t)
+		var x := carry * t
+		for bst in bursts:
+			var t0: float = bst[0]
+			var dur: float = bst[1]
+			if t >= t0 and t < t0 + dur:
+				var u := t - t0
+				var win := clampf(minf(u / SHAKE_RAMP, (dur - u) / SHAKE_RAMP), 0.0, 1.0)
+				x += amp * sin(TAU * freq * u) * win
+		var hand := head + Vector3(0.10 + x, -0.45, -0.25)
+		if sh.feed(hand, head, dt):
+			fires.append(snappedf(t, 0.01))
+	return fires
+
+
+func _new_shake(level: String):
+	var sh = ShakeRes.new()
+	sh.level = level
+	sh.falsify_no_travel = falsify == "shake"
+	return sh
+
+
+## Встряхивание шара — возврат на верхний уровень (menu/shake.gd). Проверяется вместе
+## с контролем: обычные движения руки жест давать не должны, иначе меню будет
+## прыгать на корень само.
+func _shake_checks() -> void:
+	var bursts := [[0.2, 1.0], [2.0, 1.0]]
+	var fires: Array[float] = _shake_feed(_new_shake("normal"), 3.0, 0.09, 3.0, bursts)
+	var off: Array[float] = _shake_feed(_new_shake("off"), 3.0, 0.09, 3.0, bursts)
+	var controls := {
+		"перенос руки 0,2 м/с": _shake_feed(_new_shake("normal"), 3.0, 0.0, 0.0, [], 0.2),
+		"покачивание 0,5 Гц ±10 см": _shake_feed(_new_shake("normal"), 3.0, 0.10, 0.5, [[0.0, 3.0]]),
+		"дрожь 6 Гц ±3 см": _shake_feed(_new_shake("normal"), 3.0, 0.03, 6.0, [[0.0, 3.0]]),
+		"ходьба 1,2 м/с с махом руки": _shake_feed(_new_shake("normal"), 3.0, 0.04, 1.0, [[0.0, 3.0]], 0.0, 1.2),
+	}
+	var bad: Array[String] = []
+	if fires.size() != 2:
+		bad.append("две вспышки дали %d срабатываний (%s)" % [fires.size(), fires])
+	if not off.is_empty():
+		bad.append("выключенный жест сработал %d раз" % off.size())
+	for name in controls:
+		var f: Array = controls[name]
+		if not f.is_empty():
+			bad.append("контроль «%s»: %d срабатываний (%s)" % [name, f.size(), f])
+	if bad.is_empty():
+		r.pass_("встряхивание: две вспышки ±9 см на 3 Гц — ровно 2 срабатывания (%s с), пауза держит; выключенный жест молчит; перенос, покачивание 0,5 Гц, дрожь 6 Гц ±3 см и ходьба с махом руки — 0" % [fires])
+	else:
+		r.fail("встряхивание: %s" % "; ".join(bad))
+
 
 
 func _edit_checks() -> void:

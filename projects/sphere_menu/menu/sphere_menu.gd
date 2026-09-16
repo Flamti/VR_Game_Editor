@@ -42,6 +42,7 @@ const Grab := preload("res://menu/grab.gd")
 const Panel3D := preload("res://menu/info_panel.gd")
 const HandFollow := preload("res://menu/hand_follow.gd")
 const Stick := preload("res://menu/stick.gd")
+const Shake := preload("res://menu/shake.gd")
 const Demo := preload("res://menu/demo.gd")
 
 ## Сколько без ввода вращения до включения детента.
@@ -70,6 +71,7 @@ var spring: Spring = Spring.new()
 var press_left: Press = Press.new()
 var press_right: Press = Press.new()
 var grab: Grab = Grab.new()
+var shake: Shake = Shake.new()
 var atlas: Atlas
 var renderer: Renderer
 
@@ -124,6 +126,7 @@ func apply_settings() -> void:
 	press_left.hold_ms = int(settings.get_value("hold_ms"))
 	press_right.hold_ms = press_left.hold_ms
 	grab.friction = float(settings.get_value("grab_friction"))
+	shake.level = settings.get_value("shake")
 	spring.omega = float(settings.get_value("detent"))
 	active.hysteresis = float(settings.get_value("hysteresis"))
 	if follow.mode != settings.get_value("hand_rotation"):
@@ -277,6 +280,24 @@ func grab_update(tip: Vector3, grip: bool, delta: float) -> void:
 		grab.end()
 
 
+## Встряхивание шара — возврат на верхний уровень (menu/shake.gd). hand_pos и head_pos
+## в мире. Жест не слушается, пока шар крутят захватом или пока панель занята мастером
+## и правкой: там рука двигается по делу, и прыжок на корень был бы потерей места.
+func shake_update(hand_pos: Vector3, head_pos: Vector3, delta: float) -> void:
+	if not is_open() or panel_locked or grab.active or grab.coasting() or demo.running():
+		shake.reset()
+		return
+	if not shake.feed(hand_pos, head_pos, delta):
+		return
+	var res := nav.go_root(_scroll())
+	if res.get("do", "") == "none":
+		return
+	if settings.get_value("haptics"):
+		haptic.emit("left", 0.35)
+	event.emit("shake", {"folder": nav.state.folder()})
+	_handle(res)
+
+
 ## Ключ ячейки под кончиком, если кончик у поверхности; иначе null.
 func key_at_tip(tip: Vector3) -> Variant:
 	if not is_open():
@@ -383,8 +404,8 @@ func _follow_hand(delta: float) -> void:
 		return
 	var hx := hand.global_transform
 	var pos := hx * hand_offset
-	var head_pos := head.global_position if head != null else pos + Vector3.BACK
-	var q := follow.update(hx.basis.get_rotation_quaternion(), pos, head_pos, delta)
+	var head_xf := head.global_transform if head != null else Transform3D(Basis(), pos + Vector3.BACK)
+	var q := follow.update(hx.basis.get_rotation_quaternion(), pos, head_xf, delta)
 	global_transform = Transform3D(Basis(q), pos)
 
 
@@ -396,6 +417,7 @@ func _update_panel(now: int) -> void:
 	panel.toast(nav.message, now)
 	nav.message = ""
 	panel.tick(now)
+	panel.scroll_tick()
 	if panel_locked:
 		return
 	var key: Variant = hover_key if hover_key != null else active.key

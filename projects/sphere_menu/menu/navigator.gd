@@ -339,6 +339,22 @@ func back(scroll: Variant) -> Dictionary:
 	return {"do": "reload", "scroll": res["scroll"]}
 
 
+## Встряхивание: сразу на верхний уровень, не закрывая шар. «Назад» ходит по одному
+## уровню, и с глубины возвращаться было нечем (отзыв сессии 3).
+func go_root(scroll: Variant) -> Dictionary:
+	if view == "browse" and not multi and not picking and state.folder() == State.ROOT:
+		message = "Уже на верхнем уровне"
+		return {"do": "none"}
+	var was_search := view == "search"
+	state.jump(0, scroll)
+	open_root()
+	message = "Верхний уровень"
+	var res := {"do": "reload", "scroll": null}
+	if was_search:
+		res["search_end"] = true    # иначе ввод текста поиска остался бы открытым
+	return res
+
+
 func undo() -> Dictionary:
 	if _undo.is_empty():
 		message = "Нечего отменять"

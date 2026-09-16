@@ -37,7 +37,8 @@ var results := {}
 
 func run(host: Node, menu: Menu) -> bool:
 	var checks := ["xr", "частота", "msaa", "прогрев", "глобус худший", "глобус крупный", "линза худшая",
-			"раскладки худшие", "атлас", "панель", "панель лучом", "пропуск перерисовки", "клавиатура meta"]
+			"раскладки худшие", "атлас", "панель", "панель лучом", "прокрутка панели", "пропуск перерисовки",
+			"клавиатура meta"]
 	expected = checks.size()
 	r.note("=== САМОПРОВЕРКА ШАР-МЕНЮ ===")
 	r.note("ожидается исполненных проверок: %d" % expected)
@@ -175,6 +176,35 @@ func run(host: Node, menu: Menu) -> bool:
 			r.fail("панель лучом: попадания %s/%s, радиус %s, перерисовок %d" % [a, b, got, drawn_n])
 	else:
 		r.fail("панель лучом: панель без правки (%s)" % pnl)
+
+	# Прокрутка панели: длинное содержимое едет, и панель перерисовывается ТОЛЬКО на
+	# кадрах, где она сдвинулась. Иначе SubViewport рисуется каждый кадр — цена
+	# прокрутки была бы постоянной, а не за движение.
+	if pnl != null and pnl.has_method("scroll_by"):
+		menu.panel_locked = true
+		var long := ""
+		for i in 40:
+			long += "строка %d описания объекта, которая должна уехать за нижний край панели\n" % i
+		pnl.show_text("Прокрутка", "самопроверка", long, "подсказка")
+		for _i in 3:
+			await host.get_tree().process_frame
+		var span: int = pnl.scroll_max()
+		var moved := pnl.scroll_by(300.0)
+		var at: int = pnl.scroll_pos()
+		var renders_before: int = pnl.renders
+		for _i in 5:
+			pnl.scroll_by(0.0)          # кадры без движения
+		var idle_renders: int = pnl.renders - renders_before
+		pnl.scroll_by(-10000.0)
+		var back_to: int = pnl.scroll_pos()
+		pnl.show_text("", "", "", "")
+		menu.panel_locked = false
+		if span > 0 and moved and at == 300 and idle_renders == 0 and back_to == 0:
+			r.pass_("прокрутка панели: ход %d px, стик сдвинул на %d, кадры без движения не перерисовывают, верх возвращается" % [span, at])
+		else:
+			r.fail("прокрутка панели: ход %d px, сдвиг %s → %d, перерисовок без движения %d, возврат %d" % [span, moved, at, idle_renders, back_to])
+	else:
+		r.fail("прокрутка панели: панель без прокрутки (%s)" % pnl)
 
 	# Пропуск перерисовки: неподвижный глобус не пересчитывается, скрипты падают.
 	st.values["surface"] = "globe"

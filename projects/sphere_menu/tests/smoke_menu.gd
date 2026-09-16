@@ -9,7 +9,11 @@ extends SceneTree
 ##
 ## Запуск:
 ##   godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
-##       --script res://tests/smoke_menu.gd
+##       --script res://tests/smoke_menu.gd [-- --falsify=scroll]
+##
+## Фальсификатор:
+##   --falsify=scroll  прокрутка панели теряет остаток доли пикселя — краснеет только
+##                     «прокрутка панели» (медленный стик перестаёт двигать содержимое).
 ## Пол — по числу исполненных шагов; ошибки выполнения печатаются движком, их
 ## ищет вызывающий по «SCRIPT ERROR».
 
@@ -25,9 +29,11 @@ const Wizard := preload("res://menu/wizard.gd")
 const STEPS := ["открыть", "войти коротким", "действия удержанием", "копировать", "вставить",
 		"удалить удержанием", "отменить", "линза и захват", "панель и атлас", "мастер",
 		"вращение рукой", "правка открыта", "ползунок лучом", "клавиатура лучом", "демонстрация доводки", "журнал", "назад на корне", "замок панели",
-		"поиск на панели", "плюс", "раскладки", "выход удержанием"]
+		"поиск на панели", "плюс", "прокрутка панели", "встряхивание", "раскладки", "выход удержанием"]
 
 var r: Report = Report.new()
+## Фальсификатор дымового прогона: --falsify=scroll снимает ограничение хода прокрутки.
+var falsify := ""
 var menu: Menu
 var head: Node3D
 var _frame := 0
@@ -39,7 +45,12 @@ var _exit_asked := false
 
 
 func _initialize() -> void:
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--falsify="):
+			falsify = a.get_slice("=", 1)
 	r.note("=== ДЫМОВОЙ ПРОГОН ШАР-МЕНЮ ===")
+	if falsify != "":
+		r.note("!!! ФАЛЬСИФИКАТОР «%s»: ожидается точечный отказ !!!" % falsify)
 	r.note("ожидается шагов: %d" % STEPS.size())
 	var root3d := Node3D.new()
 	get_root().add_child(root3d)
@@ -65,8 +76,9 @@ func _initialize() -> void:
 	_script = [
 		[5, _open], [10, _enter], [20, _hold_actions], [60, _copy], [70, _paste],
 		[90, _delete_hold], [140, _undo], [150, _lens_grab], [200, _panel_atlas], [210, _wizard], [215, _hand_modes], [220, _edit_open], [230, _edit_slider],
-		[240, _edit_keypad], [250, _demo_start], [260, _demo_check], [265, _journal], [268, _root_back], [270, _panel_lock], [271, _search_open], [274, _search], [276, _plus], [280, _layouts],
-		[284, _exit_hold], [290, _finish],
+		[240, _edit_keypad], [250, _demo_start], [260, _demo_check], [265, _journal], [268, _root_back], [270, _panel_lock], [271, _search_open], [274, _search], [276, _plus],
+		[278, _scroll_prep], [281, _scroll_read], [284, _scroll_check], [286, _shake_root],
+		[288, _layouts], [292, _exit_hold], [298, _finish],
 	]
 
 
@@ -498,6 +510,115 @@ func _layouts() -> void:
 		r.pass_("раскладки: %s" % ", ".join(out))
 	else:
 		r.fail("раскладки: %s" % ", ".join(out))
+
+
+## Прокрутка панели тремя способами (решение владельца 2026-09-16). Содержимое задаётся
+## напрямую: у демо-каталога длина подписи случайна, а проверке нужен заведомо длинный
+## и заведомо короткий случай. Раскладка контейнера доходит до полос прокрутки не в
+## кадре смены содержимого — отсюда три шага на разных кадрах.
+var _scroll_short := {}
+
+
+func _scroll_prep() -> void:
+	menu.panel_locked = true
+	menu.panel.falsify_no_frac = falsify == "scroll"
+	menu.panel.show_text("Короткая", "", "одна строка", "")
+
+
+func _scroll_read() -> void:
+	var p: Panel3D = menu.panel
+	_scroll_short = {"scrollable": p.scrollable(), "pointer": p.pointer_active(), "max": p.scroll_max()}
+	var long := ""
+	for i in 40:
+		long += "строка %d описания объекта, которая должна уехать за нижний край панели\n" % i
+	p.show_text("Длинная", "значение", long, "подсказка режима")
+
+
+func _scroll_check() -> void:
+	var p: Panel3D = menu.panel
+	var top := p.scroll_max()
+	# медленный стик: доли пикселя за кадр обязаны копиться, иначе панель не поедет вовсе
+	for _i in 10:
+		p.scroll_by(0.4)
+	var slow := p.scroll_pos()
+	var by_stick := p.scroll_by(300.0)
+	var after_stick := p.scroll_pos()
+	var by_page := p.scroll_page(1)
+	var after_page := p.scroll_pos()
+	# перетаскивание лучом: указатель ведёт содержимое за собой
+	var a: Variant = _aim(Vector2(200, 420))
+	var b: Variant = _aim(Vector2(200, 300))
+	p.pointer_update(a, false)
+	p.pointer_update(a, true)
+	p.pointer_update(b, true)
+	var after_drag := p.scroll_pos()
+	p.pointer_update(b, false)
+	p.pointer_update(null, false)
+	p.scroll_by(10000.0)
+	var at_end := p.scroll_pos()
+	p.scroll_by(-10000.0)
+	var at_start := p.scroll_pos()
+	p.scroll_by(500.0)
+	p.show_text("Другая", "", "смена содержимого", "")
+	var after_change := p.scroll_pos()
+	menu.panel.falsify_no_frac = false
+	menu.panel_locked = false
+	var bad: Array[String] = []
+	if bool(_scroll_short["scrollable"]) or bool(_scroll_short["pointer"]):
+		bad.append("короткое содержимое: прокрутка %s, указатель %s" % [_scroll_short["scrollable"], _scroll_short["pointer"]])
+	if top <= 0:
+		bad.append("длинное содержимое не прокручивается (ход %d)" % top)
+	if slow < 3:
+		bad.append("медленный стик: 10 шагов по 0,4 px дали %d px" % slow)
+	if not by_stick or after_stick != slow + 300:
+		bad.append("стик: сдвиг %s, положение %d при %d до него" % [by_stick, after_stick, slow])
+	if not by_page or after_page <= after_stick:
+		bad.append("кнопка ▼: сдвиг %s, положение %d" % [by_page, after_page])
+	if after_drag <= after_page:
+		bad.append("перетаскивание: %d → %d (попадания %s / %s)" % [after_page, after_drag, a, b])
+	if at_end != top or at_start != 0:
+		bad.append("края: низ %d при ходе %d, верх %d" % [at_end, top, at_start])
+	if after_change != 0:
+		bad.append("смена содержимого не сбросила прокрутку (%d)" % after_change)
+	if bad.is_empty():
+		r.pass_("прокрутка панели: ход %d px; медленный стик копит доли (%d px), стик → %d, кнопка ▼ → %d, перетаскивание → %d; упирается в оба края; смена содержимого сбрасывает; короткое содержимое указатель не берёт" % [
+				top, slow, after_stick, after_page, after_drag])
+	else:
+		r.fail("прокрутка панели: %s" % "; ".join(bad))
+
+
+## Встряхивание шара из вложенной папки: меню возвращается на верхний уровень и
+## остаётся открытым. Контроль — то же расстояние, пройденное ровно, без разворотов.
+func _shake_root() -> void:
+	_to_root_open()
+	_tap(_key_of(_slot_of("files")))
+	_tap(_key_of(_slot_of("assets")))
+	var deep := menu.nav.state.folder()
+	var head := menu.head.global_position
+	var calm := _shake_trace(head, 1.0, 0.0, 0.0, 0.25)
+	var after_calm := menu.nav.state.folder()
+	var shaken := _shake_trace(head, 1.2, 0.09, 3.0, 0.0)
+	if deep == "assets" and after_calm == "assets" and menu.nav.state.folder() == "" \
+			and menu.is_open() and shaken and not calm:
+		r.pass_("встряхивание: из «assets» шар вернулся на верхний уровень и остался открыт; ровный перенос руки — нет")
+	else:
+		r.fail("встряхивание: было %s, после переноса %s, после встряхивания %s, открыт %s (жест: перенос %s, тряска %s)" % [
+				deep, after_calm, menu.nav.state.folder(), menu.is_open(), calm, shaken])
+
+
+## Кормит детектор трассой руки; true — жест сработал хотя бы раз.
+func _shake_trace(head: Vector3, seconds: float, amp: float, freq: float, carry: float) -> bool:
+	var dt := 1.0 / 90.0
+	var fired := false
+	var before := menu.nav.state.folder()
+	for i in int(seconds / dt):
+		var t := i * dt
+		var win := clampf(minf(t / 0.15, (seconds - t) / 0.15), 0.0, 1.0)
+		var x := carry * t + amp * sin(TAU * freq * t) * win
+		menu.shake_update(head + Vector3(0.10 + x, -0.45, -0.25), head, dt)
+		if menu.nav.state.folder() != before:
+			fired = true
+	return fired
 
 
 ## «Выход»: короткое не выходит, удержание до конца кольца — сигнал выхода.

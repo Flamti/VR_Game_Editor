@@ -7,9 +7,11 @@ extends Node
 ##          курок — активная ячейка: короткое — действие по умолчанию, удержание — действия;
 ##   правый луч + курок — то же для ячейки под лучом; кончик у шара + курок — касанием;
 ##          кончик у шара + грип — захват и вращение; B — отменить последнее
-##          (в режиме заданий — следующее задание).
+##          (в режиме заданий — следующее задание); стик — прокрутка панели.
 ## Панель в режиме правки (настройка, мастер) принимает правый луч или кончик + курок
-## как мышь (menu/ui_panel.gd); пока указатель на панели, шар его не получает.
+## как мышь (menu/ui_panel.gd); пока указатель на панели, шар его не получает. В режиме
+## информации панель берёт луч, только когда содержимое не влезло (решение владельца
+## 2026-09-16: прокрутка стиком, кнопками ▲/▼ и перетаскиванием).
 ## В мастере шар живой, как в работе: значения меняются только на панели (шаг 1в —
 ## стик неточен на шкале).
 ##
@@ -24,6 +26,8 @@ const RAY_MAT := preload("res://menu/ray_material.tres")
 const DEADZONE := 0.2
 ## Кончик контроллера вперёд от позы aim, м.
 const TIP := 0.03
+## Прокрутка панели правым стиком, пикселей вьюпорта в секунду при полном отклонении.
+const SCROLL_SPEED := 900.0
 
 var left: XRController3D
 var right: XRController3D
@@ -84,15 +88,26 @@ func _process(delta: float) -> void:
 	if stick.length() > DEADZONE:
 		menu.rotate_stick(stick, float(menu.settings.get_value("stick_speed")) * delta)
 
+	# Встряхивание шара — на верхний уровень. Сигнал берётся от самой руки, а не от
+	# шара: положение шара сглажено следованием, и рывок в нём заметно слабее.
+	if menu.head != null:
+		menu.shake_update(left.global_position, menu.head.global_position, delta)
+
 	menu.press_active(left.is_button_pressed("trigger_click"), now)
 
 	ray.visible = menu.is_open() or (panel != null and panel.interactive())
 	var tip := tip_position()
 	var trig := right.is_button_pressed("trigger_click")
+	# Правый стик — прокрутка панели: он свободен, и прокрутка не требует прицеливания
+	# лучом, пока панель висит на шаре в другой руке.
+	if panel != null and panel.visible:
+		var rs: Vector2 = right.get_vector2("primary")
+		if absf(rs.y) > DEADZONE:
+			panel.scroll_by(-rs.y * SCROLL_SPEED * delta)
 	# Нажатие или захват, начатые на шаре, доводятся на шаре: иначе увод луча на
 	# панель отпускал бы курок на ячейке и срабатывал короткий выбор.
 	var menu_busy: bool = menu.press_right.is_down() or menu.grab.active
-	if panel != null and panel.interactive() and not menu_busy:
+	if panel != null and panel.pointer_active() and not menu_busy:
 		var px: Variant = panel.pointer_tip(tip)
 		if px == null:
 			px = panel.pointer_ray(right.global_position, -right.global_basis.z.normalized())

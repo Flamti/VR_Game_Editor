@@ -7,7 +7,13 @@ extends Node3D
 ## тип, размер и дату, путь, предпросмотр, подсказку режима, тост с отменой.
 ## В мастере настройки тот же вьюпорт показывает шаг мастера.
 ##
-## Отрисовка — SubViewport на квад; перерисовка только при смене содержимого.
+## Содержимое живёт в ScrollContainer: длинное имя, глубокий путь и подсказка не
+## влезали и обрезались по clip_text (отзыв сессии 3). Прокрутка — три способа
+## (решение владельца 2026-09-16): правый стик, кнопки ▲/▼ и перетаскивание лучом.
+## Тост вне прокрутки: это уведомление, а не содержимое.
+##
+## Отрисовка — SubViewport на квад; перерисовка только при смене содержимого и на
+## кадрах, где прокрутка сдвинулась.
 
 const PANEL_MAT := preload("res://menu/panel_material.tres")
 const Item := preload("res://menu/item.gd")
@@ -19,8 +25,19 @@ const VIEW_SIZE := Vector2i(512, 640)
 const QUAD := Vector2(0.1725, 0.215625)
 const TOAST_MS := 5000
 
+## Окно прокрутки и колонка кнопок ▲/▼ (крупная цель ≥ 56 px ≈ 19 мм на кваде —
+## рекомендации Meta к размерам целей в VR).
+const SCROLL_RECT := Rect2(16, 14, 416, 548)
+const SCROLL_BTN := Vector2(56, 56)
+## Доля окна, на которую двигает одна кнопка.
+const PAGE_SHARE := 0.6
+
 var viewport: SubViewport
 var quad: MeshInstance3D
+var _scroll: ScrollContainer
+var _box: VBoxContainer
+var _up_btn: Button
+var _down_btn: Button
 var _icon: TextureRect
 var _title: Label
 var _meta: Label
@@ -31,6 +48,12 @@ var _toast: Label
 var _thumbs: Dictionary = {}
 var _toast_until := 0
 var _last_key := ""
+## Остаток дробной прокрутки: scroll_vertical — целые пиксели, и медленный стик
+## иначе не сдвигал бы панель вовсе.
+var _scroll_frac := 0.0
+## Фальсификатор «scroll» дымового прогона: остаток доли пикселя не копится — медленный
+## стик перестаёт двигать панель вовсе.
+var falsify_no_frac := false
 var renders := 0
 
 
@@ -52,14 +75,45 @@ func _ready() -> void:
 	bg.add_theme_stylebox_override("panel", sb)
 	viewport.add_child(bg)
 
-	_icon = _rect(Vector2(24, 24), Vector2(64, 64))
-	_title = _label(Vector2(100, 18), Vector2(390, 80), 34, Color.WHITE)
-	_meta = _label(Vector2(24, 100), Vector2(464, 36), 22, Color(0.75, 0.80, 0.90))
-	_path = _label(Vector2(24, 136), Vector2(464, 36), 20, Color(0.60, 0.68, 0.80))
-	_preview = _rect(Vector2(56, 184), Vector2(400, 300))
+	_scroll = make_scroll(SCROLL_RECT)
+	viewport.add_child(_scroll)
+	_box = VBoxContainer.new()
+	_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_box.add_theme_constant_override("separation", 10)
+	_scroll.add_child(_box)
+
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 12)
+	_box.add_child(head)
+	_icon = _rect(Vector2(64, 64))
+	head.add_child(_icon)
+	_title = _label(34, Color.WHITE)
+	_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(_title)
+
+	_meta = _label(22, Color(0.75, 0.80, 0.90))
+	_box.add_child(_meta)
+	_path = _label(20, Color(0.60, 0.68, 0.80))
+	_box.add_child(_path)
+	_preview = _rect(Vector2(400, 300))
 	_preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_hint = _label(Vector2(24, 494), Vector2(464, 70), 20, Color(0.80, 0.80, 0.80))
-	_toast = _label(Vector2(24, 566), Vector2(464, 60), 22, Color(1.0, 0.85, 0.35))
+	_box.add_child(_preview)
+	_hint = _label(20, Color(0.80, 0.80, 0.80))
+	_box.add_child(_hint)
+
+	_up_btn = _scroll_button("▲", -1)
+	viewport.add_child(_up_btn)
+	_down_btn = _scroll_button("▼", 1)
+	viewport.add_child(_down_btn)
+
+	_toast = Label.new()
+	_toast.position = Vector2(24, 566)
+	_toast.size = Vector2(464, 60)
+	_toast.autowrap_mode = TextServer.AUTOWRAP_WORD
+	_toast.clip_text = true
+	_toast.add_theme_font_size_override("font_size", 22)
+	_toast.add_theme_color_override("font_color", Color(1.0, 0.85, 0.35))
+	viewport.add_child(_toast)
 
 	quad = MeshInstance3D.new()
 	var qm := QuadMesh.new()
@@ -71,32 +125,168 @@ func _ready() -> void:
 	qm.material = mat
 
 
-func _rect(pos: Vector2, size: Vector2) -> TextureRect:
+## Окно прокрутки: без горизонтали, с подсказками «дальше есть» сверху и снизу
+## (ScrollContainer.scroll_hint_mode, Godot 4.7) — свой индикатор не нужен.
+static func make_scroll(rect: Rect2) -> ScrollContainer:
+	var sc := ScrollContainer.new()
+	sc.position = rect.position
+	sc.size = rect.size
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	sc.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	sc.scroll_hint_mode = ScrollContainer.SCROLL_HINT_MODE_ALL
+	sc.mouse_filter = Control.MOUSE_FILTER_PASS
+	sc.get_v_scroll_bar().custom_minimum_size = Vector2(12, 0)
+	return sc
+
+
+func _rect(size: Vector2) -> TextureRect:
 	var t := TextureRect.new()
-	t.position = pos
-	t.size = size
+	t.custom_minimum_size = size
 	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	viewport.add_child(t)
+	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return t
 
 
-func _label(pos: Vector2, size: Vector2, font: int, color: Color) -> Label:
+## Метка содержимого: растёт по тексту (внутри прокрутки обрезать нечем).
+func _label(font: int, color: Color) -> Label:
 	var l := Label.new()
-	l.position = pos
-	l.size = size
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD
-	l.clip_text = true
+	l.clip_text = false
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	l.add_theme_font_size_override("font_size", font)
 	l.add_theme_color_override("font_color", color)
-	viewport.add_child(l)
 	return l
+
+
+func _scroll_button(text: String, dir: int) -> Button:
+	var b := Button.new()
+	b.text = text
+	b.custom_minimum_size = SCROLL_BTN
+	b.size = SCROLL_BTN
+	b.focus_mode = Control.FOCUS_NONE
+	b.visible = false
+	b.add_theme_font_size_override("font_size", 30)
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = Color(0.20, 0.23, 0.30)
+	normal.set_corner_radius_all(10)
+	var hover := normal.duplicate() as StyleBoxFlat
+	hover.bg_color = Color(0.32, 0.38, 0.52)
+	var down := normal.duplicate() as StyleBoxFlat
+	down.bg_color = Color(0.55, 0.45, 0.20)
+	b.add_theme_stylebox_override("normal", normal)
+	b.add_theme_stylebox_override("hover", hover)
+	b.add_theme_stylebox_override("pressed", down)
+	b.add_theme_stylebox_override("hover_pressed", down)
+	b.pressed.connect(func(): scroll_page(dir))
+	return b
 
 
 func _dirty() -> void:
 	viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
 	renders += 1
 
+
+# --- прокрутка ---------------------------------------------------------------------
+
+## Окно, которое прокручивается сейчас. Редактор (menu/ui_panel.gd) подменяет своим.
+func active_scroll() -> ScrollContainer:
+	return _scroll
+
+
+func scroll_max() -> int:
+	var sc := active_scroll()
+	if sc == null or not sc.visible:
+		return 0
+	var bar := sc.get_v_scroll_bar()
+	return maxi(0, int(bar.max_value - bar.page))
+
+
+func scroll_pos() -> int:
+	var sc := active_scroll()
+	return sc.scroll_vertical if sc != null else 0
+
+
+func scrollable() -> bool:
+	return scroll_max() > 0
+
+
+## Сдвиг на px пикселей (вниз — положительные). true — положение изменилось.
+func scroll_by(px: float) -> bool:
+	var sc := active_scroll()
+	if sc == null or not sc.visible:
+		return false
+	var top := scroll_pos()
+	_scroll_frac += px
+	var whole := int(_scroll_frac)
+	_scroll_frac -= whole
+	if falsify_no_frac:
+		whole = int(px)
+		_scroll_frac = 0.0
+	if whole == 0:
+		return false
+	sc.scroll_vertical = clampi(top + whole, 0, scroll_max())
+	if sc.scroll_vertical == top:
+		return false
+	_sync_scroll_ui()
+	_dirty()
+	return true
+
+
+## Кнопка ▲/▼: dir −1 вверх, +1 вниз.
+func scroll_page(dir: int) -> bool:
+	_scroll_frac = 0.0
+	var sc := active_scroll()
+	if sc == null:
+		return false
+	return scroll_by(signf(dir) * sc.size.y * PAGE_SHARE)
+
+
+func scroll_reset() -> void:
+	_scroll_frac = 0.0
+	var sc := active_scroll()
+	if sc != null and sc.scroll_vertical != 0:
+		sc.scroll_vertical = 0
+	_sync_scroll_ui()
+
+
+## Кнопки видны только когда есть что прокручивать: иначе они занимали бы угол
+## панели и перехватывали луч у ячеек шара под ней. Место — своей колонкой справа
+## от активного окна (у информации и у итога мастера окна разные).
+func _sync_scroll_ui() -> void:
+	if _up_btn == null:
+		return
+	var sc := active_scroll()
+	var on := sc != null and sc.visible and scroll_max() > 0
+	if on:
+		var x := sc.position.x + sc.size.x + 8.0
+		var up_pos := Vector2(x, sc.position.y)
+		var down_pos := Vector2(x, sc.position.y + sc.size.y - SCROLL_BTN.y)
+		if _up_btn.position != up_pos or _down_btn.position != down_pos:
+			_up_btn.position = up_pos
+			_down_btn.position = down_pos
+			_dirty()
+	if on != _up_btn.visible:
+		_up_btn.visible = on
+		_down_btn.visible = on
+		_dirty()
+
+
+## Зовётся кадром меню: раскладка контейнера доходит до полос прокрутки не в тот же
+## кадр, что смена содержимого, поэтому видимость кнопок сверяется каждый кадр.
+func scroll_tick() -> void:
+	_sync_scroll_ui()
+
+
+## Указатель на кнопке ▲/▼: нажатие на неё не должно ещё и тянуть содержимое.
+func over_scroll_button(pos: Vector2) -> bool:
+	if _up_btn == null or not _up_btn.visible:
+		return false
+	return Rect2(_up_btn.position, _up_btn.size).has_point(pos) \
+			or Rect2(_down_btn.position, _down_btn.size).has_point(pos)
+
+
+# --- содержимое --------------------------------------------------------------------
 
 ## Объект: item может быть null (пустая ячейка, «назад»).
 func show_item(item: Item, icon: Texture2D, crumbs: PackedStringArray, hint: String, extra: String = "") -> void:
@@ -105,6 +295,7 @@ func show_item(item: Item, icon: Texture2D, crumbs: PackedStringArray, hint: Str
 		return
 	_last_key = key
 	_icon.texture = icon
+	_icon.visible = icon != null
 	_path.text = " › ".join(crumbs)
 	_hint.text = hint
 	if item == null:
@@ -124,6 +315,9 @@ func show_item(item: Item, icon: Texture2D, crumbs: PackedStringArray, hint: Str
 			meta.append(extra)
 		_meta.text = " · ".join(meta)
 		_preview.texture = preview_of(item)
+	_preview.visible = _preview.texture != null
+	_meta.visible = _meta.text != ""
+	scroll_reset()
 	_dirty()
 
 
@@ -134,11 +328,15 @@ func show_text(title: String, value: String, body: String, hint: String) -> void
 		return
 	_last_key = key
 	_icon.texture = null
+	_icon.visible = false
 	_title.text = title
 	_meta.text = value
+	_meta.visible = value != ""
 	_path.text = ""
 	_preview.texture = null
+	_preview.visible = false
 	_hint.text = body + "\n" + hint
+	scroll_reset()
 	_dirty()
 
 
@@ -198,9 +396,15 @@ func _generate(item: Item) -> Image:
 
 
 ## Место панели относительно шара и головы: сторона из настроек, лицом к голове.
+## «Верх» — из позы шлема, а не мировой: шар держат ниже головы, и на мировом верху
+## базис вырождался — панель перекидывало вокруг шара от сдвига кисти (та же причина,
+## что у режима «лицом к шлему», menu/hand_follow.gd).
 func place(ball: Vector3, radius: float, head: Transform3D, side: String) -> void:
 	var fwd := (ball - head.origin).normalized()
-	var right := fwd.cross(Vector3.UP).normalized()
+	var head_up := head.basis.y.normalized()
+	if absf(fwd.dot(head_up)) > 0.98:
+		head_up = Vector3.UP if absf(fwd.y) < 0.98 else -head.basis.z.normalized()
+	var right := fwd.cross(head_up).normalized()
 	var up := right.cross(fwd).normalized()
 	var off: Vector3
 	match side:
@@ -212,4 +416,4 @@ func place(ball: Vector3, radius: float, head: Transform3D, side: String) -> voi
 		_:
 			off = -right * (radius + QUAD.x * 0.5) + up * (radius * 0.6 + QUAD.y * 0.3)
 	global_position = ball + off
-	look_at(head.origin, Vector3.UP, true)
+	look_at(head.origin, up, true)

@@ -19,6 +19,11 @@ signal wizard_requested
 signal tasks_changed(on: bool)
 ## Открыть правку настройки на панели (пункт настроек, короткое нажатие или «Изменить»).
 signal edit_requested(id: String)
+## Поиск открыт / закрыт — сессия включает и выключает ввод текста.
+signal search_requested
+signal search_closed
+## «Выход» подтверждён удержанием — сессия сохраняет, выгружает журнал и выходит.
+signal exit_requested
 
 const Item := preload("res://menu/item.gd")
 const State := preload("res://menu/state.gd")
@@ -93,7 +98,7 @@ func _ready() -> void:
 
 
 func surface() -> RefCounted:
-	return globe if settings.get_value("surface") == "globe" else lens
+	return lens if settings.is_lens() else globe
 
 
 func radius() -> float:
@@ -128,7 +133,7 @@ func apply_settings() -> void:
 	var sig := "%s|%s|%s" % [settings.get_value("surface"), settings.get_value("radius_cm"), settings.get_value("cell_cm")]
 	if sig != _surface_sig:
 		_surface_sig = sig
-		globe = Globe.new(settings.globe_frequency())
+		globe = Globe.new(settings.globe_frequency(), settings.family(), settings.get_value("surface") == "globe_hex")
 		lens = Lens.new(settings.lens_alpha())
 		active.reset()
 		if is_open():
@@ -152,17 +157,29 @@ func toggle() -> void:
 		_update_front()
 		active.reset()
 		_load_list(null)
+	_sync_view()
+	event.emit("toggle", {"open": is_open()})
+
+
+## Закрыть и шар, и вид. Состояние может уже быть закрытым: «Назад» на корне закрывает его в
+## state.back(), и прежний close() по «уже закрыто» не скрывал шар — он висел без обработки
+## (сессия 2 на шлеме; дымовой прогон «назад на корне»).
+func close() -> void:
+	if is_open():
+		nav.state.close()
+	var was_visible := visible
+	_sync_view()
+	if was_visible:
+		event.emit("toggle", {"open": false})
+
+
+## Вид по состоянию: шар и панель видны только открытыми, закрытый рендер пуст.
+func _sync_view() -> void:
 	visible = is_open()
 	if panel != null:
 		panel.visible = is_open()
 	if not is_open():
 		renderer.clear()
-	event.emit("toggle", {"open": is_open()})
-
-
-func close() -> void:
-	if is_open():
-		toggle()
 
 
 ## Стик: вращение в экранных осях зрителя (menu/stick.gd). angle — рад за кадр.
@@ -400,7 +417,7 @@ func _update_front() -> void:
 	if head == null:
 		return
 	var new_front := (global_transform.affine_inverse() * head.global_position).normalized()
-	if settings.get_value("surface") == "lens":
+	if settings.is_lens():
 		var old: Vector3 = lens.front
 		lens.front = new_front
 		if old.angle_to(new_front) > 1e-5:
@@ -426,8 +443,18 @@ func _detent(delta: float) -> void:
 
 # --- результаты навигатора ---------------------------------------------------------
 
+## Запрос поиска от ввода текста.
+func set_search_query(q: String) -> void:
+	if is_open():
+		_handle(nav.set_query(q))
+
+
 func _handle(res: Dictionary) -> void:
 	var data := {"do": res.get("do", ""), "view": nav.view, "folder": nav.state.folder()}
+	if res.get("search_end", false):
+		search_closed.emit()
+	if res.get("reload", false):
+		_load_list(res.get("scroll", null))
 	match res.get("do", ""):
 		"reload":
 			_load_list(res.get("scroll", null))
@@ -462,6 +489,13 @@ func _handle(res: Dictionary) -> void:
 			data["value"] = settings.get_value(res["id"])
 		"close":
 			close()
+		"search":
+			_load_list(null)
+			search_requested.emit()
+		"exit":
+			event.emit("intent", data)
+			exit_requested.emit()
+			return
 		"edit":
 			if res.has("scroll"):
 				_load_list(res["scroll"])
@@ -484,8 +518,14 @@ func _load_list(scroll: Variant) -> void:
 	if scroll is Dictionary and scroll.get("__sig", "") == _surface_sig:
 		sf.set_scroll(scroll["v"])
 	else:
-		sf.assign(list.size())
+		sf.assign(list.size(), _needs_back())
 	event.emit("folder", {"folder": nav.state.folder(), "view": nav.view, "items": list.size()})
+
+
+## «Назад» не нужна только на корне в обычном просмотре: в действиях и множественном выборе
+## та же ячейка — «Отмена».
+func _needs_back() -> bool:
+	return not (nav.view == "browse" and not nav.multi and nav.state.folder() == State.ROOT)
 
 
 func _refresh_codes() -> void:

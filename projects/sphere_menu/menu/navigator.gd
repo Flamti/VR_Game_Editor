@@ -6,7 +6,11 @@ extends RefCounted
 ##   browse  — объекты папки (недавние — первым кольцом, дальше по сортировке);
 ##   actions — в центре объект (или группа), вокруг его действия;
 ##   letters — первые буквы объектов папки: выбор — прыжок к первому на эту букву;
-##   path    — предки текущей папки: выбор — переход на уровень.
+##   path    — предки текущей папки: выбор — переход на уровень;
+##   search  — в центре запрос, вокруг найденные объекты (шаг 1г).
+## Корень — основа меню (Файлы, Настройки, Поиск, Запуск теста, избранное, «+», Выход),
+## «Назад» на нём нет. «+» включает выбор: короткое на объекте в Файлах добавляет его на
+## корень. «Выход» опасный — только удержанием до конца кольца.
 ## Слот 0 в actions/letters/path — центр с самим объектом, пункты — со слота 1.
 ## «Назад» (фиксированная ячейка слева от центра) в обзоре — вверх по папкам, в
 ## остальных шарах — «Отмена»: возврат к списку с той же прокруткой.
@@ -25,6 +29,8 @@ extends RefCounted
 ##   tasks    — режим заданий включён/выключен (on)
 ##   setting  — изменена настройка шара (id)
 ##   edit     — открыть правку настройки на панели (id; scroll — если вид сменился)
+##   search   — открыт поиск: включить ввод текста; search_end — поиск закрыт
+##   exit     — сохранить и выйти из приложения
 ##   close    — закрыть меню
 ##   need_hold — короткое на опасном действии: подсказка удерживать
 ##   none     — ничего
@@ -57,6 +63,9 @@ var sort_of: Dictionary = {}
 var filter_of: Dictionary = {}
 var message := ""
 var tasks_on := false
+## Режим «+»: короткое на объекте добавляет его в избранное и возвращает на корень.
+var picking := false
+var search_query := ""
 
 var _list: Array = []
 ## Недавние на момент входа в папку. Внутри папки порядок не меняется: открытый
@@ -88,7 +97,7 @@ func item_at(slot: int) -> Item:
 
 func is_danger(slot: int) -> bool:
 	var it := item_at(slot)
-	return it != null and it.danger and view == "actions"
+	return it != null and it.danger and (view == "actions" or view == "browse")
 
 
 func is_marked(slot: int) -> bool:
@@ -111,6 +120,12 @@ func hint() -> String:
 			return "выберите букву — прыжок; «Отмена» слева"
 		"path":
 			return "выберите уровень; «Отмена» слева"
+		"search":
+			return "найдено %d; курок — открыть, «Отмена» слева" % maxi(0, _list.size() - 1)
+	if picking:
+		return "выберите объект — он появится в меню; «Назад» — отмена"
+	if state.folder() == State.ROOT:
+		return "курок — открыть, удержание — действия; «Выход» — удержанием"
 	if multi:
 		return "курок — отметить (%d), удержание — действия группы; «Отмена» слева" % marked.size()
 	return "курок — открыть, удержание — действия"
@@ -131,7 +146,13 @@ func can_undo() -> bool:
 func _rebuild() -> void:
 	match view:
 		"browse":
-			_list = catalog.view(state.folder(), folder_sort(), folder_filter(), _view_recent)
+			if state.folder() == State.ROOT:
+				_list = catalog.home_view()
+			else:
+				_list = catalog.view(state.folder(), folder_sort(), folder_filter(), _view_recent)
+		"search":
+			var c: Item = _center("search_center", "Поиск: %s" % search_query if search_query != "" else "Поиск", "search")
+			_list = [c] + catalog.search(search_query)
 		"actions":
 			_list = [_center_for(_targets)] + _actions_for(_targets)
 		"letters":
@@ -165,6 +186,14 @@ func _action(id: String, title: String, icon: String, danger: bool = false) -> I
 
 
 func _actions_for(ids: Array) -> Array:
+	if ids.is_empty() and state.folder() == State.ROOT:
+		# на корне нет файлов: вставлять, сортировать и создавать папки некуда
+		var home: Array = []
+		if can_undo():
+			home.append(_action("undo", "Отменить", "undo"))
+		if not _redo.is_empty():
+			home.append(_action("redo", "Повторить", "redo"))
+		return home
 	if ids.is_empty():
 		var out: Array = []
 		if not clipboard.is_empty():
@@ -187,6 +216,10 @@ func _actions_for(ids: Array) -> Array:
 		return [_action("copy", "Копировать", "copy"), _action("cut", "Вырезать", "cut"),
 				_action("delete", "Удалить", "delete", true)]
 	var it: Item = catalog.items[ids[0]]
+	if catalog.is_home_entry(it.id):
+		return [_action("open", "Открыть", "action"), _action("properties", "Свойства", "info")]
+	var fav := _action("fav_remove", "Убрать из избранного", "star_off") if catalog.is_favorite(it.id) \
+			else _action("fav_add", "Добавить в избранное", "star")
 	var first: Array = []
 	match it.kind:
 		K.FOLDER: first = [_action("open", "Войти", "folder")]
@@ -196,12 +229,12 @@ func _actions_for(ids: Array) -> Array:
 		K.OPTION:
 			# «Больше/Меньше» ступенями сняты (шаг 1в): значение правится на панели
 			first = [_action("open", "Изменить", "plus"), _action("reset_setting", "По умолчанию", "undo")]
-			return first + [_action("properties", "Свойства", "info")]
+			return first + [fav, _action("properties", "Свойства", "info")]
 		K.TOGGLE, K.ACTION:
 			return [_action("open", "Переключить" if it.kind == K.TOGGLE else "Выполнить", "action"),
 					_action("properties", "Свойства", "info")]
 		_: first = [_action("open", "Открыть", "file")]
-	return first + [_action("copy", "Копировать", "copy"), _action("cut", "Вырезать", "cut"),
+	return first + [fav, _action("copy", "Копировать", "copy"), _action("cut", "Вырезать", "cut"),
 			_action("duplicate", "Дублировать", "copy"), _action("delete", "Удалить", "delete", true),
 			_action("properties", "Свойства", "info")]
 
@@ -232,6 +265,8 @@ func short(slot: int, scroll: Variant) -> Dictionary:
 	var it := item_at(slot)
 	if it == null:
 		return {"do": "none"}
+	if view == "search":
+		return {"do": "none"} if slot == 0 else _open_found(it, scroll)
 	if view != "browse":
 		if slot == 0:
 			if view == "actions" and _targets.size() == 1:
@@ -247,12 +282,20 @@ func short(slot: int, scroll: Variant) -> Dictionary:
 		else:
 			marked[it.id] = true
 		return {"do": "redraw"}
+	if it.danger:
+		message = "Удерживайте курок: %s" % it.title.to_lower()
+		return {"do": "need_hold"}
 	return _default(it, scroll)
 
 
 ## Удержание на слоте; slot < 0 — на пустой ячейке или «Назад»: действия папки.
 func hold(slot: int, scroll: Variant) -> Dictionary:
 	var it := item_at(slot)
+	if view == "browse" and it != null and it.danger and not multi:
+		# опасный пункт обзора («Выход») исполняется удержанием, а не открывает действия
+		return _default(it, scroll)
+	if view == "search":
+		return short(slot, scroll)
 	if view == "actions":
 		if it != null and slot > 0:
 			return _run_action(it.action, scroll)
@@ -273,8 +316,16 @@ func hold(slot: int, scroll: Variant) -> Dictionary:
 
 ## «Назад» / «Отмена».
 func back(scroll: Variant) -> Dictionary:
+	if view == "search":
+		search_query = ""
+		var r := _to_browse(true)
+		r["search_end"] = true
+		return r
 	if view != "browse":
 		return _to_browse(true)
+	if picking and state.depth() <= 1:
+		picking = false
+		message = "Добавление отменено"
 	if multi:
 		multi = false
 		marked.clear()
@@ -312,6 +363,8 @@ func redo() -> Dictionary:
 func open_root() -> void:
 	view = "browse"
 	multi = false
+	picking = false
+	search_query = ""
 	marked.clear()
 	_view_recent = recent.duplicate()
 	_rebuild()
@@ -337,9 +390,33 @@ func _default(it: Item, scroll: Variant) -> Dictionary:
 				return {"do": "edit", "id": it.setting}
 			return {"do": "redraw"}
 		K.ACTION:
-			if it.action == "wizard":
-				return {"do": "wizard"}
+			match it.action:
+				"wizard":
+					return {"do": "wizard"}
+				"search":
+					_browse_scroll = scroll
+					search_query = ""
+					view = "search"
+					_rebuild()
+					return {"do": "search", "scroll": null}
+				"pick":
+					picking = true
+					var sc: Variant = state.enter("files", scroll)
+					_view_recent = recent.duplicate()
+					_rebuild()
+					message = "Выберите объект для меню"
+					return {"do": "reload", "scroll": sc}
+				"exit":
+					return {"do": "exit"}
 			return {"do": "none"}
+	if picking:
+		picking = false
+		_checkpoint()
+		catalog.set_favorite(it.id, true)
+		state.jump(0, scroll)
+		_rebuild()
+		message = "В меню: %s" % it.title
+		return {"do": "reload", "scroll": null}
 	_touch(it.id)
 	message = "%s: %s" % [{K.SCENE: "Открыта сцена", K.IMAGE: "Просмотр", K.ASSET: "Поставлен ассет"}.get(it.kind, "Открыт"), it.title]
 	return {"do": "default", "item": it, "close": it.kind != K.IMAGE}
@@ -372,6 +449,13 @@ func _run_action(action: String, scroll: Variant) -> Dictionary:
 			elif r["do"] == "edit":
 				r["scroll"] = _browse_scroll
 			return r
+		"fav_add", "fav_remove":
+			_checkpoint()
+			for id in ids:
+				catalog.set_favorite(id, action == "fav_add")
+			message = "%s: %s" % ["В избранном" if action == "fav_add" else "Убрано из избранного",
+					", ".join(ids.map(func(x): return catalog.items[x].title))]
+			return _after_change()
 		"reset_setting":
 			var opt: Item = catalog.items[ids[0]]
 			if opt.setting != "":
@@ -461,6 +545,38 @@ func _run_action(action: String, scroll: Variant) -> Dictionary:
 			view = "browse"
 			return redo()
 	return {"do": "none"}
+
+
+## Запрос поиска изменился: список найденного пересобирается.
+func set_query(q: String) -> Dictionary:
+	if view != "search":
+		return {"do": "none"}
+	search_query = q
+	_rebuild()
+	return {"do": "reload", "scroll": null}
+
+
+## Открыть найденное: папка — переход по её пути, объект — действие по умолчанию из его папки.
+func _open_found(it: Item, scroll: Variant) -> Dictionary:
+	var path: Variant = catalog.path_to(it.id)
+	search_query = ""
+	view = "browse"
+	state.jump(0, scroll)
+	for f in (path if path != null else []):
+		state.enter(f, null)
+	if it.kind == K.FOLDER:
+		state.enter(it.id, null)
+		_view_recent = recent.duplicate()
+		_rebuild()
+		return {"do": "reload", "scroll": null, "search_end": true}
+	_view_recent = recent.duplicate()
+	_rebuild()
+	var r := _default(it, null)
+	if r["do"] in ["redraw", "setting", "none"]:
+		r = {"do": "reload", "scroll": null}
+	r["search_end"] = true
+	r["reload"] = true
+	return r
 
 
 func _to_browse(restore_scroll: bool) -> Dictionary:

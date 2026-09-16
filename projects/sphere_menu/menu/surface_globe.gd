@@ -15,6 +15,13 @@ var _slots: PackedInt32Array = PackedInt32Array()
 var _slot_version := 0
 var _local_cells: Array = []
 var _local_version := -1
+## Подсказка поиска: ячейка, найденная в прошлый раз. Спуск по соседям от неё вместо полного
+## перебора — доводка и активная спрашивают ячейку под «передом» до трёх раз за кадр, а полный
+## перебор 632 ячеек стоит 80 мкс на столе (замер 2026-09-16) и втрое дороже на шлеме:
+## самопроверка сессии 3 показала у неподвижного шара 5.33 мс скриптов против 2.60 при вращении.
+var _hint := 0
+## Фальсификатор настольных проверок «descend»: спуск обрывается после первого шага.
+var falsify_one_step := false
 
 
 ## Размер каждой ячейки по её контуру: доля угла до вершин контура от опорного
@@ -25,26 +32,43 @@ var _local_version := -1
 var _scales: PackedFloat32Array = PackedFloat32Array()
 
 
-func _init(lvl: int = 3) -> void:
-	g = Goldberg.build(lvl)
+## Скрыть дефекты сетки: пункты и активная — только на шестиугольниках (раскладка
+## «глобус без пятиугольников», решение владельца после сессии 2).
+var hide_defects := false
+
+
+func _init(lvl: int = 3, fam: String = "icosa", p_hide_defects: bool = false) -> void:
+	hide_defects = p_hide_defects
+	g = Goldberg.build(lvl, fam)
 	_slots.resize(g.centers.size())
 	_slots.fill(SLOT_EMPTY)
 	var ref: float = g.cell_angle() * 2.0 / sqrt(3.0)
 	_scales.resize(g.centers.size())
 	for i in g.centers.size():
-		_scales[i] = g.vertex_angle(i) / ref
+		var va: float = g.vertex_angle(i)
+		if fam != "icosa":
+			# У неровных ячеек (октаэдр, кольца, спираль) правильный многоугольник по среднему
+			# углу контура перекрывал соседа до 18% расстояния (замер 2026-09-16): вписанный
+			# радиус ограничен половиной расстояния до ближайшего соседа. Икосаэдру не нужно —
+			# там по контуру без перекрытий, а ограничение разводит ячейки (0.04→0.10).
+			var nearest := INF
+			for j in g.neighbors[i]:
+				nearest = minf(nearest, g.centers[i].angle_to(g.centers[j]))
+			var sides := float((g.neighbors[i] as Array).size())
+			va = minf(va, nearest * 0.5 / cos(PI / sides))
+		_scales[i] = va / ref
 
 
-## Уровень ряда Goldberg.LEVELS.
+## Уровень в ряду семейства сетки (menu/geo/index.json).
 func frequency() -> int:
 	return g.level
 
 
 ## Пункты — спиралью BFS от активной ячейки. «Назад» — сосед активной, ближайший
 ## к направлению «влево» от переда (как у линзы: слева от центра).
-func assign(item_count: int) -> void:
+func assign(item_count: int, with_back: bool = true) -> void:
 	_slots.fill(SLOT_EMPTY)
-	var start: int = cell_at_direction(front)
+	var start: int = active_at(front)
 	var left := up.cross(front).normalized() * -1.0
 	var back := -1
 	var best := -INF
@@ -53,16 +77,20 @@ func assign(item_count: int) -> void:
 		if d > best:
 			best = d
 			back = j
-	_slots[back] = SLOT_BACK
+	var seen := {start: true}
+	if with_back:
+		_slots[back] = SLOT_BACK
+		seen[back] = true
 	version += 1
 	_slot_version += 1
 	var queue: Array[int] = [start]
-	var seen := {start: true, back: true}
 	var next := 0
 	while not queue.is_empty() and next < item_count:
 		var c: int = queue.pop_front()
-		_slots[c] = next
-		next += 1
+		# обход идёт и через дефекты (иначе они рвали бы спираль), пункты на них не ставятся
+		if not (hide_defects and g.is_defect(c)):
+			_slots[c] = next
+			next += 1
 		for j in g.neighbors[c]:
 			if not seen.has(j):
 				seen[j] = true
@@ -99,14 +127,50 @@ func render_version() -> int:
 
 
 func cell_at_direction(dir: Vector3) -> Variant:
+	_hint = _descend(orientation.inverse() * dir.normalized(), _hint)
+	return _hint
+
+
+## Спуск по соседям: из ячейки start переходим к соседу, который ближе к направлению, пока
+## такие есть. Ячейки Вороного выпуклы, поэтому локальный максимум — глобальный; совпадение
+## с полным перебором проверяет настольная проверка «поиск ячейки».
+func _descend(local: Vector3, start: int) -> int:
+	var cur := clampi(start, 0, g.centers.size() - 1)
+	var cur_dot: float = g.centers[cur].dot(local)
+	var steps := 0
+	while true:
+		steps += 1
+		if falsify_one_step and steps > 1:
+			return cur
+		var best := cur
+		var best_dot := cur_dot
+		for j in g.neighbors[cur]:
+			var d: float = g.centers[j].dot(local)
+			if d > best_dot:
+				best_dot = d
+				best = j
+		if best == cur:
+			return cur
+		cur = best
+		cur_dot = best_dot
+	return cur
+
+
+func active_at(dir: Vector3) -> Variant:
+	var cell: int = cell_at_direction(dir)
+	if not hide_defects or not g.is_defect(cell):
+		return cell
+	# ячейка-дефект пунктов не получает: активной становится ближайший к направлению сосед
 	var local := orientation.inverse() * dir.normalized()
-	var best := 0
+	var best := cell
 	var best_dot := -INF
-	for i in g.centers.size():
-		var d: float = g.centers[i].dot(local)
+	for j in g.neighbors[cell]:
+		if g.is_defect(j):
+			continue
+		var d: float = g.centers[j].dot(local)
 		if d > best_dot:
 			best_dot = d
-			best = i
+			best = j
 	return best
 
 
@@ -126,11 +190,11 @@ func apply_rotation(q: Quaternion) -> void:
 
 
 func snap_error() -> float:
-	return direction_of(cell_at_direction(front)).angle_to(front)
+	return direction_of(active_at(front)).angle_to(front)
 
 
 func snap_rotation() -> Quaternion:
-	var d := direction_of(cell_at_direction(front))
+	var d := direction_of(active_at(front))
 	return Quaternion(d, front) if d.angle_to(front) > 1e-6 else Quaternion.IDENTITY
 
 

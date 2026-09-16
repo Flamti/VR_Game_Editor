@@ -30,12 +30,13 @@ func _init(p_alpha: float = 0.22) -> void:
 	alpha = p_alpha
 
 
-func assign(item_count: int) -> void:
+func assign(item_count: int, with_back: bool = true) -> void:
 	_item_count = item_count
 	_slots.clear()
 	# Раскладка от центра переда: активная ячейка получает первый пункт.
 	var origin := Layout.from_plane(offset)
-	_slots[origin + Layout.BACK_CELL] = SLOT_BACK
+	if with_back:
+		_slots[origin + Layout.BACK_CELL] = SLOT_BACK
 	var sp: Array[Vector2i] = Layout.spiral(item_count)
 	for i in sp.size():
 		_slots[origin + sp[i]] = i

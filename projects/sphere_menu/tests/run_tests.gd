@@ -23,9 +23,10 @@ extends SceneTree
 ##   --falsify=grab       поворот трекбола применён с обратным знаком — краснеет
 ##                        только «трекбол»;
 ##   --falsify=press      порог удержания 0 мс — краснеет только «короткое и удержание»;
-##   --falsify=relax      центры глобуса до выравнивания (из того же файла сетки) —
-##                        краснеет только «равномерность» уровней 3–8 (у уровней 0–2
-##                        выравнивать нечего: симметрия икосаэдра, 1 итерация);
+##   --falsify=relax      центры сеток до выравнивания (из тех же файлов) — краснеют только
+##                        «равномерность» и «контуры» семейств с выравниванием (icosa, octa,
+##                        fib): контуры запечены по выровненным центрам и с сырыми не сходятся;
+##                        кольца не выравниваются и остаются зелёными — контроль;
 ##   --falsify=uniform    все ячейки глобуса одного размера — краснеет только «размер по контуру»;
 ##   --falsify=stick      прежняя формула стика (горизонталь вокруг «верха» шара) —
 ##                        краснеет только «стик»;
@@ -33,6 +34,11 @@ extends SceneTree
 ##                        «сглаживание руки»;
 ##   --falsify=keypad     «,» набирается как «.» не распознанной строкой — ввод «2,75»
 ##                        не даёт 2.75, краснеет только «правка значения»;
+##   --falsify=favorite   удаление объекта не чистит избранное — краснеет только «избранное»;
+##   --falsify=rootback   на корне раздача с «Назад» — краснеет только «корень»;
+##   --falsify=descend    спуск к ячейке ограничен одним шагом — краснеет только «поиск ячейки»;
+##   --falsify=hexhide    глобус без пятиугольников раздаёт пункты и на них — краснеет только
+##                        «скрытые дефекты»;
 ##   --falsify=demo       путь стика в демонстрации без последнего отрезка —
 ##                        краснеет только «демонстрации».
 
@@ -56,31 +62,32 @@ const Stick := preload("res://menu/stick.gd")
 const HandFollow := preload("res://menu/hand_follow.gd")
 const SettingEdit := preload("res://menu/setting_edit.gd")
 const DemoRes := preload("res://menu/demo.gd")
+const ExportRes := preload("res://session/export.gd")
 
-## Уровни ряда Goldberg.LEVELS под проверкой топологии (уровень 0 — контроль).
-const LEVELS := [1, 2, 3, 4, 5, 6, 7, 8]
-## Уровни под проверками поверхностей: там O(n²) поиски, крупные ничего не добавляют.
+## Уровни икосаэдра под проверками поверхностей: там O(n²) поиски, крупные ничего не добавляют.
 const FREQS := [1, 2, 3, 4, 5]
-const GOLDBERG_CHECKS := ["число ячеек", "пятиугольники", "степени", "симметрия", "контуры", "равномерность"]
-## Порог разброса расстояний до соседей (max/min) по уровню — из замера запекателя
-## 2026-09-15 после выравнивания (1.119, 1.135, 1.158, 1.168, 1.185, 1.194, 1.209,
-## 1.218) с запасом ~1%: до выравнивания 1.185–1.379, фальсификатор relax.
-const NEIGHBOR_MAX := {1: 1.13, 2: 1.15, 3: 1.17, 4: 1.18, 5: 1.20, 6: 1.21, 7: 1.22, 8: 1.23}
-## Вытянутость ячейки (max/min угла до вершин контура): замер после выравнивания
-## ≤ 1.108; выравнивание площадей, отвергнутое замером, давало до 2.08.
-const ELONGATION_MAX := 1.12
+const GOLDBERG_CHECKS := ["число ячеек", "дефекты", "стороны", "симметрия", "контуры", "равномерность", "ряд размеров"]
+## Пороги равномерности по семейству — замер запекателя 2026-09-16 после выравнивания, с запасом
+## ~1%: худший разброс расстояний до соседей (max/min) и худшая вытянутость по всем уровням.
+## icosa 1.230 / 1.071, octa 1.638 / 1.161, fib 1.639 / 1.184, rings 1.730 / 1.495 (кольца не
+## выравниваются — у них это исходная раскладка). До выравнивания: icosa до 1.437 / 1.193,
+## octa до 2.689 / 1.485, fib 1.693 / 1.325 — фальсификатор relax.
+const UNIFORM_MAX := {"icosa": [1.24, 1.08], "octa": [1.65, 1.17], "fib": [1.66, 1.19], "rings": [1.74, 1.50]}
 ## Зазор между соседними отрисованными ячейками, доля расстояния между центрами:
-## замер 2026-09-15 по контуру 0.039–0.153; один размер на все — перекрытие 0.014
-## на 642 ячейках и зазор 0.012 на 42.
-const GAP_MIN := 0.03
-const GAP_MAX := 0.16
+## икосаэдр по контуру — замер 0.037…0.154; остальные семейства с ограничением половиной до
+## ближайшего соседа — от 0.100, верх 0.363 (octa), 0.411 (fib), 0.457 (rings). Без ограничения
+## у неровных — перекрытия до −0.179 (фальсификатор uniform — один размер на все).
+const GAP_RANGE := {"icosa": [0.03, 0.16], "octa": [0.09, 0.37], "fib": [0.09, 0.42], "rings": [0.09, 0.47]}
+## Шаг ряда размеров: запекатель отсеивает соседей ближе 5% (сессия 2: 32 и 42 почти дубли).
+const LADDER_STEP_MIN := 1.049
 const GAP_LEVELS := [0, 1, 2, 3, 5, 8]
 const RING_RADII := [1, 2, 3, 4]
 const STATE_CHECKS := ["стек и прокрутка", "назад на корне", "переход и обрезка"]
 const CATALOG_CHECKS := ["состав", "представление"]
 const MODEL_CHECKS := ["короткое и удержание", "трекбол", "настройки", "мастер", "шар действий",
 		"действие по умолчанию", "изменения и отмена", "множественный выбор", "сортировка и переходы",
-		"опасное без удержания", "стик", "вращение рукой", "сглаживание руки", "правка значения", "демонстрации"]
+		"опасное без удержания", "стик", "вращение рукой", "сглаживание руки", "правка значения", "демонстрации",
+		"корень", "избранное", "плюс", "поиск", "выход"]
 const SHARED_COPIES := ["probe_window.gd", "probe_stats.gd", "probe_report.gd", "probe_budget.gd"]
 
 var r: Report = Report.new()
@@ -121,7 +128,7 @@ func _init() -> void:
 
 func _expected() -> int:
 	return 1 \
-		+ LEVELS.size() * GOLDBERG_CHECKS.size() \
+		+ Goldberg.FAMILIES.size() * GOLDBERG_CHECKS.size() \
 		+ 3 \
 		+ STATE_CHECKS.size() \
 		+ CATALOG_CHECKS.size() \
@@ -132,7 +139,7 @@ func _expected() -> int:
 
 const SURFACE_CHECKS := ["ячейка под направлением", "шаг вращения", "раздача глобуса",
 		"детент", "гистерезис активной", "закрутка линзы", "ориентация контура", "ориентация подписи",
-		"размер по контуру"]
+		"размер по контуру", "скрытые дефекты", "поиск ячейки"]
 
 
 func extra_expected() -> int:
@@ -156,116 +163,132 @@ func _control() -> void:
 		r.fail("контроль: икосаэдр, уровень 0 — %d вершин, %d пятиугольников" % [g.centers.size(), g.pentagon_count()])
 
 
-# --- Гольдберг ----------------------------------------------------------------
+# --- сетки ячеек -----------------------------------------------------------------
 
+## Все уровни всех семейств (menu/geo/index.json); по семейству — семь проверок с именем
+## худшего уровня. Метрики из файлов не используются: считается по загруженным данным.
 func _goldberg() -> void:
 	r.note("")
-	r.note("--- Гольдберг, запечённые сетки ---")
-	for m in LEVELS:
-		var g = Goldberg.build(m, falsify == "relax", falsify == "neighbors")
-		var n: int = g.centers.size()
-		# Равномерность: разброс расстояний до соседей и вытянутость ячеек — то, что
-		# глаз видит как «съезжают» (сессия 2026-09-15). Считается по загруженным
-		# данным, метрики из файла не используются.
-		var dmin := INF
-		var dmax := 0.0
-		var elong := 1.0
-		for i in n:
-			for j in g.neighbors[i]:
-				var dd: float = g.centers[i].angle_to(g.centers[j])
-				dmin = minf(dmin, dd)
-				dmax = maxf(dmax, dd)
-			var vmin := INF
-			var vmax := 0.0
-			for v in g.outlines[i]:
-				var va: float = g.centers[i].angle_to(v)
-				vmin = minf(vmin, va)
-				vmax = maxf(vmax, va)
-			elong = maxf(elong, vmax / vmin)
-		var spread := dmax / dmin
-		# (равномерность считается ДО порчи соседства: иначе фальсификатор neighbors
-		# краснел бы и в ней — не точечно)
-		if falsify == "neighbors" and m == 3:
-			# Связь заменяется связью с чужой ячейкой: степень и контур не меняются,
-			# ломается только симметрия. Удаление связи (первая версия) меняло
-			# степень и роняло ещё две проверки — фальсификатор был не точечным.
-			var nb: Array = g.neighbors[0]
-			for cand in range(g.centers.size() - 1, 0, -1):
-				if not nb.has(cand):
-					nb[nb.size() - 1] = cand
+	r.note("--- Сетки ячеек, запечённые ---")
+	for fam in Goldberg.FAMILIES:
+		var bad := {}
+		for k in GOLDBERG_CHECKS:
+			bad[k] = []
+		var worst_u := [0.0, 1.0, ""]
+		var levels := Goldberg.level_count(fam)
+		var sizes: Array[float] = []
+		for m in levels:
+			var g = Goldberg.build(m, fam, falsify == "relax", falsify == "neighbors")
+			var n: int = g.centers.size()
+			var nm: String = g.name
+			# равномерность — до порчи соседства (фальсификатор neighbors точечный)
+			var dmin := INF
+			var dmax := 0.0
+			var elong := 1.0
+			for i in n:
+				for j in g.neighbors[i]:
+					var dd: float = g.centers[i].angle_to(g.centers[j])
+					dmin = minf(dmin, dd)
+					dmax = maxf(dmax, dd)
+				var vmin := INF
+				var vmax := 0.0
+				for v in g.outlines[i]:
+					var va: float = g.centers[i].angle_to(v)
+					vmin = minf(vmin, va)
+					vmax = maxf(vmax, va)
+				elong = maxf(elong, vmax / vmin)
+			if dmax / dmin > float(worst_u[0]):
+				worst_u = [dmax / dmin, elong, nm]
+			if dmax / dmin > float(UNIFORM_MAX[fam][0]) or elong > float(UNIFORM_MAX[fam][1]):
+				bad["равномерность"].append("%s %.3f/%.3f" % [nm, dmax / dmin, elong])
+			sizes.append(SettingsRes.globe_cell_cm(m, 1.0, fam))
+			if falsify == "neighbors" and fam == "icosa" and m == 3:
+				# связь заменяется связью с чужой ячейкой: степень и контур те же, ломается симметрия
+				var nb: Array = g.neighbors[0]
+				for cand in range(n - 1, 0, -1):
+					if not nb.has(cand):
+						nb[nb.size() - 1] = cand
+						break
+
+			# число ячеек — из параметров в имени, независимо от индекса
+			var parts := nm.split("_")
+			var want := -1
+			match fam:
+				"icosa", "octa":
+					var ga := int(parts[1])
+					var gb := int(parts[2])
+					want = (10 if fam == "icosa" else 4) * (ga * ga + ga * gb + gb * gb) + 2
+				"fib":
+					want = int(parts[1])
+				"rings":
+					want = Goldberg.cells_at(fam, m)
+			if n != want or n != Goldberg.cells_at(fam, m):
+				bad["число ячеек"].append("%s: %d вместо %d" % [nm, n, want])
+
+			# дефекты: Σ(6 − сторон) = 12 (Эйлер), у икосаэдра — 12 пятиугольников, у октаэдра — 6 квадратов
+			var euler := 0
+			var hist := {}
+			for i in n:
+				var dg: int = (g.neighbors[i] as Array).size()
+				euler += 6 - dg
+				hist[dg] = int(hist.get(dg, 0)) + 1
+			var defect_ok := euler == 12
+			if fam == "icosa":
+				defect_ok = defect_ok and int(hist.get(5, 0)) == 12 and hist.size() <= 2
+			elif fam == "octa":
+				defect_ok = defect_ok and int(hist.get(4, 0)) == 6 and hist.size() <= 2
+			if not defect_ok:
+				bad["дефекты"].append("%s: Σ=%d, %s" % [nm, euler, hist])
+
+			# стороны 4…7 — на столько есть меши рендера
+			for dg in hist:
+				if int(dg) < 4 or int(dg) > 7:
+					bad["стороны"].append("%s: %d сторон" % [nm, dg])
+
+			for i in n:
+				for j in g.neighbors[i]:
+					if not (g.neighbors[j] as Array).has(i):
+						bad["симметрия"].append("%s %d→%d" % [nm, i, j])
+						break
+
+			# Контур: вершина — центр описанной окружности, значит своя ячейка — среди
+			# ближайших к ней центров (равноудалённых). Допуск 1e-5 рад: координаты в файле
+			# округлены до 7 знаков.
+			for i in n:
+				var o: PackedVector3Array = g.outlines[i]
+				if o.size() != (g.neighbors[i] as Array).size():
+					bad["контуры"].append("%s %d: вершин %d, соседей %d" % [nm, i, o.size(), (g.neighbors[i] as Array).size()])
 					break
-		# GP(a,b) из имени файла: 10T + 2, T = a² + ab + b² — независимо от таблицы LEVELS.
-		var nm: String = Goldberg.LEVELS[m][0]
-		var ga := int(nm.substr(2, 1))
-		var gb := int(nm.substr(4, 1))
-		var want: int = 10 * (ga * ga + ga * gb + gb * gb) + 2
-		if n == want:
-			r.pass_("m=%d (%s) число ячеек: %d = 10T+2" % [m, nm, n])
-		else:
-			r.fail("m=%d (%s) число ячеек: %d вместо %d" % [m, nm, n, want])
-
-		var pent: int = g.pentagon_count()
-		if pent == 12:
-			r.pass_("m=%d пятиугольников ровно 12" % m)
-		else:
-			r.fail("m=%d пятиугольников %d вместо 12" % [m, pent])
-
-		var bad_deg: Array[String] = []
-		for i in n:
-			var d: int = (g.neighbors[i] as Array).size()
-			if d != 5 and d != 6:
-				bad_deg.append("%d:%d" % [i, d])
-		if bad_deg.is_empty():
-			r.pass_("m=%d у каждой ячейки 5 или 6 соседей" % m)
-		else:
-			r.fail("m=%d степени не 5/6: %s" % [m, ", ".join(bad_deg.slice(0, 8))])
-
-		var asym: Array[String] = []
-		for i in n:
-			for j in g.neighbors[i]:
-				if not (g.neighbors[j] as Array).has(i):
-					asym.append("%d→%d" % [i, j])
-		if asym.is_empty():
-			r.pass_("m=%d соседство симметрично" % m)
-		else:
-			r.fail("m=%d соседство несимметрично: %s" % [m, ", ".join(asym.slice(0, 8))])
-
-		# Контур ячейки: 5 или 6 вершин, и каждая вершина — угол СВОЕЙ ячейки. В
-		# вершине сходятся ровно три ячейки, значит своя обязана быть среди трёх
-		# ближайших центров. Без допусков: две прежние версии требовали «ближе к
-		# своей» (центроид на неравномерной сфере не равноудалён — у пятиугольников
-		# разница до 0.046 рад) и назначенный на глаз допуск 10% (§3.1). Зазор между
-		# третьей и четвёртой ячейкой печатается — это запас проверки.
-		var bad_out: Array[String] = []
-		var min_gap := INF
-		for i in n:
-			var o: PackedVector3Array = g.outlines[i]
-			if o.size() != 5 and o.size() != 6:
-				bad_out.append("%d: %d вершин" % [i, o.size()])
-				continue
-			for p in o:
-				# четыре ближайших центра без сортировки всех n: на 642 ячейках сортировка
-				# 3852 раза по 642 — десятки секунд GDScript
-				var best: Array = [[INF, -1], [INF, -1], [INF, -1], [INF, -1]]
-				for k in n:
-					var dk := p.dot(g.centers[k])
-					var ak := -dk    # монотонно с углом, acos только для зазора
-					if ak < best[3][0]:
-						best[3] = [ak, k]
-						best.sort_custom(func(x, y): return x[0] < y[0])
-				if not (best[0][1] == i or best[1][1] == i or best[2][1] == i):
-					bad_out.append("%d: вершина чужая" % i)
+				var off := false
+				for p in o:
+					var own: float = p.angle_to(g.centers[i])
+					var best := own
+					for j in g.neighbors[i]:
+						best = minf(best, p.angle_to(g.centers[j]))
+					if own - best > 1e-5:
+						off = true
+				if off:
+					bad["контуры"].append("%s %d: вершина ближе к чужой ячейке" % [nm, i])
 					break
-				min_gap = minf(min_gap, acos(clampf(-best[3][0], -1.0, 1.0)) - acos(clampf(-best[2][0], -1.0, 1.0)))
-		if bad_out.is_empty():
-			r.pass_("m=%d контуры: 5–6 вершин, каждая среди трёх ближайших к своей ячейке (запас до четвёртой ≥ %.4f рад)" % [m, min_gap])
-		else:
-			r.fail("m=%d контуры: %s" % [m, ", ".join(bad_out.slice(0, 8))])
 
-		if spread <= float(NEIGHBOR_MAX[m]) and elong <= ELONGATION_MAX:
-			r.pass_("m=%d равномерность: соседи max/min %.3f ≤ %.2f, вытянутость %.3f ≤ %.2f" % [m, spread, NEIGHBOR_MAX[m], elong, ELONGATION_MAX])
-		else:
-			r.fail("m=%d равномерность: соседи max/min %.3f (порог %.2f), вытянутость %.3f (порог %.2f)" % [m, spread, NEIGHBOR_MAX[m], elong, ELONGATION_MAX])
+		for k in range(1, sizes.size()):
+			if sizes[k - 1] / sizes[k] < LADDER_STEP_MIN:
+				bad["ряд размеров"].append("%d→%d: %.3f" % [k - 1, k, sizes[k - 1] / sizes[k]])
+
+		var detail := {
+			"число ячеек": "%d уровней, %d…%d ячеек" % [levels, Goldberg.cells_at(fam, 0), Goldberg.cells_at(fam, levels - 1)],
+			"дефекты": "Σ(6 − сторон) = 12 на всех уровнях",
+			"стороны": "4…7 сторон",
+			"симметрия": "соседство симметрично",
+			"контуры": "вершины контуров равноудалены от своих ячеек",
+			"равномерность": "худший %s: соседи %.3f ≤ %.2f, вытянутость %.3f ≤ %.2f" % [worst_u[2], worst_u[0], UNIFORM_MAX[fam][0], worst_u[1], UNIFORM_MAX[fam][1]],
+			"ряд размеров": "от крупных к мелким, шаг ≥ %.3f" % LADDER_STEP_MIN,
+		}
+		for k in GOLDBERG_CHECKS:
+			if (bad[k] as Array).is_empty():
+				r.pass_("%s %s: %s" % [fam, k, detail[k]])
+			else:
+				r.fail("%s %s: %s" % [fam, k, "; ".join((bad[k] as Array).slice(0, 6))])
 
 
 # --- раскладка ----------------------------------------------------------------
@@ -366,9 +389,8 @@ func _catalog() -> void:
 	r.note("")
 	r.note("--- Каталог ---")
 	var c: Catalog = Catalog.new()
-	var root_kinds := {}
-	for it in c.children("", 0, 100):
-		root_kinds[it.kind] = true
+	var home_ids: Array = c.home_view().map(func(x): return x.id)
+	var files_only_folders: bool = c.children("files", 0, 100).all(func(x): return x.kind == Item.Kind.FOLDER)
 	var kinds := {}
 	var images_ok := true
 	var ids := c.all_ids()
@@ -379,10 +401,11 @@ func _catalog() -> void:
 			images_ok = false
 	var need := [Item.Kind.FOLDER, Item.Kind.SCENE, Item.Kind.IMAGE, Item.Kind.ASSET, Item.Kind.FILE, Item.Kind.OPTION, Item.Kind.TOGGLE]
 	var missing := need.filter(func(k): return not kinds.has(k))
-	if root_kinds.keys() == [Item.Kind.FOLDER] and missing.is_empty() and images_ok and ids.size() >= 50:
-		r.pass_("каталог: %d пунктов, корень — только папки, есть все виды объектов, изображения загружаются" % ids.size())
+	var home_want := ["files", "settings", "home_search", "set_tasks", "home_plus", "home_exit"]
+	if home_ids == home_want and files_only_folders and missing.is_empty() and images_ok and ids.size() >= 50:
+		r.pass_("каталог: %d пунктов, корень — Файлы, Настройки, Поиск, Запуск теста, «+», Выход; в Файлах только папки; все виды объектов, изображения загружаются" % ids.size())
 	else:
-		r.fail("каталог: корень %s, нет видов %s, изображения %s, пунктов %d" % [root_kinds.keys(), missing, images_ok, ids.size()])
+		r.fail("каталог: корень %s, в Файлах только папки %s, нет видов %s, изображения %s, пунктов %d" % [home_ids, files_only_folders, missing, images_ok, ids.size()])
 
 	var by_name := c.view("images", "name", -1, []).map(func(x): return x.title)
 	var sorted_names := by_name.duplicate()
@@ -664,40 +687,92 @@ func _surfaces() -> void:
 		r.fail("ориентация подписи: %s" % ", ".join(tex_bad))
 
 	# 9. Размер по контуру: соседние ячейки в том размере, в каком их ставит рендер
-	# (cell_renderer.gd: опорный радиус × scale × GAP), не перекрываются и не
-	# расходятся дальше замеренного. Вписанный радиус — вдоль ребра к соседу.
+	# (cell_renderer.gd: опорный радиус × scale × GAP), не перекрываются и не расходятся
+	# дальше замеренного. Вписанный радиус — вдоль ребра к соседу. Все уровни всех семейств.
 	var gap_bad: Array[String] = []
-	var gap_lo := INF
-	var gap_hi := 0.0
+	var gap_seen := PackedStringArray()
 	const Renderer := preload("res://menu/cell_renderer.gd")
-	for lvl in GAP_LEVELS:
-		var gg = Globe.new(lvl)
-		var gcells: Array = gg.visible_cells()
-		var gref: float = gg.g.cell_angle() * 2.0 / sqrt(3.0)
-		var inr := PackedFloat32Array()
-		for cd in gcells:
-			var gsc: float = 1.0 if falsify == "uniform" else float(cd["scale"])
-			inr.append(gref * gsc * Renderer.GAP * cos(PI / float(cd["sides"])))
-		var glo := INF
-		var ghi := 0.0
-		for i in gcells.size():
-			for j in gg.g.neighbors[i]:
-				var cdist: float = gg.g.centers[i].angle_to(gg.g.centers[j])
-				var gp: float = (cdist - inr[i] - inr[j]) / cdist
-				glo = minf(glo, gp)
-				ghi = maxf(ghi, gp)
-		gap_lo = minf(gap_lo, glo)
-		gap_hi = maxf(gap_hi, ghi)
-		if glo < GAP_MIN or ghi > GAP_MAX:
-			gap_bad.append("%d ячеек: зазор %.3f…%.3f" % [gg.g.centers.size(), glo, ghi])
+	for fam in Goldberg.FAMILIES:
+		var flo := INF
+		var fhi := 0.0
+		for lvl in Goldberg.level_count(fam):
+			var gg = Globe.new(lvl, fam)
+			var gcells: Array = gg.visible_cells()
+			var gref: float = gg.g.cell_angle() * 2.0 / sqrt(3.0)
+			var inr := PackedFloat32Array()
+			for cd in gcells:
+				var gsc: float = 1.0 if falsify == "uniform" else float(cd["scale"])
+				inr.append(gref * gsc * Renderer.GAP * cos(PI / float(cd["sides"])))
+			for i in gcells.size():
+				for j in gg.g.neighbors[i]:
+					var cdist: float = gg.g.centers[i].angle_to(gg.g.centers[j])
+					var gp: float = (cdist - inr[i] - inr[j]) / cdist
+					flo = minf(flo, gp)
+					fhi = maxf(fhi, gp)
+		gap_seen.append("%s %.3f…%.3f" % [fam, flo, fhi])
+		if flo < float(GAP_RANGE[fam][0]) or fhi > float(GAP_RANGE[fam][1]):
+			gap_bad.append("%s: %.3f…%.3f вне %.2f…%.2f" % [fam, flo, fhi, GAP_RANGE[fam][0], GAP_RANGE[fam][1]])
 	if gap_bad.is_empty():
-		r.pass_("размер по контуру: уровни %s — соседи без перекрытий, зазор %.3f…%.3f расстояния в пределах %.2f…%.2f" % [str(GAP_LEVELS), gap_lo, gap_hi, GAP_MIN, GAP_MAX])
+		r.pass_("размер по контуру: все уровни — %s" % ", ".join(gap_seen))
 	else:
-		r.fail("размер по контуру (пределы %.2f…%.2f): %s" % [GAP_MIN, GAP_MAX, "; ".join(gap_bad)])
+		r.fail("размер по контуру: %s" % "; ".join(gap_bad))
+
+	# 10. Поиск ячейки под направлением: спуск по соседям обязан давать то же, что полный
+	# перебор, у всех семейств — и с холодной подсказки, и при движении маленькими шагами.
+	# Спуск вместо перебора: 80 → 1.5 мкс на вызов (замер 2026-09-16), а зовётся он до трёх
+	# раз в кадре (доводка и активная).
+	var find_bad: Array[String] = []
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	for fam in Goldberg.FAMILIES:
+		var lvl: int = Goldberg.level_count(fam) - 1
+		var gf = Globe.new(lvl, fam)
+		gf.falsify_one_step = falsify == "descend"
+		gf.apply_rotation(Quaternion(Vector3(0.3, 1.0, 0.2).normalized(), 0.7))
+		var dir := Vector3(0, 0, 1)
+		for k in 200:
+			if k % 2 == 0:
+				dir = Vector3(rng.randfn(), rng.randfn(), rng.randfn()).normalized()
+			else:
+				dir = (dir + Vector3(0.02, 0.01, 0.0)).normalized()
+			var got: int = gf.cell_at_direction(dir)
+			var local: Vector3 = gf.orientation.inverse() * dir
+			var want := 0
+			var bd := -INF
+			for i in gf.g.centers.size():
+				var dd: float = gf.g.centers[i].dot(local)
+				if dd > bd:
+					bd = dd
+					want = i
+			if got != want:
+				find_bad.append("%s: %d вместо %d" % [fam, got, want])
+				break
+	if find_bad.is_empty():
+		r.pass_("поиск ячейки: спуск по соседям совпал с полным перебором — 200 направлений на каждом из %d семейств (худший уровень)" % Goldberg.FAMILIES.size())
+	else:
+		r.fail("поиск ячейки: %s" % "; ".join(find_bad))
+
+	# 11. Скрытые дефекты: ни один пункт не на пятиугольнике; пятиугольник напротив лица —
+	# активной и целью доводки становится шестиугольник.
+	var hx = Globe.new(3, "icosa", falsify != "hexhide")
+	hx.assign(70)
+	var on_defect := 0
+	for i in hx.g.centers.size():
+		if hx.g.is_defect(i) and hx.slot_of(i) >= 0:
+			on_defect += 1
+	var hpent := -1
+	for i in hx.g.centers.size():
+		if hx.g.is_defect(i):
+			hpent = i
+			break
+	hx.apply_rotation(Quaternion(hx.direction_of(hpent), hx.front))
+	var hact: int = hx.active_at(hx.front)
+	if on_defect == 0 and not hx.g.is_defect(hact) and hx.snap_error() > 1e-3:
+		r.pass_("скрытые дефекты: 70 пунктов мимо 12 пятиугольников; пятиугольник напротив лица — активная и доводка на шестиугольнике (%.3f рад)" % hx.snap_error())
+	else:
+		r.fail("скрытые дефекты: пунктов на пятиугольниках %d, активная дефект %s, остаток доводки %.4f" % [on_defect, hx.g.is_defect(hact), hx.snap_error()])
 
 
-## Вершина многоугольника так, как её строит рендер: касательная ось, повёрнутая
-## на spin вокруг нормали (см. menu/cell_renderer.gd).
 static func _drawn_vertex(n: Vector3, spin: float) -> Vector3:
 	var a := Vector3.UP if absf(n.y) < 0.9 else Vector3.RIGHT
 	var ref := (a - n * a.dot(n)).normalized()
@@ -844,7 +919,8 @@ func _model() -> void:
 
 	# 5. Шар действий: удержание на объекте — центр объект, действия вокруг; «Отмена» — назад со старой прокруткой.
 	var nav = Navigator.new(Catalog.new(), SettingsRes.new())
-	nav.short(_slot_of(nav, "images"), "прокрутка-корня")
+	nav.short(_slot_of(nav, "files"), "прокрутка-корня")
+	nav.short(_slot_of(nav, "images"), "прокрутка-файлов")
 	var slot_img := _slot_of(nav, "img_map")
 	var h := nav.hold(slot_img, "прокрутка-изображений")
 	var center_ok: bool = nav.view == "actions" and nav.item_at(0).id == "img_map" and nav.items().size() > 3 \
@@ -861,11 +937,13 @@ func _model() -> void:
 	# 6. Действие по умолчанию: папка — вход, изображение — просмотр без закрытия, сцена — закрыть,
 	# настройка — правка на панели (значение не меняется само).
 	var nd = Navigator.new(Catalog.new(), SettingsRes.new())
+	nd.short(_slot_of(nd, "files"), null)
 	nd.short(_slot_of(nd, "images"), null)
 	var img := nd.short(_slot_of(nd, "img_sky"), null)
 	nd.back(null)
 	nd.short(_slot_of(nd, "scenes"), null)
 	var scn := nd.short(_slot_of(nd, "scene_cave"), null)
+	nd.back(null)
 	nd.back(null)
 	nd.short(_slot_of(nd, "settings"), null)
 	nd.short(_slot_of(nd, "settings_sphere"), null)
@@ -881,6 +959,7 @@ func _model() -> void:
 	var cat: Catalog = Catalog.new()
 	var nm = Navigator.new(cat, SettingsRes.new())
 	var orig := cat.fingerprint()
+	nm.short(_slot_of(nm, "files"), null)
 	nm.short(_slot_of(nm, "assets"), null)
 	_do_action(nm, "asset_house", "delete")
 	var deleted: bool = not cat.items.has("asset_house")
@@ -912,6 +991,7 @@ func _model() -> void:
 	var cat2: Catalog = Catalog.new()
 	var ms = Navigator.new(cat2, SettingsRes.new())
 	var orig2 := cat2.fingerprint()
+	ms.short(_slot_of(ms, "files"), null)
 	ms.short(_slot_of(ms, "logic"), null)
 	ms.hold(-1, null)
 	ms.hold(_action_slot(ms, "multi"), null)
@@ -932,6 +1012,7 @@ func _model() -> void:
 
 	# 9. Сортировка, фильтр, буква, путь, недавние.
 	var ns = Navigator.new(Catalog.new(), SettingsRes.new())
+	ns.short(_slot_of(ns, "files"), null)
 	ns.short(_slot_of(ns, "assets"), null)
 	ns.short(_slot_of(ns, "trees"), null)
 	ns.hold(-1, "tr")
@@ -943,6 +1024,7 @@ func _model() -> void:
 	ns.hold(_action_slot(ns, "path"), null)
 	var to_root := ns.short(1, null)
 	var at_root: bool = ns.state.folder() == "" and ns.view == "browse"
+	ns.short(_slot_of(ns, "files"), null)
 	ns.short(_slot_of(ns, "images"), null)
 	ns.short(_slot_of(ns, "img_stone"), null)
 	var same_folder_first: String = ns.item_at(0).id
@@ -961,6 +1043,7 @@ func _model() -> void:
 	# 10. Опасное действие коротким нажатием не исполняется.
 	var cat3: Catalog = Catalog.new()
 	var nh = Navigator.new(cat3, SettingsRes.new())
+	nh.short(_slot_of(nh, "files"), null)
 	nh.short(_slot_of(nh, "logic"), null)
 	nh.hold(_slot_of(nh, "logic_door"), null)
 	var del_slot := _action_slot(nh, "delete")
@@ -1139,6 +1222,122 @@ func _edit_checks() -> void:
 		r.pass_("демонстрации %s: доходят до конца; стик (вправо-обратно, вниз-обратно) и липкость возвращают шар, доводка уводит на 0,6 ячейки, кольцо до 1, рывок руки, бросок" % str(DemoRes.IDS))
 	else:
 		r.fail("демонстрации: %s" % "; ".join(demo_bad))
+
+	_home_checks()
+
+
+func _home_checks() -> void:
+	# Корень: порядок разделов, действия на пустом — только отмена/повтор, «Назад» на корне
+	# закрывает, раздача на корне без ячейки «Назад».
+	var cr: Catalog = Catalog.new()
+	var nr = Navigator.new(cr, SettingsRes.new())
+	var order: Array = nr.items().map(func(x): return x.id)
+	nr.hold(-1, null)
+	var home_actions: Array = nr.items().slice(1).map(func(x): return x.action)
+	nr.back(null)
+	var closes: bool = nr.back(null)["do"] == "close"
+	var gr = Globe.new(3)
+	gr.assign(order.size(), falsify == "rootback")
+	var backs := 0
+	for c in gr.visible_cells():
+		if int(c["slot"]) == Surface.SLOT_BACK:
+			backs += 1
+	if order == ["files", "settings", "home_search", "set_tasks", "home_plus", "home_exit"] \
+			and not home_actions.has("sort") and not home_actions.has("paste") and not home_actions.has("new_folder") \
+			and closes and backs == 0:
+		r.pass_("корень: Файлы, Настройки, Поиск, Запуск теста, «+», Выход; на пустом — без сортировки и вставки; «Назад» закрывает; ячейки «Назад» нет")
+	else:
+		r.fail("корень: порядок %s, действия %s, закрывает %s, ячеек «Назад» %d" % [order, home_actions, closes, backs])
+
+	# Избранное: добавить из действий → на корне между разделами и «+»; на корне — «Убрать»;
+	# удаление объекта чистит избранное, отмена возвращает; сохранение и загрузка.
+	var cf: Catalog = Catalog.new()
+	cf.prune_favorites_disabled = falsify == "favorite"
+	var nf = Navigator.new(cf, SettingsRes.new())
+	nf.short(_slot_of(nf, "files"), null)
+	nf.short(_slot_of(nf, "scenes"), null)
+	_do_action(nf, "scene_cave", "fav_add")
+	nf.state.jump(0, null)
+	nf.open_root()
+	var home: Array = nf.items().map(func(x): return x.id)
+	var placed: bool = home.find("scene_cave") == home.find("set_tasks") + 1 and home.find("home_plus") == home.find("scene_cave") + 1
+	nf.hold(_slot_of(nf, "scene_cave"), null)
+	var has_remove: bool = _action_slot(nf, "fav_remove") > 0
+	nf.back(null)
+	nf.short(_slot_of(nf, "files"), null)
+	nf.short(_slot_of(nf, "scenes"), null)
+	_do_action(nf, "scene_cave", "delete")
+	var pruned: bool = not cf.favorites.has("scene_cave")
+	nf.undo()
+	var restored: bool = cf.favorites.has("scene_cave")
+	var fpath := "user://test_favorites.cfg"
+	cf.save_favorites(fpath)
+	var cf2: Catalog = Catalog.new()
+	cf2.load_favorites(fpath)
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(fpath))
+	if placed and has_remove and pruned and restored and cf2.favorites == ["scene_cave"]:
+		r.pass_("избранное: добавлено из действий — на корне перед «+»; на корне «Убрать из избранного»; удаление чистит, отмена возвращает; сохранение и загрузка")
+	else:
+		r.fail("избранное: место %s (%s), «Убрать» %s, удаление чистит %s, отмена вернула %s, загружено %s" % [placed, home, has_remove, pruned, restored, cf2.favorites])
+
+	# «+»: выбор — вход в Файлы, папка открывается, объект добавляется и возвращает на корень;
+	# «Назад» с первого уровня выбора — отмена без добавления.
+	var cp: Catalog = Catalog.new()
+	var np = Navigator.new(cp, SettingsRes.new())
+	np.short(_slot_of(np, "home_plus"), null)
+	var in_files: bool = np.state.folder() == "files" and np.picking
+	np.short(_slot_of(np, "scenes"), null)
+	var res_pick := np.short(_slot_of(np, "scene_forest"), null)
+	var picked: bool = cp.favorites == ["scene_forest"] and np.state.folder() == "" and not np.picking and res_pick["do"] == "reload"
+	np.short(_slot_of(np, "home_plus"), null)
+	np.back(null)
+	var cancelled: bool = not np.picking and np.state.folder() == "" and cp.favorites == ["scene_forest"]
+	if in_files and picked and cancelled:
+		r.pass_("плюс: вход в Файлы в режиме выбора, папка открывается, объект — в меню и возврат на корень; «Назад» — отмена")
+	else:
+		r.fail("плюс: в Файлах %s, выбран %s (%s), отмена %s" % [in_files, picked, cp.favorites, cancelled])
+
+	# Поиск: подстрока без регистра, начинающиеся — первыми; папка — переход по пути,
+	# объект — действие по умолчанию из своей папки; «Отмена» — на корень.
+	var cs: Catalog = Catalog.new()
+	var nsr = Navigator.new(cs, SettingsRes.new())
+	var opened := nsr.short(_slot_of(nsr, "home_search"), null)
+	nsr.set_query("МОСТ")
+	var found: Array = nsr.items().slice(1).map(func(x): return x.id)
+	nsr.set_query("дерев")
+	var to_folder := nsr.short(_slot_of(nsr, "trees"), null)
+	var folder_path: bool = nsr.state.stack == ["", "files", "assets", "trees"] and nsr.view == "browse"
+	nsr.state.jump(0, null)
+	nsr.open_root()
+	nsr.short(_slot_of(nsr, "home_search"), null)
+	nsr.set_query("башн")
+	var to_obj := nsr.short(_slot_of(nsr, "scene_tower"), null)
+	var obj_ok: bool = to_obj["do"] == "default" and nsr.state.folder() == "scenes" and to_obj.get("search_end", false)
+	nsr.state.jump(0, null)
+	nsr.open_root()
+	nsr.short(_slot_of(nsr, "home_search"), null)
+	var cancel_s := nsr.back(null)
+	if opened["do"] == "search" and found.size() >= 2 and found[0] == "asset_bridge" and found.has("scene_draft1") \
+			and folder_path and to_folder.get("search_end", false) and obj_ok and cancel_s.get("search_end", false) and nsr.view == "browse":
+		r.pass_("поиск: «МОСТ» → %s (начинающиеся первыми), папка — по пути, объект — из своей папки, «Отмена» закрывает" % [found])
+	else:
+		r.fail("поиск: открыт %s, «МОСТ» → %s, папка %s (%s), объект %s, отмена %s" % [opened, found, folder_path, nsr.state.stack, obj_ok, cancel_s])
+
+	# Выход: короткое — подсказка удерживать, удержание — выход; выгрузка пишет файлы.
+	var cx: Catalog = Catalog.new()
+	var nx = Navigator.new(cx, SettingsRes.new())
+	var xs := nx.short(_slot_of(nx, "home_exit"), null)
+	var xh := nx.hold(_slot_of(nx, "home_exit"), null)
+	var ex: Dictionary = ExportRes.run("user://test_export", ["строка самопроверки"], "проверка")
+	var written: bool = (ex["ok"] as Array).has("selfcheck.txt") and FileAccess.file_exists(String(ex["dir"]).path_join("selfcheck.txt")) \
+			and (ex["failed"] as Array).is_empty()
+	for f in DirAccess.get_files_at(ex["dir"]):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(String(ex["dir"]).path_join(f)))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(ex["dir"]))
+	if xs["do"] == "need_hold" and xh["do"] == "exit" and nx.is_danger(_slot_of(nx, "home_exit")) and written:
+		r.pass_("выход: короткое — подсказка удерживать, удержание — выход; выгрузка записала %s" % [ex["ok"]])
+	else:
+		r.fail("выход: короткое %s, удержание %s, выгрузка %s" % [xs, xh, ex])
 
 
 static func _slot_of(nav: RefCounted, id: String) -> int:

@@ -36,6 +36,16 @@ static const char *VRGE_PROBED_XR_EXTENSIONS[] = {
 	"XR_EXT_hand_interaction",
 	"XR_FB_hand_tracking_mesh",
 	"XR_FB_display_refresh_rate",
+	// Поиск шар-меню — системная клавиатура Meta (решение владельца, ADR-0009): сама
+	// клавиатура и загрузка её модели. Имена сверены с заголовком Khronos 1.1.54 в
+	// godot/thirdparty/openxr/include/openxr/openxr.h (XR_META_VIRTUAL_KEYBOARD_EXTENSION_NAME,
+	// XR_FB_RENDER_MODEL_EXTENSION_NAME), не со страницей Meta.
+	"XR_META_virtual_keyboard",
+	"XR_FB_render_model",
+	// Сессия 3 на шлеме: XR_FB_render_model рантайм НЕ даёт. Godot 4.7 поддерживает более
+	// новое XR_EXT_render_model сам (modules/openxr/extensions/openxr_render_model_extension.h) —
+	// спрашиваем и его: от ответа зависит, чем грузить модель клавиатуры (ADR-0009).
+	"XR_EXT_render_model",
 	// Фальсификатор: обязан остаться false (PRACTICES §2.2).
 	"XR_VRGE_this_extension_does_not_exist",
 	nullptr,

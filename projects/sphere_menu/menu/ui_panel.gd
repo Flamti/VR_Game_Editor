@@ -17,12 +17,18 @@ extends "res://menu/info_panel.gd"
 
 signal edit_changed
 signal button(name: String)
+## Текст ввода на панели изменился (временный ввод поиска до модуля клавиатуры Meta).
+signal text_changed(text: String)
 
 const SettingEdit := preload("res://menu/setting_edit.gd")
 const Settings := preload("res://menu/settings.gd")
 
 const BUTTON_TITLES := {"back": "Назад", "default": "Умолч.", "demo": "Демо", "next": "Далее",
 		"done": "Готово", "save": "Сохранить"}
+## Временная клавиатура поиска: владелец выбрал системную клавиатуру Meta (ADR-0009); пока
+## модуля нет, поиск проверяется этой раскладкой. Убирается, когда модуль пройдёт сессию.
+const TEXT_KEYS := ["Й", "Ц", "У", "К", "Е", "Н", "Г", "Ш", "Щ", "З", "Х", "Ъ", "Ф", "Ы", "В", "А", "П", "Р",
+		"О", "Л", "Д", "Ж", "Э", "Я", "Ч", "С", "М", "И", "Т", "Ь", "Б", "Ю", "Ё", "␣", "⌫", "C"]
 ## Кончик у панели: расстояние до плоскости квада, м.
 const TIP_GAP := 0.02
 
@@ -39,12 +45,19 @@ var _slider: HSlider
 var _marks_box: Control
 var _choice_box: VBoxContainer
 var _buttons_box: HBoxContainer
+var _text_box: GridContainer
+## Набранный текст временного ввода.
+var text := ""
 var _syncing := false
 var _pointer_in := false
 var _pointer_down := false
 var _pointer_px := Vector2(-1, -1)
 ## Курок зажат до входа на панель: нажатием не считается, пока не отпустят.
 var _await_release := false
+## Панелью управляет проверка: указатель контроллера (source «user») игнорируется. Самопроверка
+## сессии 2: между её нажатием и перетаскиванием обычный ввод увидел настоящий луч мимо панели
+## и отпустил кнопку — ползунок не доехал, проверка покраснела на рабочей панели.
+var synthetic_lock := false
 ## Пиксель, куда пришёлся последний указатель, — для самопроверки и дымового прогона.
 var last_pointer: Variant = null
 
@@ -79,6 +92,7 @@ func open_editor(p_edit: SettingEdit, title: String, buttons: Array, p_note: Cal
 	var is_num := edit.is_number()
 	_number_box.visible = is_num
 	_choice_box.visible = not is_num
+	_text_box.visible = false
 	if is_num:
 		_syncing = true
 		_slider.min_value = float(spec["min"])
@@ -111,9 +125,32 @@ func open_summary(title: String, lines: PackedStringArray, buttons: Array) -> vo
 	_e_hint.size = Vector2(464, 440)
 	_number_box.visible = false
 	_choice_box.visible = false
+	_text_box.visible = false
 	_set_buttons(buttons)
 	_last_key = ""
 	_dirty()
+
+
+## Ввод текста (временный ввод поиска): поле, русская раскладка, кнопки.
+func open_text(title: String, buttons: Array) -> void:
+	edit = null
+	text = ""
+	_set_info_visible(false)
+	_editor.visible = true
+	_e_title.text = title
+	_e_value.text = "_"
+	_e_hint.text = "временно: ввод на панели — системная клавиатура Meta будет модулем"
+	_e_hint.size = Vector2(464, 84)
+	_number_box.visible = false
+	_choice_box.visible = false
+	_text_box.visible = true
+	_set_buttons(buttons)
+	_last_key = ""
+	_dirty()
+
+
+func is_text_open() -> bool:
+	return interactive() and _text_box.visible
 
 
 func close_editor() -> void:
@@ -182,7 +219,10 @@ func _to_px(p: Vector3) -> Variant:
 
 
 ## Указатель в пикселях (null — вне панели) и состояние кнопки. Зовётся каждый кадр.
-func pointer_update(px: Variant, pressed: bool) -> void:
+## source — кто ведёт указатель: «user» (контроллер) или имя проверки.
+func pointer_update(px: Variant, pressed: bool, source: String = "user") -> void:
+	if synthetic_lock and source == "user":
+		return
 	if px == null or not interactive():
 		_pointer_release()
 		return
@@ -298,6 +338,18 @@ func _build_editor() -> void:
 		kb.pressed.connect(_on_key.bind(k))
 		grid.add_child(kb)
 	_number_box.add_child(grid)
+
+	_text_box = GridContainer.new()
+	_text_box.columns = 6
+	_text_box.position = Vector2(34, 196)
+	_text_box.add_theme_constant_override("h_separation", 6)
+	_text_box.add_theme_constant_override("v_separation", 6)
+	_text_box.visible = false
+	for k in TEXT_KEYS:
+		var tb := _button(k, Vector2(70, 56), 28)
+		tb.pressed.connect(_on_text_key.bind(k))
+		_text_box.add_child(tb)
+	_editor.add_child(_text_box)
 
 	_choice_box = VBoxContainer.new()
 	_choice_box.position = Vector2(24, 206)
@@ -420,6 +472,23 @@ func _on_key(k: String) -> void:
 		_changed()
 	else:
 		refresh()
+
+
+func _on_text_key(k: String) -> void:
+	match k:
+		"⌫":
+			text = text.substr(0, maxi(0, text.length() - 1))
+		"C":
+			text = ""
+		"␣":
+			text += " "
+		_:
+			if text.length() < 40:
+				text += k.to_lower()
+	_e_value.text = text + "_"
+	_last_key = ""
+	_dirty()
+	text_changed.emit(text)
 
 
 func _on_choice(i: int) -> void:

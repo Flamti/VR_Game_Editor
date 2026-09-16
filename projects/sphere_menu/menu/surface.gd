@@ -23,7 +23,8 @@ var version := 0
 
 
 ## Раздать n пунктов по ячейкам от текущей активной. Вызывается при открытии папки.
-func assign(_item_count: int) -> void:
+## with_back = false — без ячейки «Назад» (корень: назад некуда, сессия 2).
+func assign(_item_count: int, _with_back: bool = true) -> void:
 	pass
 
 
@@ -41,6 +42,13 @@ func visible_cells() -> Array:
 ## Ключ ячейки под направлением.
 func cell_at_direction(_dir: Vector3) -> Variant:
 	return null
+
+
+## Ячейка, которая может стать активной под направлением. По умолчанию — любая под ним;
+## глобус со скрытыми дефектами пропускает не-шестиугольники: на них нет пунктов, и
+## доводка не должна ставить их в центр.
+func active_at(dir: Vector3) -> Variant:
+	return cell_at_direction(dir)
 
 
 ## Направление центра ячейки по ключу; Vector3.ZERO — ячейки нет.

@@ -25,8 +25,9 @@ const LENS_ALPHA_MAX := 0.5
 
 const SPEC := {
 	"surface": {"title": "Поверхность", "kind": "choice", "default": "globe",
-		"options": [["globe", "глобус"], ["lens", "линза"]],
-		"hint": "Глобус — пункты прибиты к шару. Линза — середина всегда напротив лица."},
+		"options": [["globe", "глобус"], ["lens", "линза"], ["globe_hex", "глобус без пятиугольников"],
+			["octa", "октаэдр"], ["rings", "кольца"], ["fib", "спираль"]],
+		"hint": "Глобус — пункты прибиты к шару, 12 пятиугольников. Линза — середина всегда напротив лица. Без пятиугольников — они пустые. Октаэдр — 6 квадратов, крупные ячейки. Кольца — ряды по широтам. Спираль — любой размер, неровности рассеяны."},
 	"hand_rotation": {"title": "Вращение рукой", "kind": "choice", "default": "ball",
 		"options": [["ball", "как шар"], ["stand", "как глобус на подставке"], ["face", "лицом к шлему"]],
 		"hint": "Как шар — поворот кисти вращает шар. На подставке — только поворот вокруг вертикали. Лицом к шлему — рука шар не вращает, активная всегда напротив."},
@@ -69,6 +70,8 @@ const MAIN := ["surface", "hand_rotation", "radius_cm", "cell_cm", "stick_speed"
 ## у каждой — демонстрация.
 const ADVANCED := ["grab_friction", "hysteresis", "hand_smoothing"]
 const ORDER := MAIN + ADVANCED
+## Поверхность → семейство сетки (menu/goldberg.gd). Линзы нет: у неё своя решётка.
+const FAMILY := {"globe": "icosa", "globe_hex": "icosa", "octa": "octa", "rings": "rings", "fib": "fib"}
 
 var values: Dictionary = {}
 
@@ -220,20 +223,30 @@ func lens_alpha() -> float:
 	return minf((float(values["cell_cm"]) * 0.5) / float(values["radius_cm"]), LENS_ALPHA_MAX)
 
 
-## Уровень глобуса (Goldberg.LEVELS: 12…642 ячейки), дающий ячейку, ближайшую
-## к заданному размеру. Перебор по загруженным сеткам точен и дёшев (кэш на классе).
+func is_lens() -> bool:
+	return values["surface"] == "lens"
+
+
+## Семейство сетки текущей поверхности; у линзы — икосаэдр (для подписи уровня в журнале).
+func family() -> String:
+	return FAMILY.get(values["surface"], "icosa")
+
+
+## Уровень сетки своего семейства (menu/geo/index.json, от крупных к мелким), дающий ячейку,
+## ближайшую к заданному размеру. Перебор по загруженным сеткам точен и дёшев (кэш на классе).
 static var _angle_cache: Dictionary = {}
 
 
 func globe_frequency() -> int:
 	var want_cm := float(values["cell_cm"])
 	var r := float(values["radius_cm"])
+	var fam := family()
 	var best := 0
 	var best_err := INF
-	for m in Goldberg.LEVELS.size():
+	for m in Goldberg.level_count(fam):
 		# ошибка в логарифме: ряд размеров почти геометрический, в сантиметрах
 		# крупные ступени перетягивали бы выбор
-		var err := absf(log(globe_cell_cm(m, r) / want_cm))
+		var err := absf(log(globe_cell_cm(m, r, fam) / want_cm))
 		if err < best_err:
 			best_err = err
 			best = m
@@ -244,14 +257,15 @@ func globe_frequency() -> int:
 ## пределом угла, у глобуса — ближайший достижимый: сетки идут рядом, и при большом
 ## радиусе мелкие ячейки упираются в потолок (642 ячейки).
 func actual_cell_cm() -> float:
-	if values["surface"] == "lens":
+	if is_lens():
 		return lens_alpha() * 2.0 * float(values["radius_cm"])
-	return globe_cell_cm(globe_frequency(), float(values["radius_cm"]))
+	return globe_cell_cm(globe_frequency(), float(values["radius_cm"]), family())
 
 
 ## Поперечник ячейки глобуса уровня m на шаре радиуса r, см: угловой радиус
 ## по вписанной окружности × 2/√3 до вершины × 2 на поперечник.
-static func globe_cell_cm(m: int, r_cm: float) -> float:
-	if not _angle_cache.has(m):
-		_angle_cache[m] = Goldberg.build(m).cell_angle()
-	return r_cm * float(_angle_cache[m]) * (2.0 / sqrt(3.0)) * 2.0
+static func globe_cell_cm(m: int, r_cm: float, fam: String = "icosa") -> float:
+	var key := "%s:%d" % [fam, m]
+	if not _angle_cache.has(key):
+		_angle_cache[key] = Goldberg.build(m, fam).cell_angle()
+	return r_cm * float(_angle_cache[key]) * (2.0 / sqrt(3.0)) * 2.0

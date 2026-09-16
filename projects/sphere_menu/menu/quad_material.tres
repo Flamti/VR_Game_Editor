@@ -1,0 +1,9 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+; Материал квадратов (дефекты октаэдра): тот же шейдер, sides = 4. Прогревается menu/warm.tscn через
+; quad_mesh.tres, как шести- и пятиугольники (ADR-0003 п. 9).
+[ext_resource type="Shader" path="res://menu/cell.gdshader" id="1_shader"]
+
+[resource]
+shader = ExtResource("1_shader")
+shader_parameter/sides = 4.0

@@ -35,7 +35,7 @@ tools/gpu_mem.sh [файл] [период]       # память GPU процес
 tools/gpu_stages.sh enable|disable     # детальный режим Adreno — ДО запуска приложения
 tools/gpu_stages.sh [файл] [окно] [пауза]  # режим рендера и бины поверхностей (ovrgpuprofiler -t)
 tools/join_windows.py окна.tsv --clock … [--mem …] [--stages …]  # свод окон прибора с хостом
-tools/bake_goldberg.py                 # запечь сетки глобуса шар-меню в projects/sphere_menu/menu/geo/
+tools/bake_grids.py                    # запечь сетки шар-меню (icosa/octa/rings/fib) в projects/sphere_menu/menu/geo/
 ```
 
 Шар-меню (`projects/sphere_menu/`): настольные проверки и дымовой прогон — без шлема, до экспорта:

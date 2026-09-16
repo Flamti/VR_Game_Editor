@@ -17,6 +17,7 @@ const UiPanel := preload("res://menu/ui_panel.gd")
 const SettingEdit := preload("res://menu/setting_edit.gd")
 const Demo := preload("res://menu/demo.gd")
 const Goldberg := preload("res://menu/goldberg.gd")
+const Export := preload("res://session/export.gd")
 
 ## Шар над ладонью левого контроллера, в его координатах (поза grip).
 const BALL_OFFSET := Vector3(0.0, 0.06, -0.10)
@@ -32,6 +33,8 @@ var menu: Menu
 var panel: UiPanel
 ## Правка настройки из папки настроек (не мастер); null — не идёт.
 var editing: SettingEdit = null
+## Строки последней самопроверки — в выгрузку при выходе.
+var selfcheck_lines: Array = []
 var controllers: Controllers
 var journal: Journal = Journal.new()
 var task_label: Label3D
@@ -67,6 +70,11 @@ func _ready() -> void:
 	menu.wizard_requested.connect(start_wizard)
 	menu.tasks_changed.connect(_on_tasks)
 	menu.edit_requested.connect(start_edit)
+	menu.search_requested.connect(_on_search_requested)
+	menu.search_closed.connect(_on_search_closed)
+	menu.exit_requested.connect(_exit_app)
+	panel.text_changed.connect(_on_search_text)
+	menu.catalog.load_favorites()
 	panel.edit_changed.connect(_on_edit_changed)
 	panel.button.connect(_on_panel_button)
 
@@ -98,6 +106,7 @@ func _ready() -> void:
 	var check := SelfCheck.new()
 	var ok: bool = await check.run(self, menu)
 	journal.log("самопроверка", menu.params(), "", "PASS" if ok else "FAIL", -1, str(check.results))
+	selfcheck_lines = check.r.lines.duplicate()
 	# Самопроверка гоняет худшие раскладки — возвращаются настройки человека.
 	menu.settings.values = saved
 	menu.apply_settings()
@@ -118,7 +127,7 @@ func _show_help() -> void:
 ## открытия (самопроверка 2026-09-15, surface 2).
 func _warm_in_xr() -> void:
 	var warm: Node3D = $CellWarm
-	for mmi in [warm.get_node("Hex"), warm.get_node("Pent")]:
+	for mmi in [warm.get_node("Hex"), warm.get_node("Pent"), warm.get_node("Quad"), warm.get_node("Hept")]:
 		(mmi as MultiMeshInstance3D).multimesh.set_instance_transform(0,
 				Transform3D(Basis().scaled(Vector3.ONE * 0.01), Vector3.ZERO))
 		(mmi as MultiMeshInstance3D).visible = true
@@ -131,7 +140,7 @@ func _warm_in_xr() -> void:
 		warm.global_position = p
 		panel.global_position = p + camera.global_basis.x * 0.02
 		await get_tree().process_frame
-	for mmi in [warm.get_node("Hex"), warm.get_node("Pent")]:
+	for mmi in [warm.get_node("Hex"), warm.get_node("Pent"), warm.get_node("Quad"), warm.get_node("Hept")]:
 		(mmi as MultiMeshInstance3D).visible = false
 	panel.close_editor()
 	panel.visible = false
@@ -191,9 +200,9 @@ func _note_for(id: String) -> String:
 	var st := menu.settings
 	match id:
 		"cell_cm":
-			if st.get_value("surface") == "globe":
-				return "у глобуса: %s см, %d ячеек" % [Settings.format_number("cell_cm", st.actual_cell_cm()),
-						Goldberg.cells_at(st.globe_frequency())]
+			if not st.is_lens():
+				return "у сетки: %s см, %d ячеек" % [Settings.format_number("cell_cm", st.actual_cell_cm()),
+						Goldberg.cells_at(st.family(), st.globe_frequency())]
 			if not is_equal_approx(st.actual_cell_cm(), float(st.get_value("cell_cm"))):
 				return "у линзы предел: %s см" % Settings.format_number("cell_cm", st.actual_cell_cm())
 		"hand_smoothing":
@@ -243,6 +252,11 @@ func _on_edit_changed() -> void:
 
 func _on_panel_button(name: String) -> void:
 	journal.log("панель_кнопка", menu.params(), "", "", -1, name)
+	if panel.is_text_open():
+		if name == "done":
+			menu.back()       # закрывает вид поиска; search_closed закроет ввод
+			_on_search_closed()
+		return
 	if wizard_active():
 		match name:
 			"next", "save":
@@ -290,6 +304,41 @@ func _wizard_done() -> void:
 	task_label.text = "Настройки сохранены" if wizard.saved else "Не удалось сохранить настройки"
 	menu.apply_settings()
 	_show_help()
+
+
+# --- поиск и выход ---------------------------------------------------------------
+
+func _on_search_requested() -> void:
+	menu.panel_locked = true
+	panel.open_text("Поиск", ["done"])
+	journal.log("поиск_открыт", menu.params())
+
+
+func _on_search_text(t: String) -> void:
+	menu.set_search_query(t)
+	journal.log("поиск_запрос", menu.params(), "", "", -1, "%s → %d" % [t, maxi(0, menu.nav.items().size() - 1)])
+
+
+func _on_search_closed() -> void:
+	if panel.is_text_open():
+		panel.close_editor()
+	if not wizard_active() and editing == null:
+		menu.panel_locked = false
+
+
+## «Выход» (удержанием): сохранить настройки и избранное, записать выход в журнал, выгрузить
+## файлы в общую папку и выйти. Итог выгрузки — в журнал до копирования его самого, и в лог.
+func _exit_app() -> void:
+	menu.settings.save()
+	menu.catalog.save_favorites()
+	var dst := OS.get_system_dir(OS.SYSTEM_DIR_DOWNLOADS)
+	var stamp := Export.stamp_now()
+	journal.log("выход", menu.params(), "", "", -1, "выгрузка в %s" % dst.path_join("VRGE").path_join(stamp))
+	var res: Dictionary = Export.run(dst, selfcheck_lines, stamp)
+	print("выход: выгрузка %s — записано %s, отказ %s" % [res["dir"], res["ok"], res["failed"]])
+	task_label.text = "Выход: журнал в %s" % res["dir"]
+	await get_tree().create_timer(0.5).timeout
+	get_tree().quit()
 
 
 # --- задания ---------------------------------------------------------------------

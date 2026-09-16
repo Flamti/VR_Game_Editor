@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=9 format=3]
 
 ; Прогрев конвейеров ячеек при загрузке (ADR-0003 п. 9, прогон 20: предзагруженный
 ; вариант 4.6 мс против 1097 мс на холодном кэше). Невидим: документация Godot —
@@ -7,8 +7,11 @@
 ; Прогревается ТОТ ЖЕ путь, которым рисуются ячейки: MultiMesh с custom data. W2
 ; проверял обычный MeshInstance3D, а инстансинг и INSTANCE_CUSTOM — другой вариант
 ; шейдера. Сработал ли прогрев, проверяет самопроверка на шлеме по пику первого открытия.
+; Шаг 1г: квадраты (октаэдр) и семиугольники (кольца, спираль) — свои материалы.
 [ext_resource type="CylinderMesh" path="res://menu/hex_mesh.tres" id="1_hex"]
 [ext_resource type="CylinderMesh" path="res://menu/pent_mesh.tres" id="2_pent"]
+[ext_resource type="CylinderMesh" path="res://menu/quad_mesh.tres" id="3_quad"]
+[ext_resource type="CylinderMesh" path="res://menu/hept_mesh.tres" id="4_hept"]
 
 [sub_resource type="MultiMesh" id="mm_hex"]
 transform_format = 1
@@ -22,6 +25,18 @@ use_custom_data = true
 instance_count = 1
 mesh = ExtResource("2_pent")
 
+[sub_resource type="MultiMesh" id="mm_quad"]
+transform_format = 1
+use_custom_data = true
+instance_count = 1
+mesh = ExtResource("3_quad")
+
+[sub_resource type="MultiMesh" id="mm_hept"]
+transform_format = 1
+use_custom_data = true
+instance_count = 1
+mesh = ExtResource("4_hept")
+
 [node name="CellWarm" type="Node3D"]
 
 [node name="Hex" type="MultiMeshInstance3D" parent="."]
@@ -31,3 +46,11 @@ multimesh = SubResource("mm_hex")
 [node name="Pent" type="MultiMeshInstance3D" parent="."]
 visible = false
 multimesh = SubResource("mm_pent")
+
+[node name="Quad" type="MultiMeshInstance3D" parent="."]
+visible = false
+multimesh = SubResource("mm_quad")
+
+[node name="Hept" type="MultiMeshInstance3D" parent="."]
+visible = false
+multimesh = SubResource("mm_hept")

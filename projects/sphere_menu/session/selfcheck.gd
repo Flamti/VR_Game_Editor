@@ -37,7 +37,7 @@ var results := {}
 
 func run(host: Node, menu: Menu) -> bool:
 	var checks := ["xr", "частота", "msaa", "прогрев", "глобус худший", "глобус крупный", "линза худшая",
-			"атлас", "панель", "панель лучом", "пропуск перерисовки"]
+			"раскладки худшие", "атлас", "панель", "панель лучом", "пропуск перерисовки", "клавиатура meta"]
 	expected = checks.size()
 	r.note("=== САМОПРОВЕРКА ШАР-МЕНЮ ===")
 	r.note("ожидается исполненных проверок: %d" % expected)
@@ -100,6 +100,31 @@ func run(host: Node, menu: Menu) -> bool:
 	await ProbeWindow.settle(host, 0.5)
 	var l: Dictionary = await _measure(host, rid, budget)
 	_budget_check("линза α=%.3f, %d ячеек, вращение" % [st.lens_alpha(), menu.renderer.drawn], l, budget)
+
+	# Раскладки шага 1г в худшем уровне (самые мелкие ячейки при самом большом радиусе),
+	# при вращении. Одна проверка: связывающее и худшая раскладка называются поимённо.
+	var worst := ""
+	var worst_ms := 0.0
+	var over := PackedStringArray()
+	var seen := PackedStringArray()
+	for surf in ["globe_hex", "octa", "rings", "fib"]:
+		st.values["surface"] = surf
+		menu.apply_settings()
+		await ProbeWindow.settle(host, 0.5)
+		var m: Dictionary = await _measure(host, rid, budget)
+		var g95: float = (m["gpu"] as ProbeStats).percentile(0.95)
+		var c95: float = (m["cpu"] as ProbeStats).percentile(0.95) + (m["process"] as ProbeStats).percentile(0.95)
+		var line := "%s %d ячеек: GPU %.2f / CPU+скрипты %.2f мс (%s)" % [surf, menu.renderer.drawn, g95, c95, "GPU" if g95 >= c95 else "CPU"]
+		seen.append(line)
+		if maxf(g95, c95) > worst_ms:
+			worst_ms = maxf(g95, c95)
+			worst = surf
+		if maxf(g95, c95) > budget or int(m["over"]) > 0:
+			over.append(line)
+	if over.is_empty():
+		r.pass_("раскладки худшие, вращение, бюджет %.2f мс: %s; худшая %s" % [budget, "; ".join(seen), worst])
+	else:
+		r.fail("раскладки худшие вне бюджета %.2f мс: %s (все: %s)" % [budget, "; ".join(over), "; ".join(seen)])
 	menu.debug_spin = 0.0
 
 	var tex := menu.atlas.texture()
@@ -123,6 +148,7 @@ func run(host: Node, menu: Menu) -> bool:
 		var saved_r: Variant = st.get_value("radius_cm")
 		st.values["radius_cm"] = 11.0
 		pnl.visible = true
+		pnl.synthetic_lock = true
 		pnl.open_editor(SettingEdit.new(st, "radius_cm"), "самопроверка", ["done"])
 		for _i in 3:
 			await host.get_tree().process_frame
@@ -130,13 +156,14 @@ func run(host: Node, menu: Menu) -> bool:
 		var renders0: int = pnl.renders
 		var a: Variant = _aim(pnl, rect.position + Vector2(rect.size.x * 0.2, rect.size.y * 0.5))
 		var b: Variant = _aim(pnl, rect.position + Vector2(rect.size.x * 0.8, rect.size.y * 0.5))
-		pnl.pointer_update(a, false)
-		pnl.pointer_update(a, true)
+		pnl.pointer_update(a, false, "check")
+		pnl.pointer_update(a, true, "check")
 		await host.get_tree().process_frame
-		pnl.pointer_update(b, true)
+		pnl.pointer_update(b, true, "check")
 		await host.get_tree().process_frame
-		pnl.pointer_update(b, false)
-		pnl.pointer_update(null, false)
+		pnl.pointer_update(b, false, "check")
+		pnl.pointer_update(null, false, "check")
+		pnl.synthetic_lock = false
 		var got := float(st.get_value("radius_cm"))
 		var drawn_n: int = pnl.renders - renders0
 		pnl.close_editor()
@@ -162,6 +189,22 @@ func run(host: Node, menu: Menu) -> bool:
 		r.pass_("пропуск перерисовки: неподвижный глобус пересчитан %d раз, скрипты p95 %.2f мс против %.2f при вращении" % [redrawn, still_proc, spin_proc])
 	else:
 		r.fail("пропуск перерисовки: пересчётов %d, скрипты p95 %.2f мс против %.2f при вращении" % [redrawn, still_proc, spin_proc])
+
+	# Клавиатура Meta (ADR-0009): есть ли у рантайма расширения. Контроль — XR_KHR_vulkan_enable2,
+	# без него сессия не рендерила бы: если модуль говорит «нет» о нём, опросу не верить.
+	if not Engine.has_singleton("VRGEProbe"):
+		r.unkn("клавиатура meta: синглтон VRGEProbe отсутствует — модуль не в сборке")
+	else:
+		var probe = Engine.get_singleton("VRGEProbe")
+		var control: int = probe.has_openxr_extension("XR_KHR_vulkan_enable2")
+		var kb: int = probe.has_openxr_extension("XR_META_virtual_keyboard")
+		var rm: int = probe.has_openxr_extension("XR_FB_render_model")
+		var rm_ext: int = probe.has_openxr_extension("XR_EXT_render_model")
+		if control != 1 or kb < 0 or rm < 0 or rm_ext < 0:
+			r.unkn("клавиатура meta: контроль vulkan_enable2=%d, keyboard=%d, FB_render_model=%d, EXT_render_model=%d — опрос недостоверен или имя не в списке модуля" % [control, kb, rm, rm_ext])
+		else:
+			var word := func(x: int) -> String: return "доступно" if x == 1 else "НЕТ"
+			r.pass_("клавиатура meta: XR_META_virtual_keyboard %s, XR_FB_render_model %s, XR_EXT_render_model %s (контроль vulkan_enable2 доступен)" % [word.call(kb), word.call(rm), word.call(rm_ext)])
 
 	menu.close()
 	return _verdict()

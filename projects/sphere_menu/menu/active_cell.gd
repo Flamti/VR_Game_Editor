@@ -19,7 +19,7 @@ const HISTORY_MS := 300
 
 ## true — активная сменилась.
 func update(surface: RefCounted, now_ms: int) -> bool:
-	var cand: Variant = surface.cell_at_direction(surface.front)
+	var cand: Variant = surface.active_at(surface.front)
 	var changed := false
 	if key == null:
 		key = cand

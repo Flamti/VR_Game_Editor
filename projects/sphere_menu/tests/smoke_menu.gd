@@ -18,12 +18,14 @@ const Menu := preload("res://menu/sphere_menu.gd")
 const Panel3D := preload("res://menu/ui_panel.gd")
 const SettingEdit := preload("res://menu/setting_edit.gd")
 const Journal := preload("res://session/journal.gd")
+const SettingsRes := preload("res://menu/settings.gd")
 const Surface := preload("res://menu/surface.gd")
 const Wizard := preload("res://menu/wizard.gd")
 
 const STEPS := ["открыть", "войти коротким", "действия удержанием", "копировать", "вставить",
 		"удалить удержанием", "отменить", "линза и захват", "панель и атлас", "мастер",
-		"вращение рукой", "правка открыта", "ползунок лучом", "клавиатура лучом", "демонстрация доводки", "журнал"]
+		"вращение рукой", "правка открыта", "ползунок лучом", "клавиатура лучом", "демонстрация доводки", "журнал", "назад на корне", "замок панели",
+		"поиск на панели", "плюс", "раскладки", "выход удержанием"]
 
 var r: Report = Report.new()
 var menu: Menu
@@ -33,6 +35,7 @@ var _t := 0
 var _script: Array = []
 var _done := false
 var _demo_started := false
+var _exit_asked := false
 
 
 func _initialize() -> void:
@@ -55,10 +58,15 @@ func _initialize() -> void:
 		menu.panel_locked = true
 		panel.open_editor(SettingEdit.new(menu.settings, id), id, ["default", "done"]))
 	panel.edit_changed.connect(menu.apply_settings)
+	menu.search_requested.connect(func(): panel.open_text("Поиск", ["done"]))
+	menu.search_closed.connect(func(): if panel.is_text_open(): panel.close_editor())
+	panel.text_changed.connect(menu.set_search_query)
+	menu.exit_requested.connect(func(): _exit_asked = true)
 	_script = [
 		[5, _open], [10, _enter], [20, _hold_actions], [60, _copy], [70, _paste],
 		[90, _delete_hold], [140, _undo], [150, _lens_grab], [200, _panel_atlas], [210, _wizard], [215, _hand_modes], [220, _edit_open], [230, _edit_slider],
-		[240, _edit_keypad], [250, _demo_start], [260, _demo_check], [265, _journal], [270, _finish],
+		[240, _edit_keypad], [250, _demo_start], [260, _demo_check], [265, _journal], [268, _root_back], [270, _panel_lock], [271, _search_open], [274, _search], [276, _plus], [280, _layouts],
+		[284, _exit_hold], [290, _finish],
 	]
 
 
@@ -120,16 +128,17 @@ func _hold(key: Variant, ms: int) -> void:
 
 func _open() -> void:
 	menu.toggle()
-	if menu.is_open() and menu.nav.items().size() == 5 and menu.renderer.drawn >= 0:
+	if menu.is_open() and menu.nav.items().size() == 6 and menu.renderer.drawn >= 0:
 		r.pass_("открыть: корень, %d объектов" % menu.nav.items().size())
 	else:
 		r.fail("открыть: открыт %s, объектов %d" % [menu.is_open(), menu.nav.items().size()])
 
 
 func _enter() -> void:
+	_tap(_key_of(_slot_of("files")))
 	_tap(_key_of(_slot_of("assets")))
 	if menu.nav.state.folder() == "assets":
-		r.pass_("войти коротким: папка «Ассеты»")
+		r.pass_("войти коротким: Файлы → «Ассеты»")
 	else:
 		r.fail("войти коротким: папка «%s»" % menu.nav.state.folder())
 
@@ -360,6 +369,148 @@ func _journal() -> void:
 		r.pass_("журнал: %d колонок, радиус %s, поверхность %s" % [cells.size(), cells[radius_col], cells[2]])
 	else:
 		r.fail("журнал: колонок %d из %d, строка «%s»" % [cells.size(), Journal.COLUMNS.size(), line])
+
+
+## «Назад» на корне закрывает шар целиком: не только состояние, но и вид. Сессия 2 на шлеме:
+## состояние закрывалось, шар оставался висеть без обработки — прогон проверял is_open().
+func _root_back() -> void:
+	if not menu.is_open():
+		menu.toggle()
+	var guard := 0
+	while menu.nav.state.folder() != "" and guard < 8:
+		menu.back()
+		guard += 1
+	var back_cells := 0
+	for c in menu.surface().render_cells():
+		if int(c["slot"]) == Surface.SLOT_BACK:
+			back_cells += 1
+	menu.back()
+	if back_cells == 0 and not menu.is_open() and not menu.visible and menu.renderer.drawn == 0 and not menu.panel.visible:
+		r.pass_("назад на корне: ячейки «Назад» на корне нет; X закрывает — состояние, шар и панель скрыты, ячейки не рисуются")
+	else:
+		r.fail("назад на корне: ячеек «Назад» %d, открыто %s, шар виден %s, ячеек %d, панель видна %s" % [back_cells, menu.is_open(), menu.visible, menu.renderer.drawn, menu.panel.visible])
+
+
+## Замок панели: помеха контроллера (указатель мимо панели) между нажатием и перетаскиванием
+## проверки. Без замка ползунок обязан НЕ доехать — контроль, что помеха воспроизведена; с
+## замком — доехать. Без контроля зелёный «с замком» ничего бы не доказывал (§1.5).
+func _panel_lock() -> void:
+	var p: Panel3D = menu.panel
+	var got := []
+	for lock in [false, true]:
+		menu.settings.values["radius_cm"] = 11.0
+		p.open_editor(SettingEdit.new(menu.settings, "radius_cm"), "замок", ["done"])
+		p.synthetic_lock = lock
+		var rect: Rect2 = p._slider.get_global_rect()
+		var a: Variant = _aim(rect.position + Vector2(rect.size.x * 0.2, rect.size.y * 0.5))
+		var b: Variant = _aim(rect.position + Vector2(rect.size.x * 0.8, rect.size.y * 0.5))
+		p.pointer_update(a, false, "check")
+		p.pointer_update(a, true, "check")
+		p.pointer_update(null, false)          # кадр контроллера: луч мимо панели
+		p.pointer_update(b, true, "check")
+		p.pointer_update(b, false, "check")
+		p.pointer_update(null, false, "check")
+		p.synthetic_lock = false
+		got.append(float(menu.settings.get_value("radius_cm")))
+		p.close_editor()
+	if got[0] < 15.0 and got[1] > 15.0:
+		r.pass_("замок панели: без замка помеха контроллера сорвала перетаскивание (%s см), с замком — доехал (%s см)" % got)
+	else:
+		r.fail("замок панели: без замка %s см (помеха не воспроизведена, если > 15), с замком %s см" % got)
+
+
+func _to_root_open() -> void:
+	if not menu.is_open():
+		menu.toggle()
+	var guard := 0
+	while (menu.nav.state.folder() != "" or menu.nav.view != "browse") and guard < 8:
+		menu.back()
+		guard += 1
+	if not menu.is_open():
+		menu.toggle()
+
+
+## Поиск: короткое на «Поиск» открывает ввод на панели; «М», «О», «С», «Т» лучом —
+## на шаре найденное; «Готово» закрывает поиск и ввод.
+## Открытие — кадром раньше набора: клавиатура была скрыта, контейнер раскладывает кнопки
+## отложенно, и в кадре открытия их прямоугольники ещё нулевые (первая версия шага
+## попадала лучом «в панель», но не в кнопки).
+func _search_open() -> void:
+	_to_root_open()
+	_tap(_key_of(_slot_of("home_search")))
+
+
+func _search() -> void:
+	var p: Panel3D = menu.panel
+	var opened: bool = p.is_text_open() and menu.nav.view == "search"
+	var hits := []
+	for k in ["М", "О", "С", "Т"]:
+		var btn: Button = null
+		for c in p._text_box.get_children():
+			if (c as Button).text == k:
+				btn = c
+		var px: Variant = _aim(_center_px(btn))
+		p.pointer_update(px, false)
+		p.pointer_update(px, true)
+		p.pointer_update(px, false)
+		hits.append(px != null)
+	p.pointer_update(null, false)
+	var found: Array = menu.nav.items().slice(1).map(func(x): return x.id)
+	menu.back()
+	if opened and not hits.has(false) and found.size() >= 2 and found[0] == "asset_bridge" and not p.is_text_open() and menu.nav.view == "browse":
+		r.pass_("поиск на панели: ввод открыт, «мост» лучом → %s, «Назад» закрыл поиск и ввод" % [found])
+	else:
+		r.fail("поиск на панели: открыт %s, попадания %s, найдено %s, ввод открыт %s, вид %s" % [opened, hits, found, p.is_text_open(), menu.nav.view])
+
+
+## «+» → Сцены → Лес: объект на корне перед «+».
+func _plus() -> void:
+	_to_root_open()
+	_tap(_key_of(_slot_of("home_plus")))
+	_tap(_key_of(_slot_of("scenes")))
+	_tap(_key_of(_slot_of("scene_forest")))
+	var home: Array = menu.nav.items().map(func(x): return x.id)
+	if menu.nav.state.folder() == "" and home.find("scene_forest") == home.find("home_plus") - 1 and menu.renderer.drawn > 0:
+		r.pass_("плюс: «+» → Сцены → Лес — на корне перед «+», шар перерисован")
+	else:
+		r.fail("плюс: папка «%s», корень %s" % [menu.nav.state.folder(), home])
+
+
+## Каждая раскладка: применить, открыть, нарисовать — без ошибок, ячейки есть, «Назад» на корне нет.
+func _layouts() -> void:
+	_to_root_open()
+	var out := []
+	var ok := true
+	for o in SettingsRes.SPEC["surface"]["options"]:
+		menu.settings.values["surface"] = o[0]
+		menu.settings.values["cell_cm"] = 4.0
+		menu.apply_settings()
+		menu.close()
+		menu.toggle()
+		menu._process(1.0 / 90.0)
+		var cells: int = menu.renderer.drawn
+		out.append("%s %d" % [o[0], cells])
+		if cells <= 0:
+			ok = false
+	menu.settings.values["surface"] = "globe"
+	menu.apply_settings()
+	if ok:
+		r.pass_("раскладки: %s" % ", ".join(out))
+	else:
+		r.fail("раскладки: %s" % ", ".join(out))
+
+
+## «Выход»: короткое не выходит, удержание до конца кольца — сигнал выхода.
+func _exit_hold() -> void:
+	_to_root_open()
+	var key: Variant = _key_of(_slot_of("home_exit"))
+	_tap(key)
+	var after_short := _exit_asked
+	_hold(key, 800)
+	if not after_short and _exit_asked:
+		r.pass_("выход удержанием: короткое не выходит, удержание — запрос выхода")
+	else:
+		r.fail("выход удержанием: после короткого %s, после удержания %s" % [after_short, _exit_asked])
 
 
 func _finish() -> void:

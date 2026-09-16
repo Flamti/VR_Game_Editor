@@ -9,6 +9,10 @@ extends "res://menu/source.gd"
 ## res://content/images, для проверки предпросмотра.
 ##
 ## Имена различимы на слух — задание сессии «найдите пункт» задаётся словом.
+##
+## Шаг 1г (решение владельца после сессии 2): корень — основа меню, файловый менеджер —
+## пункт «Файлы». Корень: Файлы, Настройки, Поиск, Запуск теста, избранное, «+», Выход.
+## Избранное — ссылки на объекты, хранится здесь же, чтобы снимок отмены возвращал и его.
 
 const Item := preload("res://menu/item.gd")
 const Settings := preload("res://menu/settings.gd")
@@ -21,16 +25,42 @@ var items: Dictionary = {}
 var children_of: Dictionary = {}
 ## id → папка
 var parent_of: Dictionary = {}
+## id избранных объектов в порядке добавления (показываются на корне)
+var favorites: Array = []
+## Порядок корня: разделы до избранного и после него.
+const HOME_HEAD := ["files", "settings", "home_search", "set_tasks"]
+const HOME_TAIL := ["home_plus", "home_exit"]
+const FAVORITES_PATH := "user://favorites.cfg"
 var _next_id := 0
+## Фальсификатор настольных проверок «favorite»: удаление не чистит избранное.
+var prune_favorites_disabled := false
 
 
 func _init() -> void:
 	children_of[ROOT] = []
-	_folder(ROOT, "scenes", "Сцены")
-	_folder(ROOT, "assets", "Ассеты")
-	_folder(ROOT, "images", "Изображения", "Изображ.")
-	_folder(ROOT, "logic", "Логика")
+	_folder(ROOT, "files", "Файлы")
 	_folder(ROOT, "settings", "Настройки", "Настр.")
+	var search: Item = Item.make("home_search", "Поиск", K.ACTION, P.STAY)
+	search.action = "search"
+	search.icon = "search"
+	_add(ROOT, search)
+	# «Запуск теста»: пока — режим заданий, позже — запуск проекта (решение владельца)
+	var tasks: Item = Item.make("set_tasks", "Запуск теста", K.TOGGLE, P.STAY, "Тест")
+	tasks.icon = "play"
+	_add(ROOT, tasks)
+	var plus: Item = Item.make("home_plus", "Добавить в меню", K.ACTION, P.STAY, "+")
+	plus.action = "pick"
+	plus.icon = "plus"
+	_add(ROOT, plus)
+	var quit: Item = Item.make("home_exit", "Выход", K.ACTION, P.CLOSE)
+	quit.action = "exit"
+	quit.icon = "exit"
+	quit.danger = true
+	_add(ROOT, quit)
+	_folder("files", "scenes", "Сцены")
+	_folder("files", "assets", "Ассеты")
+	_folder("files", "images", "Изображения", "Изображ.")
+	_folder("files", "logic", "Логика")
 
 	var scenes := [["scene_forest", "Лес", 18400, "2026-09-02"], ["scene_castle", "Замок", 42100, "2026-09-11"],
 			["scene_cave", "Пещера", 9800, "2026-08-21"], ["scene_harbor", "Гавань", 27300, "2026-09-14"],
@@ -68,8 +98,6 @@ func _init() -> void:
 	wiz.action = "wizard"
 	wiz.icon = "wizard"
 	_add("settings_sphere", wiz)
-	var tasks: Item = Item.make("set_tasks", "Режим заданий", K.TOGGLE, P.STAY, "Задания")
-	_add("settings_sphere", tasks)
 	for o in [["set_sound", "Звук", K.OPTION], ["set_language", "Язык", K.OPTION], ["set_vignette", "Виньетка", K.TOGGLE]]:
 		var so: Item = Item.make(o[0], o[1], o[2], P.STAY)
 		so.type_label = "настройка"
@@ -118,6 +146,68 @@ func children(folder_id: String, offset: int, limit: int) -> Array:
 	for i in range(offset, mini(offset + limit, src.size())):
 		out.append(items[src[i]])
 	return out
+
+
+## Корень в фиксированном порядке: разделы, избранное, «+», «Выход». Не сортируется —
+## место пункта на шаре запоминается рукой.
+func home_view() -> Array:
+	var out: Array = []
+	for id in HOME_HEAD:
+		out.append(items[id])
+	for id in favorites:
+		if items.has(id):
+			out.append(items[id])
+	for id in HOME_TAIL:
+		out.append(items[id])
+	return out
+
+
+## Служебные пункты корня — не объекты: их нельзя копировать, удалять и добавлять в избранное.
+func is_home_entry(id: String) -> bool:
+	return id in HOME_HEAD or id in HOME_TAIL
+
+
+func is_favorite(id: String) -> bool:
+	return favorites.has(id)
+
+
+func set_favorite(id: String, on: bool) -> void:
+	if on and not favorites.has(id) and items.has(id) and not is_home_entry(id):
+		favorites.append(id)
+	elif not on:
+		favorites.erase(id)
+
+
+func save_favorites(path: String = FAVORITES_PATH) -> Error:
+	var cf := ConfigFile.new()
+	cf.set_value("menu", "favorites", favorites)
+	return cf.save(path)
+
+
+## Загрузка избранного; исчезнувшие объекты отбрасываются.
+func load_favorites(path: String = FAVORITES_PATH) -> void:
+	var cf := ConfigFile.new()
+	if cf.load(path) != OK:
+		return
+	favorites = []
+	for id in cf.get_value("menu", "favorites", []):
+		if items.has(str(id)) and not is_home_entry(str(id)):
+			favorites.append(str(id))
+
+
+## Поиск по названию: подстрока без регистра, служебные пункты корня не ищутся.
+func search(query: String, limit: int = 60) -> Array:
+	var q := query.strip_edges().to_lower()
+	if q == "":
+		return []
+	var out: Array = []
+	for id in items:
+		var it: Item = items[id]
+		if is_home_entry(id) or not it.title.to_lower().contains(q):
+			continue
+		out.append(it)
+	out.sort_custom(func(a, b): return [not a.title.to_lower().begins_with(q), a.title.to_lower()] < [not b.title.to_lower().begins_with(q), b.title.to_lower()])
+	return out.slice(0, limit)
 
 
 func folder_title(folder_id: String) -> String:
@@ -178,7 +268,8 @@ func snapshot() -> Dictionary:
 	var its := {}
 	for id in items:
 		its[id] = items[id].duplicate_item(id)
-	return {"items": its, "children": children_of.duplicate(true), "parents": parent_of.duplicate(), "next": _next_id}
+	return {"items": its, "children": children_of.duplicate(true), "parents": parent_of.duplicate(), "next": _next_id,
+			"favorites": favorites.duplicate()}
 
 
 func restore(s: Dictionary) -> void:
@@ -188,6 +279,7 @@ func restore(s: Dictionary) -> void:
 	children_of = (s["children"] as Dictionary).duplicate(true)
 	parent_of = (s["parents"] as Dictionary).duplicate()
 	_next_id = s["next"]
+	favorites = (s.get("favorites", []) as Array).duplicate()
 
 
 ## Отпечаток состояния — проверка «отмена вернула каталог полностью».
@@ -202,6 +294,7 @@ func fingerprint() -> String:
 	folders.sort()
 	for f in folders:
 		parts.append("%s>%s" % [f, ",".join(children_of[f])])
+	parts.append("fav>%s" % ",".join(favorites))
 	return "\n".join(parts)
 
 
@@ -253,6 +346,9 @@ func remove(id: String) -> void:
 	(children_of[parent_of[id]] as Array).erase(id)
 	parent_of.erase(id)
 	items.erase(id)
+	# удалённый объект уходит из избранного; отмена вернёт его вместе со снимком
+	if not prune_favorites_disabled:
+		favorites.erase(id)
 
 
 func new_folder(target: String) -> String:

@@ -2,8 +2,8 @@ extends Node3D
 
 ## Рендер ячеек (слой 7, docs/design/sphere-menu.md §7).
 ##
-## Два MultiMeshInstance3D — шестиугольники и пятиугольники (у линзы только
-## первые), два вызова отрисовки на всё меню. Меш и материал — ресурсы,
+## MultiMeshInstance3D на каждое число сторон — 6, 5, 4, 7 (шаг 1г: октаэдр даёт квадраты,
+## кольца и спираль — семиугольники); пустые не рисуются, у глобуса два вызова отрисовки. Меш и материал — ресурсы,
 ## прогретые при загрузке и в XR-формате (ADR-0003 п. 9).
 ##
 ## Базис ячейки: Y — нормаль шара, Z — касательная ось, повёрнутая на spin
@@ -18,6 +18,8 @@ extends Node3D
 
 const HEX := preload("res://menu/hex_mesh.tres")
 const PENT := preload("res://menu/pent_mesh.tres")
+const QUAD := preload("res://menu/quad_mesh.tres")
+const HEPT := preload("res://menu/hept_mesh.tres")
 const Surface := preload("res://menu/surface.gd")
 const Atlas := preload("res://menu/label_atlas.gd")
 
@@ -29,8 +31,8 @@ const CODE_EMPTY := 9
 const CODE_DANGER := 10
 const MAX_CELLS := 700
 
-var _hex: MultiMeshInstance3D
-var _pent: MultiMeshInstance3D
+## число сторон → MultiMeshInstance3D
+var _by_sides: Dictionary = {}
 var drawn := 0
 ## Сколько раз ячейки пересчитывались полностью — для самопроверки.
 var redraws := 0
@@ -44,10 +46,10 @@ var _progress := 0.0
 
 
 func setup(atlas: Texture2D) -> void:
-	_hex = _make(HEX, MAX_CELLS)
-	_pent = _make(PENT, 12)
-	(HEX.material as ShaderMaterial).set_shader_parameter("atlas", atlas)
-	(PENT.material as ShaderMaterial).set_shader_parameter("atlas", atlas)
+	# у спирали и колец дефектов больше двенадцати — ёмкость на все ячейки у каждого вида
+	for pair in [[6, HEX], [5, PENT], [4, QUAD], [7, HEPT]]:
+		_by_sides[pair[0]] = _make(pair[1], MAX_CELLS)
+		((pair[1] as PrimitiveMesh).material as ShaderMaterial).set_shader_parameter("atlas", atlas)
 
 
 func _make(mesh: Mesh, count: int) -> MultiMeshInstance3D:
@@ -78,10 +80,9 @@ func draw(cells: Array, radius: float, cell_radius: float, codes: PackedInt32Arr
 	_sig_hash = sig.hash()
 	redraws += 1
 	_where.clear()
-	var hi := 0
-	var pi := 0
-	var hmm := _hex.multimesh
-	var pmm := _pent.multimesh
+	var used := {}
+	for k in _by_sides:
+		used[k] = 0
 	for c in cells:
 		var n: Vector3 = c["dir"]
 		var s: float = cell_radius * float(c["scale"]) * GAP
@@ -106,26 +107,21 @@ func draw(cells: Array, radius: float, cell_radius: float, codes: PackedInt32Arr
 			code = CODE_BACK
 		var base := Color(cell, mark, float(code) / 20.0, 0.0)
 
-		var mm: MultiMesh
-		var idx: int
-		if int(c["sides"]) == 5:
-			if pi >= pmm.instance_count:
-				continue
-			mm = pmm
-			idx = pi
-			pi += 1
-		else:
-			if hi >= hmm.instance_count:
-				continue
-			mm = hmm
-			idx = hi
-			hi += 1
+		var sides: int = int(c["sides"])
+		if not _by_sides.has(sides):
+			sides = clampi(sides, 4, 7)
+		var mm: MultiMesh = (_by_sides[sides] as MultiMeshInstance3D).multimesh
+		var idx: int = used[sides]
+		if idx >= mm.instance_count:
+			continue
+		used[sides] = idx + 1
 		mm.set_instance_transform(idx, xf)
 		_where[c["key"]] = [mm, idx, base]
 		mm.set_instance_custom_data(idx, _with_state(c["key"], base))
-	hmm.visible_instance_count = hi
-	pmm.visible_instance_count = pi
-	drawn = hi + pi
+	drawn = 0
+	for k in _by_sides:
+		(_by_sides[k] as MultiMeshInstance3D).multimesh.visible_instance_count = used[k]
+		drawn += int(used[k])
 
 
 func _with_state(key: Variant, base: Color) -> Color:
@@ -168,6 +164,6 @@ func set_state(active_key: Variant, hover_key: Variant, progress_key: Variant, p
 func clear() -> void:
 	_sig_hash = 0
 	_where.clear()
-	_hex.multimesh.visible_instance_count = 0
-	_pent.multimesh.visible_instance_count = 0
+	for k in _by_sides:
+		(_by_sides[k] as MultiMeshInstance3D).multimesh.visible_instance_count = 0
 	drawn = 0

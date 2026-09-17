@@ -58,9 +58,12 @@ const SPEC := {
 	"hysteresis": {"title": "Липкость активной", "kind": "number", "default": 0.15, "min": 0.0, "max": 0.5,
 		"round": 0.01, "unit": "", "marks": [[0.05, "слабая"], [0.2, "средняя"], [0.4, "сильная"]],
 		"hint": "Насколько надо довернуть за границу ячейки, чтобы активной стала соседняя: у границы активная не мигает."},
-	"shake": {"title": "Встряхивание", "kind": "choice", "default": "normal",
-		"options": [["off", "выкл"], ["low", "низкая"], ["normal", "средняя"], ["high", "высокая"]],
-		"hint": "Встряхнуть шар — вернуться на верхний уровень меню, не закрывая его. Чем выше чувствительность, тем слабее достаточно тряхнуть."},
+	"return_gesture": {"title": "Жест возврата", "kind": "choice", "default": "both",
+		"options": [["off", "выкл"], ["shake", "встряхивание"], ["swipe", "взмах влево"], ["both", "оба"]],
+		"hint": "Как вернуться на верхний уровень, не закрывая шар: тряхнуть им туда-обратно или резко махнуть рукой влево."},
+	"gesture_cm": {"title": "Размах жеста", "kind": "number", "default": 6.0, "min": 3.0, "max": 15.0,
+		"round": 0.5, "unit": "см", "marks": [[4.0, "короткий"], [6.0, "средний"], [12.0, "широкий"]],
+		"hint": "Насколько размашисто делать жест. Взмах влево требует втрое большего хода, чем встряхивание."},
 	"hand_smoothing": {"title": "Сглаживание руки", "kind": "number", "default": 0.5, "min": 0.0, "max": 1.0,
 		"round": 0.05, "unit": "", "marks": [[0.0, "нет"], [0.5, "среднее"], [1.0, "сильное"]],
 		"hint": "Гасит дрожь и рывки кисти. 0 — шар повторяет руку в точности."},
@@ -71,7 +74,7 @@ const MAIN := ["surface", "hand_rotation", "radius_cm", "cell_cm", "stick_speed"
 		"hold_ms", "panel_side", "haptics"]
 ## «Дополнительно» — в настройках, не в мастере: владелец не понял, что они делают;
 ## у каждой — демонстрация.
-const ADVANCED := ["grab_friction", "hysteresis", "shake", "hand_smoothing"]
+const ADVANCED := ["grab_friction", "hysteresis", "return_gesture", "gesture_cm", "hand_smoothing"]
 const ORDER := MAIN + ADVANCED
 ## Поверхность → семейство сетки (menu/goldberg.gd). Линзы нет: у неё своя решётка.
 const FAMILY := {"globe": "icosa", "globe_hex": "icosa", "octa": "octa", "rings": "rings", "fib": "fib"}

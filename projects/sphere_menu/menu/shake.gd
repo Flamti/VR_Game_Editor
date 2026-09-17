@@ -14,24 +14,30 @@ extends RefCounted
 ## каждого отрезка свои пороги пиковой скорости и пройденного пути — медленное
 ## перекладывание руки и дрожь не считаются. После срабатывания — пауза.
 ##
-## Числа — пороги для выбора человеком (настройка «Встряхивание»), не измерения.
+## Числа — пороги для выбора человеком (настройка «Размах жеста»), не измерения.
 
-## Чувствительность → {разворотов, окно (с), пиковая скорость (м/с), путь отрезка (м)}.
-const LEVELS := {
-	"high": {"turns": 3, "window": 0.7, "speed": 0.35, "travel": 0.05},
-	"normal": {"turns": 3, "window": 0.6, "speed": 0.60, "travel": 0.08},
-	"low": {"turns": 4, "window": 0.8, "speed": 0.90, "travel": 0.11},
-}
+## Сколько разворотов скорости подряд считается встряхиванием. Два — это «туда-обратно
+## один раз»: три были слишком долгими (отзыв сессии 5).
+const TURNS := 2
+## Окно, в котором эти развороты должны уложиться, с.
+const WINDOW := 0.6
+## Из размаха выводится порог скорости: v = 2π·f·A при f = 1.5 Гц. Одна ручка вместо
+## таблицы уровней — иначе размах и скорость разъезжаются, и «слабее» перестаёт
+## означать «слабее». Число f — выбор, не измерение.
+const MIN_HZ := 1.5
 ## Пауза после срабатывания, с: одно встряхивание — один возврат.
 const COOLDOWN := 0.7
-## Постоянная сглаживания скорости, с: трекинг даёт выбросы на один кадр.
-const TAU := 0.03
+## Постоянная сглаживания скорости, с: трекинг даёт выбросы на один кадр. Имя не TAU:
+## так называется глобальная 2π, и локальная константа её затеняла — порог скорости
+## выходил в двести раз меньше нужного.
+const SMOOTH_TAU := 0.03
 ## Доля пороговой скорости, ниже которой смена знака не считается разворотом:
 ## у нуля скорости знак мигает от шума.
 const SIGN_GATE := 0.25
 
-## «off» — жест выключен.
-var level := "normal"
+## Размах — путь на отрезке между разворотами, м (настройка «Размах жеста»).
+var travel := 0.06
+var enabled := true
 ## Фальсификатор «shake»: отрезок засчитывается без порога пути — контроль (спокойный
 ## перенос руки, поворот корпуса) начинает срабатывать.
 var falsify_no_travel := false
@@ -49,8 +55,9 @@ var _leg_sign := 0
 var _turns: Array[float] = []
 
 
-func enabled() -> bool:
-	return LEVELS.has(level)
+## Порог пиковой скорости отрезка, м/с — выводится из размаха.
+func min_speed() -> float:
+	return TAU * MIN_HZ * travel    # TAU здесь — глобальная 2π
 
 
 func reset() -> void:
@@ -64,7 +71,7 @@ func reset() -> void:
 
 ## Кадр. hand и head — в мире; true — жест распознан.
 func feed(hand: Vector3, head: Vector3, dt: float) -> bool:
-	if not enabled() or dt <= 0.0:
+	if not enabled or dt <= 0.0:
 		return false
 	_t += dt
 	var pos := hand - head
@@ -75,10 +82,9 @@ func feed(hand: Vector3, head: Vector3, dt: float) -> bool:
 		return false
 	var inst := (pos - _prev) / dt
 	_prev = pos
-	_v = _v.lerp(inst, clampf(dt / (dt + TAU), 0.0, 1.0))
-	var spec: Dictionary = LEVELS[level]
-	var v_min := float(spec["speed"])
-	var window := float(spec["window"])
+	_v = _v.lerp(inst, clampf(dt / (dt + SMOOTH_TAU), 0.0, 1.0))
+	var v_min := min_speed()
+	var window := WINDOW
 	# Пауза после срабатывания: продолжение того же встряхивания не должно уводить
 	# ещё на уровень выше (уходить уже некуда) и мигать сообщением.
 	if _t - _fire_t < COOLDOWN:
@@ -101,10 +107,10 @@ func feed(hand: Vector3, head: Vector3, dt: float) -> bool:
 		if not _turns.is_empty() and _t - _turns[_turns.size() - 1] > window:
 			_turns.clear()
 		return false
-	var travel := (pos - _leg_start).length()
-	var counted := _leg_sign != 0 and _leg_peak >= v_min and (falsify_no_travel or travel >= float(spec["travel"]))
+	var leg_travel := (pos - _leg_start).length()
+	var counted := _leg_sign != 0 and _leg_peak >= v_min and (falsify_no_travel or leg_travel >= travel)
 	# ось уточняется по пройденному отрезку: тряхнули не строго вдоль первой оценки
-	if counted and travel > 1e-4:
+	if counted and leg_travel > 1e-4:
 		_axis = ((pos - _leg_start).normalized() * float(_leg_sign) + _axis * 2.0).normalized()
 	_leg_sign = sign_now
 	_leg_start = pos
@@ -115,7 +121,7 @@ func feed(hand: Vector3, head: Vector3, dt: float) -> bool:
 	_turns.append(_t)
 	while not _turns.is_empty() and _t - _turns[0] > window:
 		_turns.remove_at(0)
-	if _turns.size() < int(spec["turns"]) or _t - _fire_t < COOLDOWN:
+	if _turns.size() < TURNS or _t - _fire_t < COOLDOWN:
 		return false
 	_fire_t = _t
 	reset()

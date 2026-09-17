@@ -1,0 +1,66 @@
+# сессия 2026-09-17T07:08:27
+1789610907.664	folder	globe	20.0	1.5	3.52	13	ball					{ "folder": "", "view": "browse", "items": 6 }
+1789610907.664	toggle	globe	20.0	1.5	3.52	13	ball					{ "open": true }
+1789610939.480	настройка_значение	fib	8.0	1.5	1.49	26	ball					radius_cm=8.0
+1789610939.501	настройка_значение	fib	17.5	1.5	3.04	27	ball					radius_cm=17.5
+1789610944.408	toggle	globe	20.0	1.5	3.52	13	ball					{ "open": false }
+1789610944.408	самопроверка	globe	20.0	1.5	3.52	13	ball			FAIL		{ "глобус уровень 13, 632 ячеек, вращение": { "gpu95": 2.70099997520447, "cpu95": 0.1870000064373, "proc95": 2.409, "over": 0 }, "глобус крупный: уровень 1, 32 ячеек, радиус 20.0 см, вращение": { "gpu95": 1.94000005722046, "cpu95": 0.19900000095367, "proc95": 2.27, "over": 0 }, "линза α=0.037, 700 ячеек, вращение": { "gpu95": 2.67300009727478, "cpu95": 0.41100001335144, "proc95": 66.039, "over": 0 } }
+1789610946.764	folder	globe	13.0	4.2	4.14	6	ball					{ "folder": "", "view": "browse", "items": 6 }
+1789610946.765	toggle	globe	13.0	4.2	4.14	6	ball					{ "open": true }
+1789610950.042	folder	globe	13.0	4.2	4.14	6	ball	files				{ "folder": "files", "view": "browse", "items": 4 }
+1789610950.042	intent	globe	13.0	4.2	4.14	6	ball	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789610951.153	folder	globe	13.0	4.2	4.14	6	ball					{ "folder": "", "view": "browse", "items": 6 }
+1789610951.153	intent	globe	13.0	4.2	4.14	6	ball					{ "do": "reload", "view": "browse", "folder": "" }
+1789610952.077	folder	globe	13.0	4.2	4.14	6	ball	settings				{ "folder": "settings", "view": "browse", "items": 4 }
+1789610952.078	intent	globe	13.0	4.2	4.14	6	ball	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789610953.421	folder	globe	13.0	4.2	4.14	6	ball	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11 }
+1789610953.421	intent	globe	13.0	4.2	4.14	6	ball	settings_sphere				{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789610972.262	настройка_открыта	globe	13.0	4.2	4.14	6	ball	settings_sphere				surface
+1789610972.263	intent	globe	13.0	4.2	4.14	6	ball	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "surface" }
+1789610974.188	panel_scroll	globe	13.0	4.2	4.14	6	ball	settings_sphere				{ "how": "stick", "mode": "edit" }
+1789610977.843	panel_scroll	globe	13.0	4.2	4.14	6	ball	settings_sphere				{ "how": "stick", "mode": "edit" }
+1789610978.460	folder	globe	13.0	4.2	4.14	6	ball	settings_sphere				{ "folder": "settings_sphere", "view": "actions", "items": 8 }
+1789610978.460	intent	globe	13.0	4.2	4.14	6	ball	settings_sphere				{ "do": "reload", "view": "actions", "folder": "settings_sphere" }
+1789610980.144	panel_scroll	globe	13.0	4.2	4.14	6	ball	settings_sphere				{ "how": "stick", "mode": "edit" }
+1789610983.044	panel_scroll	globe	13.0	4.2	4.14	6	ball	settings_sphere				{ "how": "button", "mode": "edit" }
+1789610984.067	panel_scroll	globe	13.0	4.2	4.14	6	ball	settings_sphere				{ "how": "button", "mode": "edit" }
+1789610989.835	настройка_значение	lens	13.0	4.2	4.2	6	ball	settings_sphere				surface=lens
+1789611006.224	panel_scroll	lens	13.0	4.2	4.2	6	ball	settings_sphere				{ "how": "stick", "mode": "edit" }
+1789611007.281	настройка_значение	fib	13.0	4.2	4.18	18	ball	settings_sphere				surface=fib
+1789611010.158	panel_scroll	fib	13.0	4.2	4.18	18	ball	settings_sphere				{ "how": "stick", "mode": "edit" }
+1789611011.360	настройка_значение	rings	13.0	4.2	4.52	10	ball	settings_sphere				surface=rings
+1789611014.948	настройка_значение	globe_hex	13.0	4.2	4.14	6	ball	settings_sphere				surface=globe_hex
+1789611020.337	настройка_значение	globe	13.0	4.2	4.14	6	ball	settings_sphere				surface=globe
+1789611026.314	панель_кнопка	globe	13.0	4.2	4.14	6	ball	settings_sphere				done
+1789611026.319	настройка_сохранена	globe	13.0	4.2	4.14	6	ball	settings_sphere				surface=globe
+1789611030.304	shake	globe	13.0	4.2	4.14	6	ball					{ "how": "swipe", "from": "settings_sphere" }
+1789611030.305	folder	globe	13.0	4.2	4.14	6	ball					{ "folder": "", "view": "browse", "items": 6 }
+1789611030.305	intent	globe	13.0	4.2	4.14	6	ball					{ "do": "reload", "view": "browse", "folder": "" }
+1789611033.116	folder	globe	13.0	4.2	4.14	6	ball	files				{ "folder": "files", "view": "browse", "items": 4 }
+1789611033.116	intent	globe	13.0	4.2	4.14	6	ball	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789611035.106	folder	globe	13.0	4.2	4.14	6	ball	images				{ "folder": "images", "view": "browse", "items": 7 }
+1789611035.106	intent	globe	13.0	4.2	4.14	6	ball	images				{ "do": "reload", "view": "browse", "folder": "images" }
+1789611035.715	shake	globe	13.0	4.2	4.14	6	ball					{ "how": "swipe", "from": "images" }
+1789611035.716	folder	globe	13.0	4.2	4.14	6	ball					{ "folder": "", "view": "browse", "items": 6 }
+1789611035.716	intent	globe	13.0	4.2	4.14	6	ball					{ "do": "reload", "view": "browse", "folder": "" }
+1789611037.371	folder	globe	13.0	4.2	4.14	6	ball	files				{ "folder": "files", "view": "browse", "items": 4 }
+1789611037.371	intent	globe	13.0	4.2	4.14	6	ball	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789611039.006	folder	globe	13.0	4.2	4.14	6	ball	assets				{ "folder": "assets", "view": "browse", "items": 7 }
+1789611039.006	intent	globe	13.0	4.2	4.14	6	ball	assets				{ "do": "reload", "view": "browse", "folder": "assets" }
+1789611040.071	shake	globe	13.0	4.2	4.14	6	ball					{ "how": "shake", "from": "assets" }
+1789611040.072	folder	globe	13.0	4.2	4.14	6	ball					{ "folder": "", "view": "browse", "items": 6 }
+1789611040.072	intent	globe	13.0	4.2	4.14	6	ball					{ "do": "reload", "view": "browse", "folder": "" }
+1789611045.106	folder	globe	13.0	4.2	4.14	6	ball	files				{ "folder": "files", "view": "browse", "items": 4 }
+1789611045.106	intent	globe	13.0	4.2	4.14	6	ball	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789611058.163	folder	globe	13.0	4.2	4.14	6	ball	scenes				{ "folder": "scenes", "view": "browse", "items": 7 }
+1789611058.163	intent	globe	13.0	4.2	4.14	6	ball	scenes				{ "do": "reload", "view": "browse", "folder": "scenes" }
+1789611060.517	select	globe	13.0	4.2	4.14	6	ball	scenes				{ "do": "default", "view": "browse", "folder": "scenes", "item": "scene_harbor", "title": "Гавань" }
+1789611060.517	toggle	globe	13.0	4.2	4.14	6	ball	scenes				{ "open": false }
+1789611066.196	folder	globe	13.0	4.2	4.14	6	ball	scenes				{ "folder": "scenes", "view": "browse", "items": 7 }
+1789611066.197	toggle	globe	13.0	4.2	4.14	6	ball	scenes				{ "open": true }
+1789611070.152	folder	globe	13.0	4.2	4.14	6	ball	files				{ "folder": "files", "view": "browse", "items": 4 }
+1789611070.152	intent	globe	13.0	4.2	4.14	6	ball	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789611072.208	folder	globe	13.0	4.2	4.14	6	ball					{ "folder": "", "view": "browse", "items": 6 }
+1789611072.208	intent	globe	13.0	4.2	4.14	6	ball					{ "do": "reload", "view": "browse", "folder": "" }
+1789611075.641	intent	globe	13.0	4.2	4.14	6	ball					{ "do": "exit", "view": "browse", "folder": "" }
+1789611075.644	выход	globe	13.0	4.2	4.14	6	ball					выгрузка в /storage/emulated/0/Download/VRGE/2026-09-17_07-11-15

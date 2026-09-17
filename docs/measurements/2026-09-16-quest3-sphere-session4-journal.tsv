@@ -1,0 +1,400 @@
+# сессия 2026-09-16T19:16:51
+1789568211.600	folder	globe	20.0	1.5	3.52	13	face					{ "folder": "", "view": "browse", "items": 6 }
+1789568211.600	toggle	globe	20.0	1.5	3.52	13	face					{ "open": true }
+1789568243.461	настройка_значение	fib	8.0	1.5	1.49	26	face					radius_cm=8.0
+1789568243.481	настройка_значение	fib	17.5	1.5	3.04	27	face					radius_cm=17.5
+1789568248.352	toggle	globe	20.0	1.5	3.52	13	face					{ "open": false }
+1789568248.352	самопроверка	globe	20.0	1.5	3.52	13	face			FAIL		{ "глобус уровень 13, 632 ячеек, вращение": { "gpu95": 2.70600008964539, "cpu95": 0.17499999701977, "proc95": 1.975, "over": 0 }, "глобус крупный: уровень 1, 32 ячеек, радиус 20.0 см, вращение": { "gpu95": 1.9099999666214, "cpu95": 0.17000000178814, "proc95": 3.015, "over": 0 }, "линза α=0.037, 700 ячеек, вращение": { "gpu95": 2.78999996185303, "cpu95": 0.20800000429153, "proc95": 67.391, "over": 0 } }
+1789568252.641	folder	lens	12.0	5.6	5.6	3	face					{ "folder": "", "view": "browse", "items": 6 }
+1789568252.641	toggle	lens	12.0	5.6	5.6	3	face					{ "open": true }
+1789568254.342	folder	lens	12.0	5.6	5.6	3	face	files				{ "folder": "files", "view": "browse", "items": 4 }
+1789568254.342	intent	lens	12.0	5.6	5.6	3	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789568255.465	folder	lens	12.0	5.6	5.6	3	face	assets				{ "folder": "assets", "view": "browse", "items": 7 }
+1789568255.465	intent	lens	12.0	5.6	5.6	3	face	assets				{ "do": "reload", "view": "browse", "folder": "assets" }
+1789568271.176	shake	lens	12.0	5.6	5.6	3	face					{ "folder": "" }
+1789568271.176	folder	lens	12.0	5.6	5.6	3	face					{ "folder": "", "view": "browse", "items": 6 }
+1789568271.177	intent	lens	12.0	5.6	5.6	3	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789568277.865	folder	lens	12.0	5.6	5.6	3	face	files				{ "folder": "files", "view": "browse", "items": 4 }
+1789568277.866	intent	lens	12.0	5.6	5.6	3	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789568278.755	folder	lens	12.0	5.6	5.6	3	face	assets				{ "folder": "assets", "view": "browse", "items": 7 }
+1789568278.755	intent	lens	12.0	5.6	5.6	3	face	assets				{ "do": "reload", "view": "browse", "folder": "assets" }
+1789568279.855	shake	lens	12.0	5.6	5.6	3	face					{ "folder": "" }
+1789568279.855	folder	lens	12.0	5.6	5.6	3	face					{ "folder": "", "view": "browse", "items": 6 }
+1789568279.855	intent	lens	12.0	5.6	5.6	3	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789568281.722	folder	lens	12.0	5.6	5.6	3	face	files				{ "folder": "files", "view": "browse", "items": 4 }
+1789568281.722	intent	lens	12.0	5.6	5.6	3	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789568282.367	folder	lens	12.0	5.6	5.6	3	face	assets				{ "folder": "assets", "view": "browse", "items": 7 }
+1789568282.367	intent	lens	12.0	5.6	5.6	3	face	assets				{ "do": "reload", "view": "browse", "folder": "assets" }
+1789568288.066	shake	lens	12.0	5.6	5.6	3	face					{ "folder": "" }
+1789568288.067	folder	lens	12.0	5.6	5.6	3	face					{ "folder": "", "view": "browse", "items": 6 }
+1789568288.067	intent	lens	12.0	5.6	5.6	3	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789568297.202	folder	lens	12.0	5.6	5.6	3	face	settings				{ "folder": "settings", "view": "browse", "items": 4 }
+1789568297.202	intent	lens	12.0	5.6	5.6	3	face	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789568299.357	folder	lens	12.0	5.6	5.6	3	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11 }
+1789568299.357	intent	lens	12.0	5.6	5.6	3	face	settings_sphere				{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789568313.375	настройка_открыта	lens	12.0	5.6	5.6	3	face	settings_sphere				surface
+1789568313.375	intent	lens	12.0	5.6	5.6	3	face	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "surface" }
+1789568324.292	настройка_значение	globe	12.0	5.6	5.67	3	face	settings_sphere				surface=globe
+1789568328.814	настройка_значение	globe_hex	12.0	5.6	5.67	3	face	settings_sphere				surface=globe_hex
+1789568331.693	настройка_значение	octa	12.0	5.6	5.21	8	face	settings_sphere				surface=octa
+1789568334.960	настройка_значение	rings	12.0	5.6	5.69	7	face	settings_sphere				surface=rings
+1789568343.194	настройка_значение	fib	12.0	5.6	5.47	13	face	settings_sphere				surface=fib
+1789568348.093	настройка_значение	lens	12.0	5.6	5.6	3	face	settings_sphere				surface=lens
+1789568352.816	панель_кнопка	lens	12.0	5.6	5.6	3	face	settings_sphere				done
+1789568352.819	настройка_сохранена	lens	12.0	5.6	5.6	3	face	settings_sphere				surface=lens
+1789568355.308	настройка_открыта	lens	12.0	5.6	5.6	3	face	settings_sphere				radius_cm
+1789568355.308	intent	lens	12.0	5.6	5.6	3	face	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "radius_cm" }
+1789568358.437	панель_кнопка	lens	12.0	5.6	5.6	3	face	settings_sphere				done
+1789568358.440	настройка_сохранена	lens	12.0	5.6	5.6	3	face	settings_sphere				radius_cm=12.0
+1789568360.186	настройка_открыта	lens	12.0	5.6	5.6	3	face	settings_sphere				radius_cm
+1789568360.186	intent	lens	12.0	5.6	5.6	3	face	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "radius_cm" }
+1789568361.516	настройка_значение	lens	12.5	5.6	5.6	3	face	settings_sphere				radius_cm=12.5
+1789568361.561	настройка_значение	lens	13.0	5.6	5.6	4	face	settings_sphere				radius_cm=13.0
+1789568361.574	настройка_значение	lens	13.5	5.6	5.6	4	face	settings_sphere				radius_cm=13.5
+1789568361.584	настройка_значение	lens	14.0	5.6	5.6	4	face	settings_sphere				radius_cm=14.0
+1789568361.602	настройка_значение	lens	14.5	5.6	5.6	4	face	settings_sphere				radius_cm=14.5
+1789568361.615	настройка_значение	lens	15.0	5.6	5.6	5	face	settings_sphere				radius_cm=15.0
+1789568361.649	настройка_значение	lens	15.5	5.6	5.6	5	face	settings_sphere				radius_cm=15.5
+1789568361.705	настройка_значение	lens	16.0	5.6	5.6	5	face	settings_sphere				radius_cm=16.0
+1789568361.728	настройка_значение	lens	16.5	5.6	5.6	5	face	settings_sphere				radius_cm=16.5
+1789568361.749	настройка_значение	lens	17.0	5.6	5.6	6	face	settings_sphere				radius_cm=17.0
+1789568361.816	настройка_значение	lens	17.5	5.6	5.6	6	face	settings_sphere				radius_cm=17.5
+1789568361.849	настройка_значение	lens	18.0	5.6	5.6	6	face	settings_sphere				radius_cm=18.0
+1789568361.949	настройка_значение	lens	18.5	5.6	5.6	6	face	settings_sphere				radius_cm=18.5
+1789568362.016	настройка_значение	lens	19.0	5.6	5.6	7	face	settings_sphere				radius_cm=19.0
+1789568362.382	настройка_значение	lens	19.5	5.6	5.6	7	face	settings_sphere				radius_cm=19.5
+1789568362.394	настройка_значение	lens	19.0	5.6	5.6	7	face	settings_sphere				radius_cm=19.0
+1789568362.405	настройка_значение	lens	19.5	5.6	5.6	7	face	settings_sphere				radius_cm=19.5
+1789568363.782	панель_кнопка	lens	19.5	5.6	5.6	7	face	settings_sphere				done
+1789568363.783	настройка_сохранена	lens	19.5	5.6	5.6	7	face	settings_sphere				radius_cm=19.5
+1789568368.461	shake	lens	19.5	5.6	5.6	7	face					{ "folder": "" }
+1789568368.462	folder	lens	19.5	5.6	5.6	7	face					{ "folder": "", "view": "browse", "items": 6 }
+1789568368.462	intent	lens	19.5	5.6	5.6	7	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789568371.429	folder	lens	19.5	5.6	5.6	7	face	files				{ "folder": "files", "view": "browse", "items": 4 }
+1789568371.429	intent	lens	19.5	5.6	5.6	7	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789568372.441	folder	lens	19.5	5.6	5.6	7	face	scenes				{ "folder": "scenes", "view": "browse", "items": 7 }
+1789568372.441	intent	lens	19.5	5.6	5.6	7	face	scenes				{ "do": "reload", "view": "browse", "folder": "scenes" }
+1789568373.540	select	lens	19.5	5.6	5.6	7	face	scenes				{ "do": "default", "view": "browse", "folder": "scenes", "item": "scene_forest", "title": "Лес" }
+1789568373.540	toggle	lens	19.5	5.6	5.6	7	face	scenes				{ "open": false }
+1789568374.774	folder	lens	19.5	5.6	5.6	7	face	scenes				{ "folder": "scenes", "view": "browse", "items": 7 }
+1789568374.774	toggle	lens	19.5	5.6	5.6	7	face	scenes				{ "open": true }
+1789568376.028	folder	lens	19.5	5.6	5.6	7	face	files				{ "folder": "files", "view": "browse", "items": 4 }
+1789568376.029	intent	lens	19.5	5.6	5.6	7	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789568376.506	folder	lens	19.5	5.6	5.6	7	face					{ "folder": "", "view": "browse", "items": 6 }
+1789568376.507	intent	lens	19.5	5.6	5.6	7	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789568377.851	folder	lens	19.5	5.6	5.6	7	face	settings				{ "folder": "settings", "view": "browse", "items": 4 }
+1789568377.851	intent	lens	19.5	5.6	5.6	7	face	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789568379.095	folder	lens	19.5	5.6	5.6	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11 }
+1789568379.096	intent	lens	19.5	5.6	5.6	7	face	settings_sphere				{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789568380.230	настройка_открыта	lens	19.5	5.6	5.6	7	face	settings_sphere				cell_cm
+1789568380.230	intent	lens	19.5	5.6	5.6	7	face	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "cell_cm" }
+1789568381.152	настройка_открыта	lens	19.5	5.6	5.6	7	face	settings_sphere				radius_cm
+1789568381.153	intent	lens	19.5	5.6	5.6	7	face	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "radius_cm" }
+1789568382.185	настройка_значение	lens	10.0	5.6	5.6	2	face	settings_sphere				radius_cm=10.0
+1789568382.191	настройка_значение	lens	11.5	5.6	5.6	3	face	settings_sphere				radius_cm=11.5
+1789568382.202	настройка_значение	lens	11.0	5.6	5.6	2	face	settings_sphere				radius_cm=11.0
+1789568382.249	настройка_значение	lens	11.5	5.6	5.6	3	face	settings_sphere				radius_cm=11.5
+1789568382.262	настройка_значение	lens	11.0	5.6	5.6	2	face	settings_sphere				radius_cm=11.0
+1789568382.273	настройка_значение	lens	11.5	5.6	5.6	3	face	settings_sphere				radius_cm=11.5
+1789568382.318	настройка_значение	lens	12.0	5.6	5.6	3	face	settings_sphere				radius_cm=12.0
+1789568382.339	настройка_значение	lens	12.5	5.6	5.6	3	face	settings_sphere				radius_cm=12.5
+1789568382.419	настройка_значение	lens	12.0	5.6	5.6	3	face	settings_sphere				radius_cm=12.0
+1789568384.885	настройка_значение	lens	10.0	5.6	5.6	2	face	settings_sphere				radius_cm=10.0
+1789568384.895	настройка_значение	lens	10.5	5.6	5.6	2	face	settings_sphere				radius_cm=10.5
+1789568384.906	настройка_значение	lens	10.0	5.6	5.6	2	face	settings_sphere				radius_cm=10.0
+1789568384.951	настройка_значение	lens	9.5	5.6	5.6	2	face	settings_sphere				radius_cm=9.5
+1789568387.518	панель_кнопка	lens	9.5	5.6	5.6	2	face	settings_sphere				done
+1789568387.518	настройка_сохранена	lens	9.5	5.6	5.6	2	face	settings_sphere				radius_cm=9.5
+1789568391.086	folder	lens	9.5	5.6	5.6	2	face	settings_sphere_adv				{ "folder": "settings_sphere_adv", "view": "browse", "items": 4 }
+1789568391.086	intent	lens	9.5	5.6	5.6	2	face	settings_sphere_adv				{ "do": "reload", "view": "browse", "folder": "settings_sphere_adv" }
+1789568396.631	folder	lens	9.5	5.6	5.6	2	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11 }
+1789568396.631	intent	lens	9.5	5.6	5.6	2	face	settings_sphere				{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789568399.356	настройка_открыта	lens	9.5	5.6	5.6	2	face	settings_sphere				cell_cm
+1789568399.356	intent	lens	9.5	5.6	5.6	2	face	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "cell_cm" }
+1789568400.541	настройка_значение	lens	9.5	5.7	5.7	2	face	settings_sphere				cell_cm=5.7
+1789568400.609	настройка_значение	lens	9.5	5.8	5.8	2	face	settings_sphere				cell_cm=5.8
+1789568400.619	настройка_значение	lens	9.5	6.0	6.0	1	face	settings_sphere				cell_cm=6.0
+1789568400.631	настройка_значение	lens	9.5	6.3	6.3	1	face	settings_sphere				cell_cm=6.3
+1789568400.641	настройка_значение	lens	9.5	6.6	6.6	1	face	settings_sphere				cell_cm=6.6
+1789568400.650	настройка_значение	lens	9.5	6.9	6.9	1	face	settings_sphere				cell_cm=6.9
+1789568400.661	настройка_значение	lens	9.5	7.2	7.2	1	face	settings_sphere				cell_cm=7.2
+1789568400.673	настройка_значение	lens	9.5	7.4	7.4	1	face	settings_sphere				cell_cm=7.4
+1789568400.684	настройка_значение	lens	9.5	7.7	7.7	1	face	settings_sphere				cell_cm=7.7
+1789568400.696	настройка_значение	lens	9.5	7.8	7.8	1	face	settings_sphere				cell_cm=7.8
+1789568400.709	настройка_значение	lens	9.5	7.9	7.9	1	face	settings_sphere				cell_cm=7.9
+1789568400.719	настройка_значение	lens	9.5	8.0	8.0	1	face	settings_sphere				cell_cm=8.0
+1789568400.730	настройка_значение	lens	9.5	8.1	8.1	1	face	settings_sphere				cell_cm=8.1
+1789568400.739	настройка_значение	lens	9.5	8.2	8.2	1	face	settings_sphere				cell_cm=8.2
+1789568400.750	настройка_значение	lens	9.5	8.3	8.3	1	face	settings_sphere				cell_cm=8.3
+1789568400.762	настройка_значение	lens	9.5	8.5	8.5	1	face	settings_sphere				cell_cm=8.5
+1789568400.773	настройка_значение	lens	9.5	8.7	8.7	1	face	settings_sphere				cell_cm=8.7
+1789568400.783	настройка_значение	lens	9.5	8.9	8.9	1	face	settings_sphere				cell_cm=8.9
+1789568400.796	настройка_значение	lens	9.5	9.2	9.2	1	face	settings_sphere				cell_cm=9.2
+1789568400.807	настройка_значение	lens	9.5	9.4	9.4	0	face	settings_sphere				cell_cm=9.4
+1789568400.818	настройка_значение	lens	9.5	9.6	9.5	0	face	settings_sphere				cell_cm=9.6
+1789568400.829	настройка_значение	lens	9.5	9.7	9.5	0	face	settings_sphere				cell_cm=9.7
+1789568400.841	настройка_значение	lens	9.5	9.9	9.5	0	face	settings_sphere				cell_cm=9.9
+1789568400.851	настройка_значение	lens	9.5	10.0	9.5	0	face	settings_sphere				cell_cm=10.0
+1789568400.861	настройка_значение	lens	9.5	10.1	9.5	0	face	settings_sphere				cell_cm=10.1
+1789568400.884	настройка_значение	lens	9.5	10.2	9.5	0	face	settings_sphere				cell_cm=10.2
+1789568400.896	настройка_значение	lens	9.5	10.3	9.5	0	face	settings_sphere				cell_cm=10.3
+1789568400.907	настройка_значение	lens	9.5	10.4	9.5	0	face	settings_sphere				cell_cm=10.4
+1789568400.927	настройка_значение	lens	9.5	10.5	9.5	0	face	settings_sphere				cell_cm=10.5
+1789568400.938	настройка_значение	lens	9.5	10.6	9.5	0	face	settings_sphere				cell_cm=10.6
+1789568400.951	настройка_значение	lens	9.5	10.7	9.5	0	face	settings_sphere				cell_cm=10.7
+1789568400.963	настройка_значение	lens	9.5	10.8	9.5	0	face	settings_sphere				cell_cm=10.8
+1789568400.983	настройка_значение	lens	9.5	10.9	9.5	0	face	settings_sphere				cell_cm=10.9
+1789568401.005	настройка_значение	lens	9.5	11.0	9.5	0	face	settings_sphere				cell_cm=11.0
+1789568401.019	настройка_значение	lens	9.5	11.1	9.5	0	face	settings_sphere				cell_cm=11.1
+1789568401.029	настройка_значение	lens	9.5	11.2	9.5	0	face	settings_sphere				cell_cm=11.2
+1789568401.038	настройка_значение	lens	9.5	11.4	9.5	0	face	settings_sphere				cell_cm=11.4
+1789568401.050	настройка_значение	lens	9.5	11.6	9.5	0	face	settings_sphere				cell_cm=11.6
+1789568401.061	настройка_значение	lens	9.5	11.8	9.5	0	face	settings_sphere				cell_cm=11.8
+1789568401.073	настройка_значение	lens	9.5	11.9	9.5	0	face	settings_sphere				cell_cm=11.9
+1789568401.083	настройка_значение	lens	9.5	12.0	9.5	0	face	settings_sphere				cell_cm=12.0
+1789568401.096	настройка_значение	lens	9.5	12.1	9.5	0	face	settings_sphere				cell_cm=12.1
+1789568401.128	настройка_значение	lens	9.5	12.2	9.5	0	face	settings_sphere				cell_cm=12.2
+1789568401.140	настройка_значение	lens	9.5	12.3	9.5	0	face	settings_sphere				cell_cm=12.3
+1789568401.174	настройка_значение	lens	9.5	12.4	9.5	0	face	settings_sphere				cell_cm=12.4
+1789568401.207	настройка_значение	lens	9.5	12.5	9.5	0	face	settings_sphere				cell_cm=12.5
+1789568401.229	настройка_значение	lens	9.5	12.6	9.5	0	face	settings_sphere				cell_cm=12.6
+1789568401.242	настройка_значение	lens	9.5	12.7	9.5	0	face	settings_sphere				cell_cm=12.7
+1789568401.261	настройка_значение	lens	9.5	12.8	9.5	0	face	settings_sphere				cell_cm=12.8
+1789568401.274	настройка_значение	lens	9.5	12.9	9.5	0	face	settings_sphere				cell_cm=12.9
+1789568401.318	настройка_значение	lens	9.5	12.8	9.5	0	face	settings_sphere				cell_cm=12.8
+1789568401.330	настройка_значение	lens	9.5	12.7	9.5	0	face	settings_sphere				cell_cm=12.7
+1789568401.341	настройка_значение	lens	9.5	12.8	9.5	0	face	settings_sphere				cell_cm=12.8
+1789568401.350	настройка_значение	lens	9.5	12.9	9.5	0	face	settings_sphere				cell_cm=12.9
+1789568401.361	настройка_значение	lens	9.5	13.0	9.5	0	face	settings_sphere				cell_cm=13.0
+1789568401.374	настройка_значение	lens	9.5	13.4	9.5	0	face	settings_sphere				cell_cm=13.4
+1789568401.383	настройка_значение	lens	9.5	13.3	9.5	0	face	settings_sphere				cell_cm=13.3
+1789568403.719	панель_кнопка	lens	9.5	13.3	9.5	0	face	settings_sphere				done
+1789568403.720	настройка_сохранена	lens	9.5	13.3	9.5	0	face	settings_sphere				cell_cm=13.3
+1789568407.010	folder	lens	9.5	13.3	9.5	0	face	settings				{ "folder": "settings", "view": "browse", "items": 4 }
+1789568407.010	intent	lens	9.5	13.3	9.5	0	face	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789568408.431	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "browse", "items": 6 }
+1789568408.432	intent	lens	9.5	13.3	9.5	0	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789568409.398	folder	lens	9.5	13.3	9.5	0	face	files				{ "folder": "files", "view": "browse", "items": 4 }
+1789568409.399	intent	lens	9.5	13.3	9.5	0	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789568411.989	folder	lens	9.5	13.3	9.5	0	face	images				{ "folder": "images", "view": "browse", "items": 7 }
+1789568411.989	intent	lens	9.5	13.3	9.5	0	face	images				{ "do": "reload", "view": "browse", "folder": "images" }
+1789568418.477	folder	lens	9.5	13.3	9.5	0	face	files				{ "folder": "files", "view": "browse", "items": 4 }
+1789568418.477	intent	lens	9.5	13.3	9.5	0	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789568420.655	folder	lens	9.5	13.3	9.5	0	face	scenes				{ "folder": "scenes", "view": "browse", "items": 7 }
+1789568420.655	intent	lens	9.5	13.3	9.5	0	face	scenes				{ "do": "reload", "view": "browse", "folder": "scenes" }
+1789568423.243	folder	lens	9.5	13.3	9.5	0	face	drafts				{ "folder": "drafts", "view": "browse", "items": 2 }
+1789568423.243	intent	lens	9.5	13.3	9.5	0	face	drafts				{ "do": "reload", "view": "browse", "folder": "drafts" }
+1789568425.434	folder	lens	9.5	13.3	9.5	0	face	scenes				{ "folder": "scenes", "view": "browse", "items": 7 }
+1789568425.434	intent	lens	9.5	13.3	9.5	0	face	scenes				{ "do": "reload", "view": "browse", "folder": "scenes" }
+1789568426.655	folder	lens	9.5	13.3	9.5	0	face	files				{ "folder": "files", "view": "browse", "items": 4 }
+1789568426.655	intent	lens	9.5	13.3	9.5	0	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789568428.966	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "browse", "items": 6 }
+1789568428.967	intent	lens	9.5	13.3	9.5	0	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789568432.245	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "search", "items": 1 }
+1789568432.247	поиск_открыт	lens	9.5	13.3	9.5	0	face					
+1789568432.247	intent	lens	9.5	13.3	9.5	0	face					{ "do": "search", "view": "search", "folder": "" }
+1789568435.811	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "search", "items": 9 }
+1789568435.811	intent	lens	9.5	13.3	9.5	0	face					{ "do": "reload", "view": "search", "folder": "" }
+1789568435.811	поиск_запрос	lens	9.5	13.3	9.5	0	face					п → 8
+1789568436.766	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "search", "items": 2 }
+1789568436.767	intent	lens	9.5	13.3	9.5	0	face					{ "do": "reload", "view": "search", "folder": "" }
+1789568436.767	поиск_запрос	lens	9.5	13.3	9.5	0	face					пе → 1
+1789568437.611	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "search", "items": 1 }
+1789568437.611	intent	lens	9.5	13.3	9.5	0	face					{ "do": "reload", "view": "search", "folder": "" }
+1789568437.611	поиск_запрос	lens	9.5	13.3	9.5	0	face					пес → 0
+1789568444.700	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "search", "items": 1 }
+1789568444.701	intent	lens	9.5	13.3	9.5	0	face					{ "do": "reload", "view": "search", "folder": "" }
+1789568444.701	поиск_запрос	lens	9.5	13.3	9.5	0	face					песо → 0
+1789568446.167	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "search", "items": 1 }
+1789568446.167	intent	lens	9.5	13.3	9.5	0	face					{ "do": "reload", "view": "search", "folder": "" }
+1789568446.169	поиск_запрос	lens	9.5	13.3	9.5	0	face					песок → 0
+1789568448.079	intent	lens	9.5	13.3	9.5	0	face					{ "do": "none", "view": "search", "folder": "" }
+1789568448.734	intent	lens	9.5	13.3	9.5	0	face					{ "do": "none", "view": "search", "folder": "" }
+1789568451.368	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "search", "items": 1 }
+1789568451.368	intent	lens	9.5	13.3	9.5	0	face					{ "do": "reload", "view": "search", "folder": "" }
+1789568451.368	поиск_запрос	lens	9.5	13.3	9.5	0	face					песо → 0
+1789568451.634	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "search", "items": 1 }
+1789568451.634	intent	lens	9.5	13.3	9.5	0	face					{ "do": "reload", "view": "search", "folder": "" }
+1789568451.634	поиск_запрос	lens	9.5	13.3	9.5	0	face					пес → 0
+1789568451.812	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "search", "items": 2 }
+1789568451.812	intent	lens	9.5	13.3	9.5	0	face					{ "do": "reload", "view": "search", "folder": "" }
+1789568451.813	поиск_запрос	lens	9.5	13.3	9.5	0	face					пе → 1
+1789568452.013	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "search", "items": 9 }
+1789568452.013	intent	lens	9.5	13.3	9.5	0	face					{ "do": "reload", "view": "search", "folder": "" }
+1789568452.013	поиск_запрос	lens	9.5	13.3	9.5	0	face					п → 8
+1789568452.212	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "search", "items": 1 }
+1789568452.213	intent	lens	9.5	13.3	9.5	0	face					{ "do": "reload", "view": "search", "folder": "" }
+1789568452.213	поиск_запрос	lens	9.5	13.3	9.5	0	face					 → 0
+1789568452.456	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "search", "items": 1 }
+1789568452.456	intent	lens	9.5	13.3	9.5	0	face					{ "do": "reload", "view": "search", "folder": "" }
+1789568452.456	поиск_запрос	lens	9.5	13.3	9.5	0	face					 → 0
+1789568456.170	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "search", "items": 21 }
+1789568456.170	intent	lens	9.5	13.3	9.5	0	face					{ "do": "reload", "view": "search", "folder": "" }
+1789568456.170	поиск_запрос	lens	9.5	13.3	9.5	0	face					с → 20
+1789568458.257	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "search", "items": 3 }
+1789568458.257	intent	lens	9.5	13.3	9.5	0	face					{ "do": "reload", "view": "search", "folder": "" }
+1789568458.257	поиск_запрос	lens	9.5	13.3	9.5	0	face					со → 2
+1789568458.857	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "search", "items": 1 }
+1789568458.857	intent	lens	9.5	13.3	9.5	0	face					{ "do": "reload", "view": "search", "folder": "" }
+1789568458.857	поиск_запрос	lens	9.5	13.3	9.5	0	face					сол → 0
+1789568460.646	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "search", "items": 3 }
+1789568460.646	intent	lens	9.5	13.3	9.5	0	face					{ "do": "reload", "view": "search", "folder": "" }
+1789568460.647	поиск_запрос	lens	9.5	13.3	9.5	0	face					со → 2
+1789568463.236	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "search", "items": 21 }
+1789568463.237	intent	lens	9.5	13.3	9.5	0	face					{ "do": "reload", "view": "search", "folder": "" }
+1789568463.237	поиск_запрос	lens	9.5	13.3	9.5	0	face					с → 20
+1789568463.689	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "search", "items": 1 }
+1789568463.690	intent	lens	9.5	13.3	9.5	0	face					{ "do": "reload", "view": "search", "folder": "" }
+1789568463.690	поиск_запрос	lens	9.5	13.3	9.5	0	face					 → 0
+1789568464.858	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "search", "items": 21 }
+1789568464.858	intent	lens	9.5	13.3	9.5	0	face					{ "do": "reload", "view": "search", "folder": "" }
+1789568464.858	поиск_запрос	lens	9.5	13.3	9.5	0	face					с → 20
+1789568466.369	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "search", "items": 3 }
+1789568466.369	intent	lens	9.5	13.3	9.5	0	face					{ "do": "reload", "view": "search", "folder": "" }
+1789568466.369	поиск_запрос	lens	9.5	13.3	9.5	0	face					со → 2
+1789568466.902	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "search", "items": 2 }
+1789568466.902	intent	lens	9.5	13.3	9.5	0	face					{ "do": "reload", "view": "search", "folder": "" }
+1789568466.902	поиск_запрос	lens	9.5	13.3	9.5	0	face					сос → 1
+1789568471.303	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "search", "items": 2 }
+1789568471.303	intent	lens	9.5	13.3	9.5	0	face					{ "do": "reload", "view": "search", "folder": "" }
+1789568471.303	поиск_запрос	lens	9.5	13.3	9.5	0	face					сосн → 1
+1789568471.925	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "search", "items": 2 }
+1789568471.925	intent	lens	9.5	13.3	9.5	0	face					{ "do": "reload", "view": "search", "folder": "" }
+1789568471.925	поиск_запрос	lens	9.5	13.3	9.5	0	face					сосна → 1
+1789568473.447	folder	lens	9.5	13.3	9.5	0	face	trees				{ "folder": "trees", "view": "browse", "items": 5 }
+1789568473.448	select	lens	9.5	13.3	9.5	0	face	trees				{ "do": "default", "view": "browse", "folder": "trees", "item": "tree_pine", "title": "Сосна" }
+1789568473.448	toggle	lens	9.5	13.3	9.5	0	face	trees				{ "open": false }
+1789568474.726	folder	lens	9.5	13.3	9.5	0	face	trees				{ "folder": "trees", "view": "browse", "items": 5 }
+1789568474.726	toggle	lens	9.5	13.3	9.5	0	face	trees				{ "open": true }
+1789568479.904	intent	lens	9.5	13.3	9.5	0	face	trees				{ "do": "none", "view": "browse", "folder": "trees" }
+1789568480.315	folder	lens	9.5	13.3	9.5	0	face	assets				{ "folder": "assets", "view": "browse", "items": 7 }
+1789568480.315	intent	lens	9.5	13.3	9.5	0	face	assets				{ "do": "reload", "view": "browse", "folder": "assets" }
+1789568481.215	folder	lens	9.5	13.3	9.5	0	face	files				{ "folder": "files", "view": "browse", "items": 4 }
+1789568481.215	intent	lens	9.5	13.3	9.5	0	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789568484.726	folder	lens	9.5	13.3	9.5	0	face					{ "folder": "", "view": "browse", "items": 6 }
+1789568484.727	intent	lens	9.5	13.3	9.5	0	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789568486.771	folder	lens	9.5	13.3	9.5	0	face	settings				{ "folder": "settings", "view": "browse", "items": 4 }
+1789568486.771	intent	lens	9.5	13.3	9.5	0	face	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789568487.983	folder	lens	9.5	13.3	9.5	0	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11 }
+1789568487.983	intent	lens	9.5	13.3	9.5	0	face	settings_sphere				{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789568491.652	настройка_открыта	lens	9.5	13.3	9.5	0	face	settings_sphere				radius_cm
+1789568491.652	intent	lens	9.5	13.3	9.5	0	face	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "radius_cm" }
+1789568492.960	настройка_значение	lens	10.0	13.3	10.0	0	face	settings_sphere				radius_cm=10.0
+1789568493.048	настройка_значение	lens	10.5	13.3	10.5	0	face	settings_sphere				radius_cm=10.5
+1789568493.082	настройка_значение	lens	11.0	13.3	11.0	0	face	settings_sphere				radius_cm=11.0
+1789568493.094	настройка_значение	lens	11.5	13.3	11.5	0	face	settings_sphere				radius_cm=11.5
+1789568493.115	настройка_значение	lens	12.0	13.3	12.0	0	face	settings_sphere				radius_cm=12.0
+1789568493.137	настройка_значение	lens	12.5	13.3	12.5	0	face	settings_sphere				radius_cm=12.5
+1789568493.159	настройка_значение	lens	13.0	13.3	13.0	0	face	settings_sphere				radius_cm=13.0
+1789568493.227	настройка_значение	lens	13.5	13.3	13.3	0	face	settings_sphere				radius_cm=13.5
+1789568493.282	настройка_значение	lens	14.0	13.3	13.3	1	face	settings_sphere				radius_cm=14.0
+1789568493.295	настройка_значение	lens	13.5	13.3	13.3	0	face	settings_sphere				radius_cm=13.5
+1789568493.304	настройка_значение	lens	14.0	13.3	13.3	1	face	settings_sphere				radius_cm=14.0
+1789568493.337	настройка_значение	lens	14.5	13.3	13.3	1	face	settings_sphere				radius_cm=14.5
+1789568493.404	настройка_значение	lens	15.0	13.3	13.3	1	face	settings_sphere				radius_cm=15.0
+1789568493.560	настройка_значение	lens	15.5	13.3	13.3	1	face	settings_sphere				radius_cm=15.5
+1789568493.615	настройка_значение	lens	16.0	13.3	13.3	1	face	settings_sphere				radius_cm=16.0
+1789568493.726	настройка_значение	lens	16.5	13.3	13.3	1	face	settings_sphere				radius_cm=16.5
+1789568493.738	настройка_значение	lens	16.0	13.3	13.3	1	face	settings_sphere				radius_cm=16.0
+1789568493.827	настройка_значение	lens	15.5	13.3	13.3	1	face	settings_sphere				radius_cm=15.5
+1789568493.839	настройка_значение	lens	16.0	13.3	13.3	1	face	settings_sphere				radius_cm=16.0
+1789568493.849	настройка_значение	lens	15.5	13.3	13.3	1	face	settings_sphere				radius_cm=15.5
+1789568493.861	настройка_значение	lens	16.0	13.3	13.3	1	face	settings_sphere				radius_cm=16.0
+1789568495.226	панель_кнопка	lens	16.0	13.3	13.3	1	face	settings_sphere				done
+1789568495.227	настройка_сохранена	lens	16.0	13.3	13.3	1	face	settings_sphere				radius_cm=16.0
+1789568498.074	настройка_открыта	lens	16.0	13.3	13.3	1	face	settings_sphere				cell_cm
+1789568498.074	intent	lens	16.0	13.3	13.3	1	face	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "cell_cm" }
+1789568499.439	настройка_значение	lens	16.0	6.8	6.8	4	face	settings_sphere				cell_cm=6.8
+1789568499.464	настройка_значение	lens	16.0	6.7	6.7	4	face	settings_sphere				cell_cm=6.7
+1789568499.504	настройка_значение	lens	16.0	6.6	6.6	4	face	settings_sphere				cell_cm=6.6
+1789568499.537	настройка_значение	lens	16.0	6.5	6.5	4	face	settings_sphere				cell_cm=6.5
+1789568499.605	настройка_значение	lens	16.0	6.6	6.6	4	face	settings_sphere				cell_cm=6.6
+1789568499.637	настройка_значение	lens	16.0	6.5	6.5	4	face	settings_sphere				cell_cm=6.5
+1789568499.682	настройка_значение	lens	16.0	6.4	6.4	4	face	settings_sphere				cell_cm=6.4
+1789568501.694	панель_кнопка	lens	16.0	6.4	6.4	4	face	settings_sphere				done
+1789568501.695	настройка_сохранена	lens	16.0	6.4	6.4	4	face	settings_sphere				cell_cm=6.4
+1789568505.116	folder	lens	16.0	6.4	6.4	4	face	settings				{ "folder": "settings", "view": "browse", "items": 4 }
+1789568505.116	intent	lens	16.0	6.4	6.4	4	face	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789568505.717	folder	lens	16.0	6.4	6.4	4	face					{ "folder": "", "view": "browse", "items": 6 }
+1789568505.717	intent	lens	16.0	6.4	6.4	4	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789568507.971	intent	lens	16.0	6.4	6.4	4	face					{ "do": "tasks", "view": "browse", "folder": "" }
+1789568508.674	folder	lens	16.0	6.4	6.4	4	face					{ "folder": "", "view": "actions", "items": 3 }
+1789568508.674	intent	lens	16.0	6.4	6.4	4	face					{ "do": "reload", "view": "actions", "folder": "" }
+1789568510.695	intent	lens	16.0	6.4	6.4	4	face					{ "do": "tasks", "view": "browse", "folder": "" }
+1789568513.708	folder	lens	16.0	6.4	6.4	4	face	settings				{ "folder": "settings", "view": "browse", "items": 4 }
+1789568513.709	intent	lens	16.0	6.4	6.4	4	face	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789568516.540	folder	lens	16.0	6.4	6.4	4	face					{ "folder": "", "view": "browse", "items": 6 }
+1789568516.540	intent	lens	16.0	6.4	6.4	4	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789568517.396	toggle	lens	16.0	6.4	6.4	4	face					{ "open": false }
+1789568517.396	intent	lens	16.0	6.4	6.4	4	face					{ "do": "close", "view": "browse", "folder": "" }
+1789568518.595	folder	lens	16.0	6.4	6.4	4	face					{ "folder": "", "view": "browse", "items": 6 }
+1789568518.595	toggle	lens	16.0	6.4	6.4	4	face					{ "open": true }
+1789568519.261	intent	lens	16.0	6.4	6.4	4	face					{ "do": "none", "view": "browse", "folder": "" }
+1789568521.118	intent	lens	16.0	6.4	6.4	4	face					{ "do": "tasks", "view": "browse", "folder": "" }
+1789568522.173	intent	lens	16.0	6.4	6.4	4	face					{ "do": "tasks", "view": "browse", "folder": "" }
+1789568522.763	intent	lens	16.0	6.4	6.4	4	face					{ "do": "tasks", "view": "browse", "folder": "" }
+1789568523.441	задание	lens	16.0	6.4	6.4	4	face		scene_draft1			
+1789568525.385	folder	lens	16.0	6.4	6.4	4	face	settings	scene_draft1		1944	{ "folder": "settings", "view": "browse", "items": 4 }
+1789568525.385	intent	lens	16.0	6.4	6.4	4	face	settings	scene_draft1		1945	{ "do": "reload", "view": "browse", "folder": "settings" }
+1789568525.392	active	lens	16.0	6.4	6.4	4	face	settings	scene_draft1		1952	{ "key": "(0, 0)", "slot": 0 }
+1789568526.175	folder	lens	16.0	6.4	6.4	4	face		scene_draft1		2734	{ "folder": "", "view": "browse", "items": 6 }
+1789568526.175	intent	lens	16.0	6.4	6.4	4	face		scene_draft1		2734	{ "do": "reload", "view": "browse", "folder": "" }
+1789568526.180	active	lens	16.0	6.4	6.4	4	face		scene_draft1		2739	{ "key": "(1, 0)", "slot": 0 }
+1789568526.618	intent	lens	16.0	6.4	6.4	4	face		scene_draft1		3178	{ "do": "none", "view": "browse", "folder": "" }
+1789568527.241	folder	lens	16.0	6.4	6.4	4	face	files	scene_draft1		3801	{ "folder": "files", "view": "browse", "items": 4 }
+1789568527.241	intent	lens	16.0	6.4	6.4	4	face	files	scene_draft1		3801	{ "do": "reload", "view": "browse", "folder": "files" }
+1789568527.246	active	lens	16.0	6.4	6.4	4	face	files	scene_draft1		3806	{ "key": "(1, 0)", "slot": 0 }
+1789568528.563	folder	lens	16.0	6.4	6.4	4	face	images	scene_draft1		5123	{ "folder": "images", "view": "browse", "items": 7 }
+1789568528.564	intent	lens	16.0	6.4	6.4	4	face	images	scene_draft1		5123	{ "do": "reload", "view": "browse", "folder": "images" }
+1789568528.568	active	lens	16.0	6.4	6.4	4	face	images	scene_draft1		5128	{ "key": "(1, 0)", "slot": 0 }
+1789568530.648	active	lens	16.0	6.4	6.4	4	face	images	scene_draft1		7207	{ "key": "(0, 1)", "slot": 1 }
+1789568531.892	active	lens	16.0	6.4	6.4	4	face	images	scene_draft1		8452	{ "key": "(1, 0)", "slot": 0 }
+1789568532.013	active	lens	16.0	6.4	6.4	4	face	images	scene_draft1		8573	{ "key": "(1, -1)", "slot": 5 }
+1789568534.541	folder	lens	16.0	6.4	6.4	4	face	files	scene_draft1		11101	{ "folder": "files", "view": "browse", "items": 4 }
+1789568534.541	intent	lens	16.0	6.4	6.4	4	face	files	scene_draft1		11101	{ "do": "reload", "view": "browse", "folder": "files" }
+1789568534.547	active	lens	16.0	6.4	6.4	4	face	files	scene_draft1		11106	{ "key": "(1, 0)", "slot": 0 }
+1789568536.475	folder	lens	16.0	6.4	6.4	4	face	scenes	scene_draft1		13035	{ "folder": "scenes", "view": "browse", "items": 7 }
+1789568536.475	intent	lens	16.0	6.4	6.4	4	face	scenes	scene_draft1		13035	{ "do": "reload", "view": "browse", "folder": "scenes" }
+1789568536.480	active	lens	16.0	6.4	6.4	4	face	scenes	scene_draft1		13040	{ "key": "(1, 0)", "slot": 0 }
+1789568537.919	folder	lens	16.0	6.4	6.4	4	face	drafts	scene_draft1		14478	{ "folder": "drafts", "view": "browse", "items": 2 }
+1789568537.919	intent	lens	16.0	6.4	6.4	4	face	drafts	scene_draft1		14478	{ "do": "reload", "view": "browse", "folder": "drafts" }
+1789568537.924	active	lens	16.0	6.4	6.4	4	face	drafts	scene_draft1		14484	{ "key": "(1, 0)", "slot": 0 }
+1789568539.219	select	lens	16.0	6.4	6.4	4	face	drafts	scene_draft1	да	15778	{ "do": "default", "view": "browse", "folder": "drafts", "item": "scene_draft1", "title": "Набросок моста" }
+1789568539.219	toggle	lens	16.0	6.4	6.4	4	face	drafts				{ "open": false }
+1789568540.953	задание	lens	16.0	6.4	6.4	4	face	drafts	img_sunset			
+1789568542.375	folder	lens	16.0	6.4	6.4	4	face	drafts	img_sunset		1423	{ "folder": "drafts", "view": "browse", "items": 2 }
+1789568542.376	toggle	lens	16.0	6.4	6.4	4	face	drafts	img_sunset		1423	{ "open": true }
+1789568542.387	active	lens	16.0	6.4	6.4	4	face	drafts	img_sunset		1434	{ "key": "(1, 0)", "slot": -2 }
+1789568543.204	active	lens	16.0	6.4	6.4	4	face	drafts	img_sunset		2252	{ "key": "(0, 1)", "slot": -2 }
+1789568543.294	active	lens	16.0	6.4	6.4	4	face	drafts	img_sunset		2341	{ "key": "(-1, 1)", "slot": 0 }
+1789568543.436	active	lens	16.0	6.4	6.4	4	face	drafts	img_sunset		2484	{ "key": "(-2, 1)", "slot": -1 }
+1789568543.592	active	lens	16.0	6.4	6.4	4	face	drafts	img_sunset		2639	{ "key": "(-3, 1)", "slot": -2 }
+1789568544.852	shake	lens	16.0	6.4	6.4	4	face		img_sunset		3900	{ "folder": "" }
+1789568544.853	folder	lens	16.0	6.4	6.4	4	face		img_sunset		3900	{ "folder": "", "view": "browse", "items": 6 }
+1789568544.853	intent	lens	16.0	6.4	6.4	4	face		img_sunset		3901	{ "do": "reload", "view": "browse", "folder": "" }
+1789568544.858	active	lens	16.0	6.4	6.4	4	face		img_sunset		3906	{ "key": "(-3, 1)", "slot": 0 }
+1789568546.486	folder	lens	16.0	6.4	6.4	4	face	files	img_sunset		5534	{ "folder": "files", "view": "browse", "items": 4 }
+1789568546.487	intent	lens	16.0	6.4	6.4	4	face	files	img_sunset		5534	{ "do": "reload", "view": "browse", "folder": "files" }
+1789568546.493	active	lens	16.0	6.4	6.4	4	face	files	img_sunset		5540	{ "key": "(1, 0)", "slot": 0 }
+1789568550.043	folder	lens	16.0	6.4	6.4	4	face	images	img_sunset		9090	{ "folder": "images", "view": "browse", "items": 7 }
+1789568550.043	intent	lens	16.0	6.4	6.4	4	face	images	img_sunset		9090	{ "do": "reload", "view": "browse", "folder": "images" }
+1789568550.048	active	lens	16.0	6.4	6.4	4	face	images	img_sunset		9095	{ "key": "(1, -1)", "slot": 5 }
+1789568551.181	active	lens	16.0	6.4	6.4	4	face	images	img_sunset		10228	{ "key": "(1, 0)", "slot": 0 }
+1789568552.376	select	lens	16.0	6.4	6.4	4	face	images	img_sunset	да	11423	{ "do": "default", "view": "browse", "folder": "images", "item": "img_sunset", "title": "Закат" }
+1789568553.820	задание	lens	16.0	6.4	6.4	4	face	images	scene_tower			
+1789568556.465	folder	lens	16.0	6.4	6.4	4	face	files	scene_tower		2645	{ "folder": "files", "view": "browse", "items": 4 }
+1789568556.465	intent	lens	16.0	6.4	6.4	4	face	files	scene_tower		2645	{ "do": "reload", "view": "browse", "folder": "files" }
+1789568556.471	active	lens	16.0	6.4	6.4	4	face	files	scene_tower		2650	{ "key": "(1, 0)", "slot": 0 }
+1789568560.143	folder	lens	16.0	6.4	6.4	4	face	scenes	scene_tower		6323	{ "folder": "scenes", "view": "browse", "items": 7 }
+1789568560.144	intent	lens	16.0	6.4	6.4	4	face	scenes	scene_tower		6323	{ "do": "reload", "view": "browse", "folder": "scenes" }
+1789568560.149	active	lens	16.0	6.4	6.4	4	face	scenes	scene_tower		6328	{ "key": "(1, 0)", "slot": 0 }
+1789568561.488	select	lens	16.0	6.4	6.4	4	face	scenes	scene_tower	да	7667	{ "do": "default", "view": "browse", "folder": "scenes", "item": "scene_tower", "title": "Башня" }
+1789568561.488	toggle	lens	16.0	6.4	6.4	4	face	scenes				{ "open": false }
+1789568563.944	folder	lens	16.0	6.4	6.4	4	face	scenes				{ "folder": "scenes", "view": "browse", "items": 7 }
+1789568563.944	toggle	lens	16.0	6.4	6.4	4	face	scenes				{ "open": true }
+1789568564.899	folder	lens	16.0	6.4	6.4	4	face	files				{ "folder": "files", "view": "browse", "items": 4 }
+1789568564.900	intent	lens	16.0	6.4	6.4	4	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789568565.444	folder	lens	16.0	6.4	6.4	4	face					{ "folder": "", "view": "browse", "items": 6 }
+1789568565.444	intent	lens	16.0	6.4	6.4	4	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789568568.665	intent	lens	16.0	6.4	6.4	4	face					{ "do": "exit", "view": "browse", "folder": "" }
+1789568568.667	выход	lens	16.0	6.4	6.4	4	face					выгрузка в /storage/emulated/0/Download/VRGE/2026-09-16_19-22-48

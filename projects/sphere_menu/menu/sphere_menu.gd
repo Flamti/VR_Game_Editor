@@ -43,10 +43,17 @@ const Panel3D := preload("res://menu/info_panel.gd")
 const HandFollow := preload("res://menu/hand_follow.gd")
 const Stick := preload("res://menu/stick.gd")
 const Shake := preload("res://menu/shake.gd")
+const Swipe := preload("res://menu/swipe.gd")
 const Demo := preload("res://menu/demo.gd")
 
 ## Сколько без ввода вращения до включения детента.
 const DETENT_IDLE_MS := 150
+## Сколько панель держится после того, как объект ушёл из-под активной ячейки, мс.
+## Без удержания она мигала бы на редкой сетке (632 ячейки на два десятка пунктов):
+## каждый поворот проходит через пустые ячейки (отзыв сессии 4).
+const PANEL_HOLD_MS := 500
+## Тишина, после которой прокрутка считается новой серией (журнал), мс.
+const SCROLL_BURST_MS := 1000
 ## Касание кончиком контроллера: зазор до поверхности шара, м.
 const TOUCH_GAP := 0.03
 ## Непрерывное вращение для самопроверки худшего случая, рад/с; 0 — выкл.
@@ -72,6 +79,7 @@ var press_left: Press = Press.new()
 var press_right: Press = Press.new()
 var grab: Grab = Grab.new()
 var shake: Shake = Shake.new()
+var swipe: Swipe = Swipe.new()
 var atlas: Atlas
 var renderer: Renderer
 
@@ -86,6 +94,15 @@ var _marks := PackedByteArray()
 var _last_rotate_ms := -100000
 var _pressed_key: Variant = null
 var _pressed_hand := ""
+var _last_item_ms := -100000
+## Фальсификатор «panelshow» дымового прогона: пустая ячейка считается содержимым —
+## панель висит всегда, как до шага 1е.
+var falsify_panel_always := false
+## Фальсификатор «gestureboth» дымового прогона: настройка «Жест возврата» не слушается,
+## живут оба детектора.
+var falsify_gestures_always := false
+var _scroll_last_pos := 0
+var _scroll_last_ms := -100000
 
 
 func _ready() -> void:
@@ -126,7 +143,14 @@ func apply_settings() -> void:
 	press_left.hold_ms = int(settings.get_value("hold_ms"))
 	press_right.hold_ms = press_left.hold_ms
 	grab.friction = float(settings.get_value("grab_friction"))
-	shake.level = settings.get_value("shake")
+	var gesture: String = settings.get_value("return_gesture")
+	var span := float(settings.get_value("gesture_cm")) / 100.0
+	shake.enabled = falsify_gestures_always or gesture in ["shake", "both"]
+	shake.travel = span
+	swipe.enabled = falsify_gestures_always or gesture in ["swipe", "both"]
+	# Взмах требует втрое большего хода, чем встряхивание, но не выходит за 15…30 см:
+	# владелец назвал 20–30 см (отзыв сессии 5), умолчание 6 см даёт 18.
+	swipe.distance = clampf(span * 3.0, 0.15, 0.30)
 	spring.omega = float(settings.get_value("detent"))
 	active.hysteresis = float(settings.get_value("hysteresis"))
 	if follow.mode != settings.get_value("hand_rotation"):
@@ -176,12 +200,14 @@ func close() -> void:
 		event.emit("toggle", {"open": false})
 
 
-## Вид по состоянию: шар и панель видны только открытыми, закрытый рендер пуст.
+## Вид по состоянию: шар виден открытым, закрытый рендер пуст. Панель включает не
+## это, а _update_panel по правилу panel_should_show — закрытый шар её только гасит.
 func _sync_view() -> void:
 	visible = is_open()
-	if panel != null:
-		panel.visible = is_open()
 	if not is_open():
+		if panel != null:
+			# закрытый шар гасит панель, но не отнимает её у мастера и правки
+			panel.visible = panel_should_show(false, panel_locked or panel.interactive(), false, false, 0)
 		renderer.clear()
 
 
@@ -280,21 +306,31 @@ func grab_update(tip: Vector3, grip: bool, delta: float) -> void:
 		grab.end()
 
 
-## Встряхивание шара — возврат на верхний уровень (menu/shake.gd). hand_pos и head_pos
-## в мире. Жест не слушается, пока шар крутят захватом или пока панель занята мастером
-## и правкой: там рука двигается по делу, и прыжок на корень был бы потерей места.
-func shake_update(hand_pos: Vector3, head_pos: Vector3, delta: float) -> void:
+## Жест возврата на верхний уровень: встряхивание (menu/shake.gd) или резкий взмах
+## влево (menu/swipe.gd). hand_pos и head в мире. Жесты не слушаются, пока шар крутят
+## захватом или пока панель занята мастером и правкой: там рука двигается по делу, и
+## прыжок на корень был бы потерей места.
+func gesture_update(hand_pos: Vector3, head_xf: Transform3D, delta: float) -> void:
 	if not is_open() or panel_locked or grab.active or grab.coasting() or demo.running():
 		shake.reset()
+		swipe.reset()
 		return
-	if not shake.feed(hand_pos, head_pos, delta):
+	var how := ""
+	if shake.feed(hand_pos, head_xf.origin, delta):
+		how = "shake"
+	elif swipe.feed(hand_pos, head_xf.origin, head_xf.basis, delta):
+		how = "swipe"
+	if how == "":
 		return
+	var from := nav.state.folder()
 	var res := nav.go_root(_scroll())
 	if res.get("do", "") == "none":
 		return
 	if settings.get_value("haptics"):
 		haptic.emit("left", 0.35)
-	event.emit("shake", {"folder": nav.state.folder()})
+	# Откуда вернулись — в журнал: в сессии 5 строка писалась после перехода, и по ней
+	# нельзя было сказать ни глубину, ни каким жестом.
+	event.emit("shake", {"how": how, "from": from})
 	_handle(res)
 
 
@@ -409,6 +445,39 @@ func _follow_hand(delta: float) -> void:
 	global_transform = Transform3D(Basis(q), pos)
 
 
+## Прокрутка панели в журнал — одна строка на серию: пока крутят, строка не
+## повторяется. Без этого сессия 4 обсуждалась словами, а не данными.
+func _journal_scroll(now: int) -> void:
+	var pos: int = panel.scroll_pos()
+	if pos == _scroll_last_pos:
+		return
+	_scroll_last_pos = pos
+	var quiet := now - _scroll_last_ms > SCROLL_BURST_MS
+	_scroll_last_ms = now
+	# Сброс в ноль при смене содержимого — не прокрутка: в журнале сессии 5 он занял
+	# строку с пустым способом.
+	if quiet and panel.scroll_how != "":
+		event.emit("panel_scroll", {"how": panel.scroll_how,
+				"mode": "edit" if panel.interactive() else "info"})
+
+
+## Показывать ли панель (решение владельца, отзыв сессии 4: «появляться только тогда,
+## когда есть что показывать»). Чистое правило — его и проверяет настольный прибор.
+##   scenario — открыт редактор (правка, шаг мастера, ввод поиска) или панель занята;
+##   has_item — под активной ячейкой или лучом настоящий пункт: пустая ячейка и
+##              «Назад» за содержимое не считаются;
+##   toast    — живёт сообщение.
+static func panel_should_show(open: bool, scenario: bool, has_item: bool, toast: bool,
+		ms_since_item: int) -> bool:
+	# Сценарий сильнее закрытого шара: мастер и правку можно оставить на панели, закрыв
+	# шар кнопкой Y, и тогда «Готово» обязано остаться доступным.
+	if scenario:
+		return true
+	if not open:
+		return false
+	return toast or has_item or ms_since_item < PANEL_HOLD_MS
+
+
 func _update_panel(now: int) -> void:
 	if panel == null:
 		return
@@ -418,10 +487,15 @@ func _update_panel(now: int) -> void:
 	nav.message = ""
 	panel.tick(now)
 	panel.scroll_tick()
-	if panel_locked:
-		return
+	_journal_scroll(now)
 	var key: Variant = hover_key if hover_key != null else active.key
 	var slot: int = surface().slot_of(key) if key != null else Surface.SLOT_EMPTY
+	if slot >= 0:
+		_last_item_ms = now
+	panel.visible = panel_should_show(is_open(), panel_locked or panel.interactive(),
+			slot >= 0 or falsify_panel_always, panel.has_toast(now), now - _last_item_ms)
+	if panel_locked:
+		return
 	var it: Item = nav.item_at(slot)
 	var extra := ""
 	if slot == Surface.SLOT_BACK:

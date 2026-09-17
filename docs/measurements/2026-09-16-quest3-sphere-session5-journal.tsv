@@ -1,0 +1,418 @@
+# сессия 2026-09-16T20:14:32
+1789571672.767	folder	globe	20.0	1.5	3.52	13	face					{ "folder": "", "view": "browse", "items": 6 }
+1789571672.767	toggle	globe	20.0	1.5	3.52	13	face					{ "open": true }
+1789571704.677	настройка_значение	fib	8.0	1.5	1.49	26	face					radius_cm=8.0
+1789571704.702	настройка_значение	fib	18.0	1.5	3.12	27	face					radius_cm=18.0
+1789571704.782	panel_scroll	fib	20.0	1.5	3.47	27	face					{ "how": "", "mode": "edit" }
+1789571709.594	toggle	globe	20.0	1.5	3.52	13	face					{ "open": false }
+1789571709.594	самопроверка	globe	20.0	1.5	3.52	13	face			FAIL		{ "глобус уровень 13, 632 ячеек, вращение": { "gpu95": 2.76200008392334, "cpu95": 0.18000000715256, "proc95": 1.959, "over": 0 }, "глобус крупный: уровень 1, 32 ячеек, радиус 20.0 см, вращение": { "gpu95": 1.82099997997284, "cpu95": 0.1879999935627, "proc95": 3.194, "over": 0 }, "линза α=0.037, 700 ячеек, вращение": { "gpu95": 2.67000007629395, "cpu95": 0.16799999773502, "proc95": 66.636, "over": 0 } }
+1789571712.373	folder	lens	16.0	6.4	6.4	4	face					{ "folder": "", "view": "browse", "items": 6 }
+1789571712.373	toggle	lens	16.0	6.4	6.4	4	face					{ "open": true }
+1789571715.695	folder	lens	16.0	6.4	6.4	4	face	files				{ "folder": "files", "view": "browse", "items": 4 }
+1789571715.695	intent	lens	16.0	6.4	6.4	4	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789571716.641	folder	lens	16.0	6.4	6.4	4	face					{ "folder": "", "view": "browse", "items": 6 }
+1789571716.641	intent	lens	16.0	6.4	6.4	4	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789571718.254	folder	lens	16.0	6.4	6.4	4	face	settings				{ "folder": "settings", "view": "browse", "items": 4 }
+1789571718.254	intent	lens	16.0	6.4	6.4	4	face	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789571720.485	folder	lens	16.0	6.4	6.4	4	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11 }
+1789571720.485	intent	lens	16.0	6.4	6.4	4	face	settings_sphere				{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789571733.814	настройка_открыта	lens	16.0	6.4	6.4	4	face	settings_sphere				surface
+1789571733.815	intent	lens	16.0	6.4	6.4	4	face	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "surface" }
+1789571735.596	panel_scroll	lens	16.0	6.4	6.4	4	face	settings_sphere				{ "how": "stick", "mode": "edit" }
+1789571738.542	настройка_значение	globe	16.0	6.4	6.4	4	face	settings_sphere				surface=globe
+1789571745.820	настройка_значение	globe_hex	16.0	6.4	6.4	4	face	settings_sphere				surface=globe_hex
+1789571748.430	panel_scroll	globe_hex	16.0	6.4	6.4	4	face	settings_sphere				{ "how": "stick", "mode": "edit" }
+1789571749.521	настройка_значение	octa	16.0	6.4	6.5	9	face	settings_sphere				surface=octa
+1789571753.164	panel_scroll	octa	16.0	6.4	6.5	9	face	settings_sphere				{ "how": "stick", "mode": "edit" }
+1789571754.277	настройка_значение	rings	16.0	6.4	6.06	9	face	settings_sphere				surface=rings
+1789571761.898	panel_scroll	rings	16.0	6.4	6.06	9	face	settings_sphere				{ "how": "stick", "mode": "edit" }
+1789571763.478	настройка_значение	fib	16.0	6.4	6.31	15	face	settings_sphere				surface=fib
+1789571769.755	настройка_значение	lens	16.0	6.4	6.4	4	face	settings_sphere				surface=lens
+1789571775.500	настройка_значение	globe	16.0	6.4	6.4	4	face	settings_sphere				surface=globe
+1789571778.955	folder	globe	16.0	6.4	6.4	4	face	settings				{ "folder": "settings", "view": "browse", "items": 4 }
+1789571778.956	intent	globe	16.0	6.4	6.4	4	face	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789571780.456	folder	globe	16.0	6.4	6.4	4	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11 }
+1789571780.456	intent	globe	16.0	6.4	6.4	4	face	settings_sphere				{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789571782.414	настройка_открыта	globe	16.0	6.4	6.4	4	face	settings_sphere				cell_cm
+1789571782.414	intent	globe	16.0	6.4	6.4	4	face	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "cell_cm" }
+1789571783.999	panel_scroll	globe	16.0	6.4	6.4	4	face	settings_sphere				{ "how": "stick", "mode": "edit" }
+1789571786.301	настройка_значение	globe	16.0	5.7	5.58	5	face	settings_sphere				cell_cm=5.7
+1789571786.313	panel_scroll	globe	16.0	5.7	5.58	5	face	settings_sphere				{ "how": "stick", "mode": "edit" }
+1789571786.315	настройка_значение	globe	16.0	5.8	5.58	5	face	settings_sphere				cell_cm=5.8
+1789571786.325	настройка_значение	globe	16.0	5.7	5.58	5	face	settings_sphere				cell_cm=5.7
+1789571786.334	настройка_значение	globe	16.0	5.5	5.58	5	face	settings_sphere				cell_cm=5.5
+1789571786.344	настройка_значение	globe	16.0	5.7	5.58	5	face	settings_sphere				cell_cm=5.7
+1789571786.353	настройка_значение	globe	16.0	5.8	5.58	5	face	settings_sphere				cell_cm=5.8
+1789571786.364	настройка_значение	globe	16.0	5.9	5.58	5	face	settings_sphere				cell_cm=5.9
+1789571786.375	настройка_значение	globe	16.0	6.0	6.4	4	face	settings_sphere				cell_cm=6.0
+1789571786.385	настройка_значение	globe	16.0	6.2	6.4	4	face	settings_sphere				cell_cm=6.2
+1789571786.396	настройка_значение	globe	16.0	6.3	6.4	4	face	settings_sphere				cell_cm=6.3
+1789571786.407	настройка_значение	globe	16.0	6.4	6.4	4	face	settings_sphere				cell_cm=6.4
+1789571786.487	настройка_значение	globe	16.0	6.5	6.4	4	face	settings_sphere				cell_cm=6.5
+1789571786.501	настройка_значение	globe	16.0	6.7	6.4	4	face	settings_sphere				cell_cm=6.7
+1789571786.511	настройка_значение	globe	16.0	6.9	6.4	4	face	settings_sphere				cell_cm=6.9
+1789571786.520	настройка_значение	globe	16.0	7.0	7.56	3	face	settings_sphere				cell_cm=7.0
+1789571786.529	настройка_значение	globe	16.0	7.1	7.56	3	face	settings_sphere				cell_cm=7.1
+1789571786.549	настройка_значение	globe	16.0	7.2	7.56	3	face	settings_sphere				cell_cm=7.2
+1789571786.564	настройка_значение	globe	16.0	7.3	7.56	3	face	settings_sphere				cell_cm=7.3
+1789571786.582	настройка_значение	globe	16.0	7.4	7.56	3	face	settings_sphere				cell_cm=7.4
+1789571786.597	настройка_значение	globe	16.0	7.5	7.56	3	face	settings_sphere				cell_cm=7.5
+1789571786.608	настройка_значение	globe	16.0	7.6	7.56	3	face	settings_sphere				cell_cm=7.6
+1789571786.640	настройка_значение	globe	16.0	7.7	7.56	3	face	settings_sphere				cell_cm=7.7
+1789571786.661	настройка_значение	globe	16.0	7.8	7.56	3	face	settings_sphere				cell_cm=7.8
+1789571786.674	настройка_значение	globe	16.0	7.9	7.56	3	face	settings_sphere				cell_cm=7.9
+1789571786.686	настройка_значение	globe	16.0	8.0	8.35	2	face	settings_sphere				cell_cm=8.0
+1789571786.697	настройка_значение	globe	16.0	8.1	8.35	2	face	settings_sphere				cell_cm=8.1
+1789571786.716	настройка_значение	globe	16.0	8.3	8.35	2	face	settings_sphere				cell_cm=8.3
+1789571786.731	настройка_значение	globe	16.0	8.5	8.35	2	face	settings_sphere				cell_cm=8.5
+1789571786.742	настройка_значение	globe	16.0	8.7	8.35	2	face	settings_sphere				cell_cm=8.7
+1789571786.752	настройка_значение	globe	16.0	8.8	8.35	2	face	settings_sphere				cell_cm=8.8
+1789571786.764	настройка_значение	globe	16.0	8.9	8.35	2	face	settings_sphere				cell_cm=8.9
+1789571786.775	настройка_значение	globe	16.0	9.0	8.35	2	face	settings_sphere				cell_cm=9.0
+1789571786.785	настройка_значение	globe	16.0	9.1	8.35	2	face	settings_sphere				cell_cm=9.1
+1789571786.796	настройка_значение	globe	16.0	9.2	8.35	2	face	settings_sphere				cell_cm=9.2
+1789571786.807	настройка_значение	globe	16.0	9.3	8.35	2	face	settings_sphere				cell_cm=9.3
+1789571786.864	настройка_значение	globe	16.0	9.4	8.35	2	face	settings_sphere				cell_cm=9.4
+1789571786.877	настройка_значение	globe	16.0	9.5	8.35	2	face	settings_sphere				cell_cm=9.5
+1789571786.897	настройка_значение	globe	16.0	9.6	8.35	2	face	settings_sphere				cell_cm=9.6
+1789571786.910	настройка_значение	globe	16.0	9.7	8.35	2	face	settings_sphere				cell_cm=9.7
+1789571786.921	настройка_значение	globe	16.0	9.8	8.35	2	face	settings_sphere				cell_cm=9.8
+1789571786.932	настройка_значение	globe	16.0	9.9	8.35	2	face	settings_sphere				cell_cm=9.9
+1789571786.942	настройка_значение	globe	16.0	10.1	12.05	1	face	settings_sphere				cell_cm=10.1
+1789571786.952	настройка_значение	globe	16.0	10.2	12.05	1	face	settings_sphere				cell_cm=10.2
+1789571786.974	настройка_значение	globe	16.0	10.3	12.05	1	face	settings_sphere				cell_cm=10.3
+1789571786.997	настройка_значение	globe	16.0	10.2	12.05	1	face	settings_sphere				cell_cm=10.2
+1789571787.031	настройка_значение	globe	16.0	10.1	12.05	1	face	settings_sphere				cell_cm=10.1
+1789571787.044	настройка_значение	globe	16.0	10.2	12.05	1	face	settings_sphere				cell_cm=10.2
+1789571787.076	настройка_значение	globe	16.0	10.3	12.05	1	face	settings_sphere				cell_cm=10.3
+1789571787.088	настройка_значение	globe	16.0	10.4	12.05	1	face	settings_sphere				cell_cm=10.4
+1789571787.099	настройка_значение	globe	16.0	10.5	12.05	1	face	settings_sphere				cell_cm=10.5
+1789571787.119	настройка_значение	globe	16.0	10.6	12.05	1	face	settings_sphere				cell_cm=10.6
+1789571787.199	настройка_значение	globe	16.0	10.5	12.05	1	face	settings_sphere				cell_cm=10.5
+1789571787.211	настройка_значение	globe	16.0	10.4	12.05	1	face	settings_sphere				cell_cm=10.4
+1789571787.221	настройка_значение	globe	16.0	10.3	12.05	1	face	settings_sphere				cell_cm=10.3
+1789571787.232	настройка_значение	globe	16.0	10.2	12.05	1	face	settings_sphere				cell_cm=10.2
+1789571787.252	настройка_значение	globe	16.0	10.1	12.05	1	face	settings_sphere				cell_cm=10.1
+1789571787.265	настройка_значение	globe	16.0	10.0	8.35	2	face	settings_sphere				cell_cm=10.0
+1789571787.285	настройка_значение	globe	16.0	9.9	8.35	2	face	settings_sphere				cell_cm=9.9
+1789571787.300	настройка_значение	globe	16.0	9.7	8.35	2	face	settings_sphere				cell_cm=9.7
+1789571787.310	настройка_значение	globe	16.0	9.6	8.35	2	face	settings_sphere				cell_cm=9.6
+1789571787.321	настройка_значение	globe	16.0	9.4	8.35	2	face	settings_sphere				cell_cm=9.4
+1789571787.333	настройка_значение	globe	16.0	9.2	8.35	2	face	settings_sphere				cell_cm=9.2
+1789571787.343	настройка_значение	globe	16.0	9.1	8.35	2	face	settings_sphere				cell_cm=9.1
+1789571787.353	настройка_значение	globe	16.0	8.9	8.35	2	face	settings_sphere				cell_cm=8.9
+1789571787.365	настройка_значение	globe	16.0	8.8	8.35	2	face	settings_sphere				cell_cm=8.8
+1789571787.376	настройка_значение	globe	16.0	8.7	8.35	2	face	settings_sphere				cell_cm=8.7
+1789571787.387	настройка_значение	globe	16.0	8.6	8.35	2	face	settings_sphere				cell_cm=8.6
+1789571787.398	настройка_значение	globe	16.0	8.5	8.35	2	face	settings_sphere				cell_cm=8.5
+1789571787.409	настройка_значение	globe	16.0	8.4	8.35	2	face	settings_sphere				cell_cm=8.4
+1789571787.421	настройка_значение	globe	16.0	8.3	8.35	2	face	settings_sphere				cell_cm=8.3
+1789571787.440	настройка_значение	globe	16.0	8.2	8.35	2	face	settings_sphere				cell_cm=8.2
+1789571787.464	настройка_значение	globe	16.0	8.1	8.35	2	face	settings_sphere				cell_cm=8.1
+1789571787.477	настройка_значение	globe	16.0	8.0	8.35	2	face	settings_sphere				cell_cm=8.0
+1789571787.544	настройка_значение	globe	16.0	7.9	7.56	3	face	settings_sphere				cell_cm=7.9
+1789571787.564	настройка_значение	globe	16.0	7.8	7.56	3	face	settings_sphere				cell_cm=7.8
+1789571787.587	настройка_значение	globe	16.0	7.7	7.56	3	face	settings_sphere				cell_cm=7.7
+1789571787.631	настройка_значение	globe	16.0	7.6	7.56	3	face	settings_sphere				cell_cm=7.6
+1789571787.654	настройка_значение	globe	16.0	7.5	7.56	3	face	settings_sphere				cell_cm=7.5
+1789571787.676	настройка_значение	globe	16.0	7.4	7.56	3	face	settings_sphere				cell_cm=7.4
+1789571787.698	настройка_значение	globe	16.0	7.3	7.56	3	face	settings_sphere				cell_cm=7.3
+1789571787.720	настройка_значение	globe	16.0	7.2	7.56	3	face	settings_sphere				cell_cm=7.2
+1789571787.743	настройка_значение	globe	16.0	7.1	7.56	3	face	settings_sphere				cell_cm=7.1
+1789571787.765	настройка_значение	globe	16.0	7.0	7.56	3	face	settings_sphere				cell_cm=7.0
+1789571787.787	настройка_значение	globe	16.0	6.9	6.4	4	face	settings_sphere				cell_cm=6.9
+1789571787.844	настройка_значение	globe	16.0	6.8	6.4	4	face	settings_sphere				cell_cm=6.8
+1789571787.888	настройка_значение	globe	16.0	6.7	6.4	4	face	settings_sphere				cell_cm=6.7
+1789571787.967	настройка_значение	globe	16.0	6.6	6.4	4	face	settings_sphere				cell_cm=6.6
+1789571788.011	настройка_значение	globe	16.0	6.5	6.4	4	face	settings_sphere				cell_cm=6.5
+1789571788.032	настройка_значение	globe	16.0	6.4	6.4	4	face	settings_sphere				cell_cm=6.4
+1789571788.077	настройка_значение	globe	16.0	6.5	6.4	4	face	settings_sphere				cell_cm=6.5
+1789571788.144	настройка_значение	globe	16.0	6.4	6.4	4	face	settings_sphere				cell_cm=6.4
+1789571788.311	настройка_значение	globe	16.0	6.3	6.4	4	face	settings_sphere				cell_cm=6.3
+1789571788.332	настройка_значение	globe	16.0	6.2	6.4	4	face	settings_sphere				cell_cm=6.2
+1789571788.400	настройка_значение	globe	16.0	6.1	6.4	4	face	settings_sphere				cell_cm=6.1
+1789571788.444	настройка_значение	globe	16.0	6.0	6.4	4	face	settings_sphere				cell_cm=6.0
+1789571788.489	настройка_значение	globe	16.0	5.9	5.58	5	face	settings_sphere				cell_cm=5.9
+1789571788.600	настройка_значение	globe	16.0	5.8	5.58	5	face	settings_sphere				cell_cm=5.8
+1789571788.621	настройка_значение	globe	16.0	5.7	5.58	5	face	settings_sphere				cell_cm=5.7
+1789571788.655	настройка_значение	globe	16.0	5.8	5.58	5	face	settings_sphere				cell_cm=5.8
+1789571788.767	настройка_значение	globe	16.0	5.7	5.58	5	face	settings_sphere				cell_cm=5.7
+1789571788.788	настройка_значение	globe	16.0	5.8	5.58	5	face	settings_sphere				cell_cm=5.8
+1789571788.878	настройка_значение	globe	16.0	5.7	5.58	5	face	settings_sphere				cell_cm=5.7
+1789571788.899	настройка_значение	globe	16.0	5.6	5.58	5	face	settings_sphere				cell_cm=5.6
+1789571788.944	настройка_значение	globe	16.0	5.7	5.58	5	face	settings_sphere				cell_cm=5.7
+1789571788.976	настройка_значение	globe	16.0	5.8	5.58	5	face	settings_sphere				cell_cm=5.8
+1789571788.999	настройка_значение	globe	16.0	5.9	5.58	5	face	settings_sphere				cell_cm=5.9
+1789571789.021	настройка_значение	globe	16.0	5.8	5.58	5	face	settings_sphere				cell_cm=5.8
+1789571789.042	настройка_значение	globe	16.0	5.7	5.58	5	face	settings_sphere				cell_cm=5.7
+1789571789.178	настройка_значение	globe	16.0	5.6	5.58	5	face	settings_sphere				cell_cm=5.6
+1789571789.256	настройка_значение	globe	16.0	5.5	5.58	5	face	settings_sphere				cell_cm=5.5
+1789571789.269	настройка_значение	globe	16.0	5.4	5.58	5	face	settings_sphere				cell_cm=5.4
+1789571789.288	настройка_значение	globe	16.0	5.3	5.1	6	face	settings_sphere				cell_cm=5.3
+1789571789.301	настройка_значение	globe	16.0	5.2	5.1	6	face	settings_sphere				cell_cm=5.2
+1789571789.311	настройка_значение	globe	16.0	5.1	5.1	6	face	settings_sphere				cell_cm=5.1
+1789571789.330	настройка_значение	globe	16.0	5.0	5.1	6	face	settings_sphere				cell_cm=5.0
+1789571789.344	настройка_значение	globe	16.0	4.9	5.1	6	face	settings_sphere				cell_cm=4.9
+1789571789.374	настройка_значение	globe	16.0	4.8	5.1	6	face	settings_sphere				cell_cm=4.8
+1789571789.421	настройка_значение	globe	16.0	4.7	4.4	7	face	settings_sphere				cell_cm=4.7
+1789571789.442	настройка_значение	globe	16.0	4.6	4.4	7	face	settings_sphere				cell_cm=4.6
+1789571789.463	настройка_значение	globe	16.0	4.4	4.4	7	face	settings_sphere				cell_cm=4.4
+1789571789.477	настройка_значение	globe	16.0	4.3	4.4	7	face	settings_sphere				cell_cm=4.3
+1789571789.491	настройка_значение	globe	16.0	4.2	4.03	8	face	settings_sphere				cell_cm=4.2
+1789571789.503	настройка_значение	globe	16.0	4.1	4.03	8	face	settings_sphere				cell_cm=4.1
+1789571789.515	настройка_значение	globe	16.0	4.0	4.03	8	face	settings_sphere				cell_cm=4.0
+1789571789.538	настройка_значение	globe	16.0	3.9	3.79	9	face	settings_sphere				cell_cm=3.9
+1789571789.586	настройка_значение	globe	16.0	3.8	3.79	9	face	settings_sphere				cell_cm=3.8
+1789571789.605	настройка_значение	globe	16.0	3.7	3.79	9	face	settings_sphere				cell_cm=3.7
+1789571789.623	настройка_значение	globe	16.0	3.6	3.6	10	face	settings_sphere				cell_cm=3.6
+1789571789.635	настройка_значение	globe	16.0	3.5	3.6	10	face	settings_sphere				cell_cm=3.5
+1789571789.645	настройка_значение	globe	16.0	3.4	3.23	11	face	settings_sphere				cell_cm=3.4
+1789571789.667	настройка_значение	globe	16.0	3.3	3.23	11	face	settings_sphere				cell_cm=3.3
+1789571789.792	настройка_значение	globe	16.0	3.4	3.23	11	face	settings_sphere				cell_cm=3.4
+1789571789.820	настройка_значение	globe	16.0	3.3	3.23	11	face	settings_sphere				cell_cm=3.3
+1789571789.844	настройка_значение	globe	16.0	3.2	3.23	11	face	settings_sphere				cell_cm=3.2
+1789571789.856	настройка_значение	globe	16.0	3.1	2.98	12	face	settings_sphere				cell_cm=3.1
+1789571789.868	настройка_значение	globe	16.0	2.9	2.98	12	face	settings_sphere				cell_cm=2.9
+1789571789.879	настройка_значение	globe	16.0	2.8	2.81	13	face	settings_sphere				cell_cm=2.8
+1789571789.890	настройка_значение	globe	16.0	2.7	2.81	13	face	settings_sphere				cell_cm=2.7
+1789571789.900	настройка_значение	globe	16.0	2.6	2.81	13	face	settings_sphere				cell_cm=2.6
+1789571789.912	настройка_значение	globe	16.0	2.5	2.81	13	face	settings_sphere				cell_cm=2.5
+1789571789.924	настройка_значение	globe	16.0	2.4	2.81	13	face	settings_sphere				cell_cm=2.4
+1789571789.935	настройка_значение	globe	16.0	2.3	2.81	13	face	settings_sphere				cell_cm=2.3
+1789571789.945	настройка_значение	globe	16.0	2.2	2.81	13	face	settings_sphere				cell_cm=2.2
+1789571789.958	настройка_значение	globe	16.0	2.1	2.81	13	face	settings_sphere				cell_cm=2.1
+1789571789.987	настройка_значение	globe	16.0	2.0	2.81	13	face	settings_sphere				cell_cm=2.0
+1789571790.035	настройка_значение	globe	16.0	2.1	2.81	13	face	settings_sphere				cell_cm=2.1
+1789571790.114	настройка_значение	globe	16.0	2.2	2.81	13	face	settings_sphere				cell_cm=2.2
+1789571790.134	настройка_значение	globe	16.0	2.3	2.81	13	face	settings_sphere				cell_cm=2.3
+1789571790.156	настройка_значение	globe	16.0	2.2	2.81	13	face	settings_sphere				cell_cm=2.2
+1789571790.178	настройка_значение	globe	16.0	2.1	2.81	13	face	settings_sphere				cell_cm=2.1
+1789571790.191	настройка_значение	globe	16.0	2.0	2.81	13	face	settings_sphere				cell_cm=2.0
+1789571790.202	настройка_значение	globe	16.0	1.9	2.81	13	face	settings_sphere				cell_cm=1.9
+1789571790.215	настройка_значение	globe	16.0	1.8	2.81	13	face	settings_sphere				cell_cm=1.8
+1789571790.291	настройка_значение	globe	16.0	1.7	2.81	13	face	settings_sphere				cell_cm=1.7
+1789571790.335	настройка_значение	globe	16.0	1.6	2.81	13	face	settings_sphere				cell_cm=1.6
+1789571790.354	настройка_значение	globe	16.0	1.5	2.81	13	face	settings_sphere				cell_cm=1.5
+1789571792.189	панель_кнопка	globe	16.0	1.5	2.81	13	face	settings_sphere				done
+1789571792.192	настройка_сохранена	globe	16.0	1.5	2.81	13	face	settings_sphere				cell_cm=1.5
+1789571799.049	настройка_открыта	globe	16.0	1.5	2.81	13	face	settings_sphere				hand_rotation
+1789571799.050	intent	globe	16.0	1.5	2.81	13	face	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "hand_rotation" }
+1789571801.913	настройка_значение	globe	16.0	1.5	2.81	13	ball	settings_sphere				hand_rotation=ball
+1789571807.646	настройка_значение	globe	16.0	1.5	2.81	13	stand	settings_sphere				hand_rotation=stand
+1789571816.602	настройка_значение	globe	16.0	1.5	2.81	13	face	settings_sphere				hand_rotation=face
+1789571819.936	настройка_значение	globe	16.0	1.5	2.81	13	ball	settings_sphere				hand_rotation=ball
+1789571822.814	панель_кнопка	globe	16.0	1.5	2.81	13	ball	settings_sphere				done
+1789571822.815	настройка_сохранена	globe	16.0	1.5	2.81	13	ball	settings_sphere				hand_rotation=ball
+1789571834.097	настройка_открыта	globe	16.0	1.5	2.81	13	ball	settings_sphere				panel_side
+1789571834.097	intent	globe	16.0	1.5	2.81	13	ball	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "panel_side" }
+1789571836.404	панель_кнопка	globe	16.0	1.5	2.81	13	ball	settings_sphere				done
+1789571836.408	настройка_сохранена	globe	16.0	1.5	2.81	13	ball	settings_sphere				panel_side=top
+1789571848.953	настройка_открыта	globe	16.0	1.5	2.81	13	ball	settings_sphere				radius_cm
+1789571848.953	intent	globe	16.0	1.5	2.81	13	ball	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "radius_cm" }
+1789571849.963	настройка_значение	globe	17.0	1.5	2.99	13	ball	settings_sphere				radius_cm=17.0
+1789571849.987	настройка_значение	globe	17.5	1.5	3.08	13	ball	settings_sphere				radius_cm=17.5
+1789571850.011	настройка_значение	globe	18.0	1.5	3.17	13	ball	settings_sphere				radius_cm=18.0
+1789571850.035	настройка_значение	globe	18.5	1.5	3.25	13	ball	settings_sphere				radius_cm=18.5
+1789571850.048	настройка_значение	globe	19.5	1.5	3.43	13	ball	settings_sphere				radius_cm=19.5
+1789571850.063	настройка_значение	globe	20.0	1.5	3.52	13	ball	settings_sphere				radius_cm=20.0
+1789571851.560	панель_кнопка	globe	20.0	1.5	3.52	13	ball	settings_sphere				done
+1789571851.561	настройка_сохранена	globe	20.0	1.5	3.52	13	ball	settings_sphere				radius_cm=20.0
+1789571858.742	настройка_открыта	globe	20.0	1.5	3.52	13	ball	settings_sphere				cell_cm
+1789571858.743	intent	globe	20.0	1.5	3.52	13	ball	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "cell_cm" }
+1789571863.539	панель_кнопка	globe	20.0	1.5	3.52	13	ball	settings_sphere				done
+1789571863.543	настройка_сохранена	globe	20.0	1.5	3.52	13	ball	settings_sphere				cell_cm=1.5
+1789571866.332	настройка_открыта	globe	20.0	1.5	3.52	13	ball	settings_sphere				radius_cm
+1789571866.332	intent	globe	20.0	1.5	3.52	13	ball	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "radius_cm" }
+1789571867.297	настройка_значение	globe	8.5	1.5	1.5	13	ball	settings_sphere				radius_cm=8.5
+1789571867.495	intent	globe	8.5	1.5	1.5	13	ball	settings_sphere				{ "do": "none", "view": "browse", "folder": "settings_sphere" }
+1789571870.165	настройка_значение	globe	14.0	1.5	2.46	13	ball	settings_sphere				radius_cm=14.0
+1789571870.186	настройка_значение	globe	12.5	1.5	2.2	13	ball	settings_sphere				radius_cm=12.5
+1789571870.208	настройка_значение	globe	13.0	1.5	2.29	13	ball	settings_sphere				radius_cm=13.0
+1789571870.225	настройка_значение	globe	12.5	1.5	2.2	13	ball	settings_sphere				radius_cm=12.5
+1789571870.303	настройка_значение	globe	13.0	1.5	2.29	13	ball	settings_sphere				radius_cm=13.0
+1789571873.051	панель_кнопка	globe	13.0	1.5	2.29	13	ball	settings_sphere				done
+1789571873.052	настройка_сохранена	globe	13.0	1.5	2.29	13	ball	settings_sphere				radius_cm=13.0
+1789571879.800	настройка_открыта	globe	13.0	1.5	2.29	13	ball	settings_sphere				cell_cm
+1789571879.800	intent	globe	13.0	1.5	2.29	13	ball	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "cell_cm" }
+1789571880.864	настройка_значение	globe	13.0	5.4	5.2	4	ball	settings_sphere				cell_cm=5.4
+1789571880.919	настройка_значение	globe	13.0	5.5	5.2	4	ball	settings_sphere				cell_cm=5.5
+1789571880.951	настройка_значение	globe	13.0	5.4	5.2	4	ball	settings_sphere				cell_cm=5.4
+1789571881.019	настройка_значение	globe	13.0	5.5	5.2	4	ball	settings_sphere				cell_cm=5.5
+1789571882.453	настройка_значение	globe	13.0	3.2	3.27	8	ball	settings_sphere				cell_cm=3.2
+1789571882.598	настройка_значение	globe	13.0	3.1	3.08	9	ball	settings_sphere				cell_cm=3.1
+1789571882.621	настройка_значение	globe	13.0	3.0	3.08	9	ball	settings_sphere				cell_cm=3.0
+1789571882.636	настройка_значение	globe	13.0	2.9	2.92	10	ball	settings_sphere				cell_cm=2.9
+1789571882.656	настройка_значение	globe	13.0	2.8	2.92	10	ball	settings_sphere				cell_cm=2.8
+1789571882.717	настройка_значение	globe	13.0	2.9	2.92	10	ball	settings_sphere				cell_cm=2.9
+1789571885.487	настройка_значение	globe	13.0	5.4	5.2	4	ball	settings_sphere				cell_cm=5.4
+1789571885.564	настройка_значение	globe	13.0	5.5	5.2	4	ball	settings_sphere				cell_cm=5.5
+1789571890.542	панель_кнопка	globe	13.0	5.5	5.2	4	ball	settings_sphere				done
+1789571890.542	настройка_сохранена	globe	13.0	5.5	5.2	4	ball	settings_sphere				cell_cm=5.5
+1789571897.834	настройка_открыта	globe	13.0	5.5	5.2	4	ball	settings_sphere				cell_cm
+1789571897.835	intent	globe	13.0	5.5	5.2	4	ball	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "cell_cm" }
+1789571899.554	настройка_значение	globe	13.0	6.2	6.14	3	ball	settings_sphere				cell_cm=6.2
+1789571901.821	настройка_значение	globe	13.0	5.8	6.14	3	ball	settings_sphere				cell_cm=5.8
+1789571901.834	настройка_значение	globe	13.0	5.9	6.14	3	ball	settings_sphere				cell_cm=5.9
+1789571901.899	настройка_значение	globe	13.0	5.8	6.14	3	ball	settings_sphere				cell_cm=5.8
+1789571901.911	настройка_значение	globe	13.0	5.7	6.14	3	ball	settings_sphere				cell_cm=5.7
+1789571901.923	настройка_значение	globe	13.0	5.6	5.2	4	ball	settings_sphere				cell_cm=5.6
+1789571901.942	настройка_значение	globe	13.0	5.5	5.2	4	ball	settings_sphere				cell_cm=5.5
+1789571901.964	настройка_значение	globe	13.0	5.6	5.2	4	ball	settings_sphere				cell_cm=5.6
+1789571902.566	настройка_значение	globe	13.0	5.5	5.2	4	ball	settings_sphere				cell_cm=5.5
+1789571902.579	настройка_значение	globe	13.0	5.6	5.2	4	ball	settings_sphere				cell_cm=5.6
+1789571902.590	настройка_значение	globe	13.0	5.7	6.14	3	ball	settings_sphere				cell_cm=5.7
+1789571902.605	настройка_значение	globe	13.0	5.8	6.14	3	ball	settings_sphere				cell_cm=5.8
+1789571902.618	настройка_значение	globe	13.0	5.9	6.14	3	ball	settings_sphere				cell_cm=5.9
+1789571902.663	настройка_значение	globe	13.0	6.0	6.14	3	ball	settings_sphere				cell_cm=6.0
+1789571902.676	настройка_значение	globe	13.0	6.1	6.14	3	ball	settings_sphere				cell_cm=6.1
+1789571902.687	настройка_значение	globe	13.0	6.2	6.14	3	ball	settings_sphere				cell_cm=6.2
+1789571902.697	настройка_значение	globe	13.0	6.3	6.14	3	ball	settings_sphere				cell_cm=6.3
+1789571902.707	настройка_значение	globe	13.0	6.4	6.14	3	ball	settings_sphere				cell_cm=6.4
+1789571902.719	настройка_значение	globe	13.0	6.5	6.78	2	ball	settings_sphere				cell_cm=6.5
+1789571902.786	настройка_значение	globe	13.0	6.4	6.14	3	ball	settings_sphere				cell_cm=6.4
+1789571902.806	настройка_значение	globe	13.0	6.3	6.14	3	ball	settings_sphere				cell_cm=6.3
+1789571902.874	настройка_значение	globe	13.0	6.4	6.14	3	ball	settings_sphere				cell_cm=6.4
+1789571902.895	настройка_значение	globe	13.0	6.3	6.14	3	ball	settings_sphere				cell_cm=6.3
+1789571902.928	настройка_значение	globe	13.0	6.2	6.14	3	ball	settings_sphere				cell_cm=6.2
+1789571902.943	настройка_значение	globe	13.0	6.1	6.14	3	ball	settings_sphere				cell_cm=6.1
+1789571902.974	настройка_значение	globe	13.0	6.0	6.14	3	ball	settings_sphere				cell_cm=6.0
+1789571903.007	настройка_значение	globe	13.0	5.9	6.14	3	ball	settings_sphere				cell_cm=5.9
+1789571903.087	настройка_значение	globe	13.0	5.8	6.14	3	ball	settings_sphere				cell_cm=5.8
+1789571903.220	настройка_значение	globe	13.0	5.9	6.14	3	ball	settings_sphere				cell_cm=5.9
+1789571903.252	настройка_значение	globe	13.0	6.0	6.14	3	ball	settings_sphere				cell_cm=6.0
+1789571903.309	настройка_значение	globe	13.0	6.1	6.14	3	ball	settings_sphere				cell_cm=6.1
+1789571903.322	настройка_значение	globe	13.0	6.0	6.14	3	ball	settings_sphere				cell_cm=6.0
+1789571903.332	настройка_значение	globe	13.0	5.9	6.14	3	ball	settings_sphere				cell_cm=5.9
+1789571903.343	настройка_значение	globe	13.0	5.7	6.14	3	ball	settings_sphere				cell_cm=5.7
+1789571903.354	настройка_значение	globe	13.0	5.5	5.2	4	ball	settings_sphere				cell_cm=5.5
+1789571904.010	настройка_значение	globe	13.0	5.8	6.14	3	ball	settings_sphere				cell_cm=5.8
+1789571904.065	настройка_значение	globe	13.0	5.9	6.14	3	ball	settings_sphere				cell_cm=5.9
+1789571904.097	настройка_значение	globe	13.0	6.0	6.14	3	ball	settings_sphere				cell_cm=6.0
+1789571904.165	настройка_значение	globe	13.0	5.9	6.14	3	ball	settings_sphere				cell_cm=5.9
+1789571904.220	настройка_значение	globe	13.0	5.8	6.14	3	ball	settings_sphere				cell_cm=5.8
+1789571905.243	настройка_значение	globe	13.0	6.1	6.14	3	ball	settings_sphere				cell_cm=6.1
+1789571905.276	настройка_значение	globe	13.0	6.0	6.14	3	ball	settings_sphere				cell_cm=6.0
+1789571905.343	настройка_значение	globe	13.0	5.9	6.14	3	ball	settings_sphere				cell_cm=5.9
+1789571906.976	panel_scroll	globe	13.0	5.9	6.14	3	ball	settings_sphere				{ "how": "stick", "mode": "edit" }
+1789571907.710	настройка_значение	globe	13.0	6.0	6.14	3	ball	settings_sphere				cell_cm=6.0
+1789571913.521	panel_scroll	globe	13.0	6.0	6.14	3	ball	settings_sphere				{ "how": "stick", "mode": "edit" }
+1789571914.233	настройка_значение	globe	13.0	7.0	6.78	2	ball	settings_sphere				cell_cm=7.0
+1789571917.388	panel_scroll	globe	13.0	7.0	6.78	2	ball	settings_sphere				{ "how": "stick", "mode": "edit" }
+1789571919.377	panel_scroll	globe	13.0	7.0	6.78	2	ball	settings_sphere				{ "how": "stick", "mode": "edit" }
+1789571920.622	настройка_значение	globe	13.0	9.0	9.79	1	ball	settings_sphere				cell_cm=9.0
+1789571927.377	panel_scroll	globe	13.0	9.0	9.79	1	ball	settings_sphere				{ "how": "stick", "mode": "edit" }
+1789571928.556	настройка_значение	globe	13.0	7.0	6.78	2	ball	settings_sphere				cell_cm=7.0
+1789571928.568	panel_scroll	globe	13.0	7.0	6.78	2	ball	settings_sphere				{ "how": "stick", "mode": "edit" }
+1789571931.600	panel_scroll	globe	13.0	7.0	6.78	2	ball	settings_sphere				{ "how": "stick", "mode": "edit" }
+1789571932.790	настройка_значение	globe	13.0	6.0	6.14	3	ball	settings_sphere				cell_cm=6.0
+1789571932.802	panel_scroll	globe	13.0	6.0	6.14	3	ball	settings_sphere				{ "how": "stick", "mode": "edit" }
+1789571938.991	настройка_значение	globe	13.0	4.0	4.14	6	ball	settings_sphere				cell_cm=4.0
+1789571949.314	настройка_значение	globe	13.0	4.5	4.53	5	ball	settings_sphere				cell_cm=4.5
+1789571960.704	настройка_значение	globe	13.0	4.2	4.14	6	ball	settings_sphere				cell_cm=4.2
+1789571966.059	панель_кнопка	globe	13.0	4.2	4.14	6	ball	settings_sphere				done
+1789571966.060	настройка_сохранена	globe	13.0	4.2	4.14	6	ball	settings_sphere				cell_cm=4.2
+1789571973.027	folder	globe	13.0	4.2	4.14	6	ball	settings				{ "folder": "settings", "view": "browse", "items": 4 }
+1789571973.027	intent	globe	13.0	4.2	4.14	6	ball	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789571975.794	folder	globe	13.0	4.2	4.14	6	ball					{ "folder": "", "view": "browse", "items": 6 }
+1789571975.794	intent	globe	13.0	4.2	4.14	6	ball					{ "do": "reload", "view": "browse", "folder": "" }
+1789571980.049	folder	globe	13.0	4.2	4.14	6	ball					{ "folder": "", "view": "search", "items": 1 }
+1789571980.052	поиск_открыт	globe	13.0	4.2	4.14	6	ball					
+1789571980.052	intent	globe	13.0	4.2	4.14	6	ball					{ "do": "search", "view": "search", "folder": "" }
+1789571984.819	folder	globe	13.0	4.2	4.14	6	ball					{ "folder": "", "view": "search", "items": 14 }
+1789571984.820	intent	globe	13.0	4.2	4.14	6	ball					{ "do": "reload", "view": "search", "folder": "" }
+1789571984.820	поиск_запрос	globe	13.0	4.2	4.14	6	ball					м → 13
+1789571986.061	folder	globe	13.0	4.2	4.14	6	ball					{ "folder": "", "view": "search", "items": 4 }
+1789571986.061	intent	globe	13.0	4.2	4.14	6	ball					{ "do": "reload", "view": "search", "folder": "" }
+1789571986.061	поиск_запрос	globe	13.0	4.2	4.14	6	ball					мо → 3
+1789571986.605	folder	globe	13.0	4.2	4.14	6	ball					{ "folder": "", "view": "search", "items": 3 }
+1789571986.605	intent	globe	13.0	4.2	4.14	6	ball					{ "do": "reload", "view": "search", "folder": "" }
+1789571986.605	поиск_запрос	globe	13.0	4.2	4.14	6	ball					мос → 2
+1789571987.816	folder	globe	13.0	4.2	4.14	6	ball					{ "folder": "", "view": "search", "items": 3 }
+1789571987.817	intent	globe	13.0	4.2	4.14	6	ball					{ "do": "reload", "view": "search", "folder": "" }
+1789571987.817	поиск_запрос	globe	13.0	4.2	4.14	6	ball					мост → 2
+1789571989.874	folder	globe	13.0	4.2	4.14	6	ball	assets				{ "folder": "assets", "view": "browse", "items": 7 }
+1789571989.874	select	globe	13.0	4.2	4.14	6	ball	assets				{ "do": "default", "view": "browse", "folder": "assets", "item": "asset_bridge", "title": "Мост" }
+1789571989.875	toggle	globe	13.0	4.2	4.14	6	ball	assets				{ "open": false }
+1789571992.595	folder	globe	13.0	4.2	4.14	6	ball	assets				{ "folder": "assets", "view": "browse", "items": 7 }
+1789571992.595	toggle	globe	13.0	4.2	4.14	6	ball	assets				{ "open": true }
+1789571996.262	folder	globe	13.0	4.2	4.14	6	ball	files				{ "folder": "files", "view": "browse", "items": 4 }
+1789571996.262	intent	globe	13.0	4.2	4.14	6	ball	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789571997.029	folder	globe	13.0	4.2	4.14	6	ball					{ "folder": "", "view": "browse", "items": 6 }
+1789571997.029	intent	globe	13.0	4.2	4.14	6	ball					{ "do": "reload", "view": "browse", "folder": "" }
+1789572002.596	folder	globe	13.0	4.2	4.14	6	ball	files				{ "folder": "files", "view": "browse", "items": 4 }
+1789572002.596	intent	globe	13.0	4.2	4.14	6	ball	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789572004.996	folder	globe	13.0	4.2	4.14	6	ball	assets				{ "folder": "assets", "view": "browse", "items": 7 }
+1789572004.996	intent	globe	13.0	4.2	4.14	6	ball	assets				{ "do": "reload", "view": "browse", "folder": "assets" }
+1789572006.829	select	globe	13.0	4.2	4.14	6	ball	assets				{ "do": "default", "view": "browse", "folder": "assets", "item": "asset_stones", "title": "Камни" }
+1789572006.829	toggle	globe	13.0	4.2	4.14	6	ball	assets				{ "open": false }
+1789572008.785	folder	globe	13.0	4.2	4.14	6	ball	assets				{ "folder": "assets", "view": "browse", "items": 7 }
+1789572008.786	toggle	globe	13.0	4.2	4.14	6	ball	assets				{ "open": true }
+1789572010.595	shake	globe	13.0	4.2	4.14	6	ball					{ "folder": "" }
+1789572010.596	folder	globe	13.0	4.2	4.14	6	ball					{ "folder": "", "view": "browse", "items": 6 }
+1789572010.599	intent	globe	13.0	4.2	4.14	6	ball					{ "do": "reload", "view": "browse", "folder": "" }
+1789572014.530	folder	globe	13.0	4.2	4.14	6	ball	files				{ "folder": "files", "view": "browse", "items": 4 }
+1789572014.530	intent	globe	13.0	4.2	4.14	6	ball	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789572015.096	folder	globe	13.0	4.2	4.14	6	ball	assets				{ "folder": "assets", "view": "browse", "items": 7 }
+1789572015.097	intent	globe	13.0	4.2	4.14	6	ball	assets				{ "do": "reload", "view": "browse", "folder": "assets" }
+1789572021.163	shake	globe	13.0	4.2	4.14	6	ball					{ "folder": "" }
+1789572021.164	folder	globe	13.0	4.2	4.14	6	ball					{ "folder": "", "view": "browse", "items": 6 }
+1789572021.164	intent	globe	13.0	4.2	4.14	6	ball					{ "do": "reload", "view": "browse", "folder": "" }
+1789572027.520	intent	globe	13.0	4.2	4.14	6	ball					{ "do": "tasks", "view": "browse", "folder": "" }
+1789572029.697	задание	globe	13.0	4.2	4.14	6	ball		asset_stones			
+1789572031.676	folder	globe	13.0	4.2	4.14	6	ball	files	asset_stones		1979	{ "folder": "files", "view": "browse", "items": 4 }
+1789572031.676	intent	globe	13.0	4.2	4.14	6	ball	files	asset_stones		1979	{ "do": "reload", "view": "browse", "folder": "files" }
+1789572031.687	active	globe	13.0	4.2	4.14	6	ball	files	asset_stones		1989	{ "key": "44", "slot": 0 }
+1789572033.153	folder	globe	13.0	4.2	4.14	6	ball	assets	asset_stones		3456	{ "folder": "assets", "view": "browse", "items": 7 }
+1789572033.154	intent	globe	13.0	4.2	4.14	6	ball	assets	asset_stones		3456	{ "do": "reload", "view": "browse", "folder": "assets" }
+1789572033.164	active	globe	13.0	4.2	4.14	6	ball	assets	asset_stones		3467	{ "key": "45", "slot": 1 }
+1789572034.464	active	globe	13.0	4.2	4.14	6	ball	assets	asset_stones		4767	{ "key": "47", "slot": 0 }
+1789572034.987	select	globe	13.0	4.2	4.14	6	ball	assets	asset_stones	да	5289	{ "do": "default", "view": "browse", "folder": "assets", "item": "asset_stones", "title": "Камни" }
+1789572034.987	toggle	globe	13.0	4.2	4.14	6	ball	assets				{ "open": false }
+1789572036.020	задание	globe	13.0	4.2	4.14	6	ball	assets	logic_timer			
+1789572037.609	folder	globe	13.0	4.2	4.14	6	ball	assets	logic_timer		1589	{ "folder": "assets", "view": "browse", "items": 7 }
+1789572037.609	toggle	globe	13.0	4.2	4.14	6	ball	assets	logic_timer		1589	{ "open": true }
+1789572037.620	active	globe	13.0	4.2	4.14	6	ball	assets	logic_timer		1600	{ "key": "35", "slot": 3 }
+1789572037.964	active	globe	13.0	4.2	4.14	6	ball	assets	logic_timer		1944	{ "key": "47", "slot": 0 }
+1789572038.665	active	globe	13.0	4.2	4.14	6	ball	assets	logic_timer		2644	{ "key": "36", "slot": -1 }
+1789572039.243	folder	globe	13.0	4.2	4.14	6	ball	files	logic_timer		3223	{ "folder": "files", "view": "browse", "items": 4 }
+1789572039.243	intent	globe	13.0	4.2	4.14	6	ball	files	logic_timer		3223	{ "do": "reload", "view": "browse", "folder": "files" }
+1789572039.253	active	globe	13.0	4.2	4.14	6	ball	files	logic_timer		3233	{ "key": "47", "slot": -2 }
+1789572039.809	active	globe	13.0	4.2	4.14	6	ball	files	logic_timer		3788	{ "key": "44", "slot": 0 }
+1789572040.931	active	globe	13.0	4.2	4.14	6	ball	files	logic_timer		4911	{ "key": "7", "slot": 2 }
+1789572041.766	folder	globe	13.0	4.2	4.14	6	ball	logic	logic_timer		5745	{ "folder": "logic", "view": "browse", "items": 5 }
+1789572041.766	intent	globe	13.0	4.2	4.14	6	ball	logic	logic_timer		5746	{ "do": "reload", "view": "browse", "folder": "logic" }
+1789572041.776	active	globe	13.0	4.2	4.14	6	ball	logic	logic_timer		5756	{ "key": "7", "slot": 0 }
+1789572044.176	active	globe	13.0	4.2	4.14	6	ball	logic	logic_timer		8156	{ "key": "4", "slot": 3 }
+1789572044.710	select	globe	13.0	4.2	4.14	6	ball	logic	logic_timer	да	8690	{ "do": "default", "view": "browse", "folder": "logic", "item": "logic_timer", "title": "Таймер" }
+1789572044.710	toggle	globe	13.0	4.2	4.14	6	ball	logic				{ "open": false }
+1789572045.476	задание	globe	13.0	4.2	4.14	6	ball	logic	tree_birch			
+1789572046.643	folder	globe	13.0	4.2	4.14	6	ball	logic	tree_birch		1167	{ "folder": "logic", "view": "browse", "items": 5 }
+1789572046.643	toggle	globe	13.0	4.2	4.14	6	ball	logic	tree_birch		1167	{ "open": true }
+1789572046.654	active	globe	13.0	4.2	4.14	6	ball	logic	tree_birch		1177	{ "key": "15", "slot": 4 }
+1789572046.898	active	globe	13.0	4.2	4.14	6	ball	logic	tree_birch		1421	{ "key": "3", "slot": -2 }
+1789572047.176	active	globe	13.0	4.2	4.14	6	ball	logic	tree_birch		1699	{ "key": "4", "slot": 0 }
+1789572047.320	active	globe	13.0	4.2	4.14	6	ball	logic	tree_birch		1844	{ "key": "7", "slot": -1 }
+1789572047.865	folder	globe	13.0	4.2	4.14	6	ball	files	tree_birch		2389	{ "folder": "files", "view": "browse", "items": 4 }
+1789572047.866	intent	globe	13.0	4.2	4.14	6	ball	files	tree_birch		2389	{ "do": "reload", "view": "browse", "folder": "files" }
+1789572047.876	active	globe	13.0	4.2	4.14	6	ball	files	tree_birch		2400	{ "key": "42", "slot": -2 }
+1789572048.376	active	globe	13.0	4.2	4.14	6	ball	files	tree_birch		2900	{ "key": "7", "slot": 2 }
+1789572048.743	active	globe	13.0	4.2	4.14	6	ball	files	tree_birch		3267	{ "key": "44", "slot": 0 }
+1789572049.133	folder	globe	13.0	4.2	4.14	6	ball	assets	tree_birch		3656	{ "folder": "assets", "view": "browse", "items": 7 }
+1789572049.133	intent	globe	13.0	4.2	4.14	6	ball	assets	tree_birch		3657	{ "do": "reload", "view": "browse", "folder": "assets" }
+1789572049.143	active	globe	13.0	4.2	4.14	6	ball	assets	tree_birch		3667	{ "key": "35", "slot": 3 }
+1789572049.888	active	globe	13.0	4.2	4.14	6	ball	assets	tree_birch		4412	{ "key": "47", "slot": 0 }
+1789572051.410	active	globe	13.0	4.2	4.14	6	ball	assets	tree_birch		5934	{ "key": "44", "slot": 2 }
+1789572051.866	folder	globe	13.0	4.2	4.14	6	ball	trees	tree_birch		6390	{ "folder": "trees", "view": "browse", "items": 5 }
+1789572051.866	intent	globe	13.0	4.2	4.14	6	ball	trees	tree_birch		6390	{ "do": "reload", "view": "browse", "folder": "trees" }
+1789572051.877	active	globe	13.0	4.2	4.14	6	ball	trees	tree_birch		6400	{ "key": "44", "slot": 0 }
+1789572052.955	select	globe	13.0	4.2	4.14	6	ball	trees	tree_birch	да	7479	{ "do": "default", "view": "browse", "folder": "trees", "item": "tree_birch", "title": "Берёза" }
+1789572052.955	toggle	globe	13.0	4.2	4.14	6	ball	trees				{ "open": false }
+1789572054.744	folder	globe	13.0	4.2	4.14	6	ball	trees				{ "folder": "trees", "view": "browse", "items": 5 }
+1789572054.744	toggle	globe	13.0	4.2	4.14	6	ball	trees				{ "open": true }
+1789572056.122	folder	globe	13.0	4.2	4.14	6	ball	assets				{ "folder": "assets", "view": "browse", "items": 7 }
+1789572056.122	intent	globe	13.0	4.2	4.14	6	ball	assets				{ "do": "reload", "view": "browse", "folder": "assets" }
+1789572057.832	shake	globe	13.0	4.2	4.14	6	ball					{ "folder": "" }
+1789572057.833	folder	globe	13.0	4.2	4.14	6	ball					{ "folder": "", "view": "browse", "items": 6 }
+1789572057.833	intent	globe	13.0	4.2	4.14	6	ball					{ "do": "reload", "view": "browse", "folder": "" }
+1789572060.611	intent	globe	13.0	4.2	4.14	6	ball					{ "do": "exit", "view": "browse", "folder": "" }
+1789572060.613	выход	globe	13.0	4.2	4.14	6	ball					выгрузка в /storage/emulated/0/Download/VRGE/2026-09-16_20-21-00

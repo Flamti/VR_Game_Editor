@@ -25,10 +25,17 @@ const VIEW_SIZE := Vector2i(512, 640)
 const QUAD := Vector2(0.1725, 0.215625)
 const TOAST_MS := 5000
 
-## Окно прокрутки и колонка кнопок ▲/▼ (крупная цель ≥ 56 px ≈ 19 мм на кваде —
-## рекомендации Meta к размерам целей в VR).
-const SCROLL_RECT := Rect2(16, 14, 416, 548)
+## Окно прокрутки — во всю ширину панели: колонка кнопок справа съедала 80 px
+## содержимого (отзыв сессии 5). Кнопки ▲/▼ переехали в нижнюю строку, в правый угол,
+## и стоят там в обоих режимах; крупная цель ≥ 56 px ≈ 19 мм на кваде (Meta).
+const SCROLL_RECT := Rect2(16, 14, 480, 548)
 const SCROLL_BTN := Vector2(56, 56)
+## Места кнопок ▲/▼ в нижней строке.
+const UP_POS := Vector2(380, 566)
+const DOWN_POS := Vector2(440, 566)
+## Фальсификатор «arrows»: кнопки возвращаются колонкой справа, поверх содержимого.
+const UP_POS_COLUMN := Vector2(440, 14)
+const DOWN_POS_COLUMN := Vector2(440, 506)
 ## Доля окна, на которую двигает одна кнопка.
 const PAGE_SHARE := 0.6
 
@@ -54,6 +61,10 @@ var _scroll_frac := 0.0
 ## Фальсификатор «scroll» дымового прогона: остаток доли пикселя не копится — медленный
 ## стик перестаёт двигать панель вовсе.
 var falsify_no_frac := false
+## Фальсификатор «arrows»: кнопки снова колонкой справа, поверх содержимого.
+var falsify_arrow_column := false
+## Чем двигали панель в последний раз: «stick», «button» или «drag» — для журнала.
+var scroll_how := ""
 var renders := 0
 
 
@@ -80,6 +91,10 @@ func _ready() -> void:
 	_box = VBoxContainer.new()
 	_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_box.add_theme_constant_override("separation", 10)
+	# Контейнер раскладывает детей ОТЛОЖЕННО, кадром позже смены содержимого. Без этой
+	# связи панель рисовалась бы один раз — в кадре, где дети ещё в нуле, — и так и
+	# висела бы сломанной: перерисовка идёт только по _dirty (UPDATE_ONCE).
+	_box.sort_children.connect(_dirty)
 	_scroll.add_child(_box)
 
 	var head := HBoxContainer.new()
@@ -108,7 +123,7 @@ func _ready() -> void:
 
 	_toast = Label.new()
 	_toast.position = Vector2(24, 566)
-	_toast.size = Vector2(464, 60)
+	_toast.size = Vector2(352, 60)    # правее — кнопки ▲/▼
 	_toast.autowrap_mode = TextServer.AUTOWRAP_WORD
 	_toast.clip_text = true
 	_toast.add_theme_font_size_override("font_size", 22)
@@ -125,15 +140,20 @@ func _ready() -> void:
 	qm.material = mat
 
 
-## Окно прокрутки: без горизонтали, с подсказками «дальше есть» сверху и снизу
-## (ScrollContainer.scroll_hint_mode, Godot 4.7) — свой индикатор не нужен.
+## Окно прокрутки: без горизонтали, полоса прокрутки места содержимого не отнимает
+## сверх своей ширины — ScrollContainer вычитает её из области детей
+## (godot/scene/gui/scroll_container.cpp:400), поверх текста она не рисуется.
 static func make_scroll(rect: Rect2) -> ScrollContainer:
 	var sc := ScrollContainer.new()
 	sc.position = rect.position
 	sc.size = rect.size
 	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	sc.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	sc.scroll_hint_mode = ScrollContainer.SCROLL_HINT_MODE_ALL
+	# Штатные подсказки «дальше есть» выключены: это текстуры ПОВЕРХ верхней и нижней
+	# полос содержимого (scroll_container.cpp:676) штатного чёрного цвета — они и
+	# закрывали первые и последние строки (отзыв сессии 5). «Дальше есть» показывают
+	# сами стрелки: та, в чью сторону ехать некуда, гаснет.
+	sc.scroll_hint_mode = ScrollContainer.SCROLL_HINT_MODE_DISABLED
 	sc.mouse_filter = Control.MOUSE_FILTER_PASS
 	sc.get_v_scroll_bar().custom_minimum_size = Vector2(12, 0)
 	return sc
@@ -174,10 +194,14 @@ func _scroll_button(text: String, dir: int) -> Button:
 	hover.bg_color = Color(0.32, 0.38, 0.52)
 	var down := normal.duplicate() as StyleBoxFlat
 	down.bg_color = Color(0.55, 0.45, 0.20)
+	var off := normal.duplicate() as StyleBoxFlat
+	off.bg_color = Color(0.14, 0.15, 0.18)
 	b.add_theme_stylebox_override("normal", normal)
 	b.add_theme_stylebox_override("hover", hover)
 	b.add_theme_stylebox_override("pressed", down)
 	b.add_theme_stylebox_override("hover_pressed", down)
+	b.add_theme_stylebox_override("disabled", off)
+	b.add_theme_color_override("font_disabled_color", Color(0.38, 0.41, 0.47))
 	b.pressed.connect(func(): scroll_page(dir))
 	return b
 
@@ -236,6 +260,7 @@ func scroll_by(px: float) -> bool:
 ## Кнопка ▲/▼: dir −1 вверх, +1 вниз.
 func scroll_page(dir: int) -> bool:
 	_scroll_frac = 0.0
+	scroll_how = "button"
 	var sc := active_scroll()
 	if sc == null:
 		return false
@@ -244,6 +269,7 @@ func scroll_page(dir: int) -> bool:
 
 func scroll_reset() -> void:
 	_scroll_frac = 0.0
+	scroll_how = ""    # сброс не журналируется как прокрутка
 	var sc := active_scroll()
 	if sc != null and sc.scroll_vertical != 0:
 		sc.scroll_vertical = 0
@@ -258,17 +284,21 @@ func _sync_scroll_ui() -> void:
 		return
 	var sc := active_scroll()
 	var on := sc != null and sc.visible and scroll_max() > 0
-	if on:
-		var x := sc.position.x + sc.size.x + 8.0
-		var up_pos := Vector2(x, sc.position.y)
-		var down_pos := Vector2(x, sc.position.y + sc.size.y - SCROLL_BTN.y)
-		if _up_btn.position != up_pos or _down_btn.position != down_pos:
-			_up_btn.position = up_pos
-			_down_btn.position = down_pos
-			_dirty()
-	if on != _up_btn.visible:
+	var up_pos := UP_POS_COLUMN if falsify_arrow_column else UP_POS
+	var down_pos := DOWN_POS_COLUMN if falsify_arrow_column else DOWN_POS
+	if _up_btn.position != up_pos or _down_btn.position != down_pos:
+		_up_btn.position = up_pos
+		_down_btn.position = down_pos
+		_dirty()
+	# та стрелка, в чью сторону ехать некуда, гаснет — это и есть «дальше есть»
+	var at := scroll_pos()
+	var up_off := at <= 0
+	var down_off := at >= scroll_max()
+	if on != _up_btn.visible or up_off != _up_btn.disabled or down_off != _down_btn.disabled:
 		_up_btn.visible = on
 		_down_btn.visible = on
+		_up_btn.disabled = up_off
+		_down_btn.disabled = down_off
 		_dirty()
 
 
@@ -346,6 +376,11 @@ func toast(text: String, now_ms: int) -> void:
 	_toast.text = text
 	_toast_until = now_ms + TOAST_MS
 	_dirty()
+
+
+## Живёт ли сейчас сообщение: пока живёт, панель есть что показывать.
+func has_toast(now_ms: int) -> bool:
+	return _toast.text != "" and now_ms <= _toast_until
 
 
 func tick(now_ms: int) -> void:

@@ -44,7 +44,9 @@ extends SceneTree
 ##   --falsify=faceup     «лицом к шлему» строит шар от МИРОВОГО верха (как до сессии 3) —
 ##                        краснеет только «лицом к шлему устойчиво»;
 ##   --falsify=shake      отрезок встряхивания засчитывается без порога пройденного пути —
-##                        краснеет только «встряхивание» (на контроле «дрожь 6 Гц»).
+##                        краснеет только «встряхивание» (на контроле «дрожь 6 Гц»);
+##   --falsify=panelshow  пустая ячейка считается содержимым панели (панель висит всегда,
+##                        как до шага 1е) — краснеет только «видимость панели».
 
 const Report := preload("res://probe_report.gd")
 const Goldberg := preload("res://menu/goldberg.gd")
@@ -64,7 +66,9 @@ const Wizard := preload("res://menu/wizard.gd")
 const Navigator := preload("res://menu/navigator.gd")
 const Stick := preload("res://menu/stick.gd")
 const HandFollow := preload("res://menu/hand_follow.gd")
+const MenuRes := preload("res://menu/sphere_menu.gd")
 const ShakeRes := preload("res://menu/shake.gd")
+const SwipeRes := preload("res://menu/swipe.gd")
 ## Разгон и торможение вспышки встряхивания в проверке, с.
 const SHAKE_RAMP := 0.15
 const SettingEdit := preload("res://menu/setting_edit.gd")
@@ -93,8 +97,8 @@ const STATE_CHECKS := ["стек и прокрутка", "назад на кор
 const CATALOG_CHECKS := ["состав", "представление"]
 const MODEL_CHECKS := ["короткое и удержание", "трекбол", "настройки", "мастер", "шар действий",
 		"действие по умолчанию", "изменения и отмена", "множественный выбор", "сортировка и переходы",
-		"опасное без удержания", "стик", "вращение рукой", "лицом к шлему устойчиво",
-		"вращение и мир", "сглаживание руки", "встряхивание", "правка значения", "демонстрации",
+		"опасное без удержания", "стик", "видимость панели", "вращение рукой", "лицом к шлему устойчиво",
+		"вращение и мир", "сглаживание руки", "встряхивание", "взмах влево", "правка значения", "демонстрации",
 		"корень", "избранное", "плюс", "поиск", "выход"]
 const SHARED_COPIES := ["probe_window.gd", "probe_stats.gd", "probe_report.gd", "probe_budget.gd"]
 
@@ -1061,7 +1065,47 @@ func _model() -> void:
 	else:
 		r.fail("опасное: %s, объект %s" % [try, cat3.items.has("logic_door")])
 
+	_panel_visibility_checks()
 	_hand_checks()
+
+
+## Видимость панели (решение владельца, отзыв сессии 4: появляться только когда есть
+## что показывать). Правило чистое — проверяется таблицей истинности, а не сценой.
+func _panel_visibility_checks() -> void:
+	var hold: int = MenuRes.PANEL_HOLD_MS
+	var show := func(open: bool, scenario: bool, item: bool, toast: bool, since: int) -> bool:
+		# фальсификатор: пустая ячейка тоже «содержимое» — панель висит всегда, как до шага 1е
+		var has_item := true if falsify == "panelshow" else item
+		return MenuRes.panel_should_show(open, scenario, has_item, toast, since)
+	var bad: Array[String] = []
+	# объект под активной ячейкой — видна сразу
+	if not show.call(true, false, true, false, 0):
+		bad.append("объект не показал панель")
+	# объект ушёл: держится PANEL_HOLD_MS, потом гаснет
+	if not show.call(true, false, false, false, hold - 1):
+		bad.append("панель погасла раньше удержания (%d мс)" % hold)
+	if show.call(true, false, false, false, hold):
+		bad.append("панель не погасла после удержания (%d мс)" % hold)
+	# пустая ячейка и «Назад» без сценария — нет (давно ушедший объект)
+	if show.call(true, false, false, false, 100000):
+		bad.append("пустая ячейка показала панель")
+	# правка, мастер, поиск — видна даже на пустой ячейке
+	if not show.call(true, true, false, false, 100000):
+		bad.append("сценарий (правка, мастер, поиск) не показал панель")
+	# сообщение — видна
+	if not show.call(true, false, false, true, 100000):
+		bad.append("сообщение не показало панель")
+	# шар закрыт: панель гаснет, но сценарий сильнее — иначе «Готово» мастера пропало бы
+	for it in [false, true]:
+		for ts in [false, true]:
+			if show.call(false, false, it, ts, 0):
+				bad.append("закрытый шар показал панель (объект %s, тост %s)" % [it, ts])
+			if not show.call(false, true, it, ts, 0):
+				bad.append("закрытый шар отнял панель у мастера (объект %s, тост %s)" % [it, ts])
+	if bad.is_empty():
+		r.pass_("видимость панели: объект — сразу, после ухода держится %d мс и гаснет; пустая ячейка и «Назад» — нет; правка, мастер, поиск и сообщение — да; закрытый шар гасит её, но не отнимает у мастера и правки" % hold)
+	else:
+		r.fail("видимость панели: %s" % "; ".join(bad))
 
 
 func _hand_checks() -> void:
@@ -1200,6 +1244,7 @@ func _hand_checks() -> void:
 				trace[0], trace.back(), mono, over, rot_on, sm.rotating()])
 
 	_shake_checks()
+	_swipe_checks()
 	_edit_checks()
 
 
@@ -1255,25 +1300,91 @@ func _shake_feed(sh, seconds: float, amp: float, freq: float, bursts: Array,
 	return fires
 
 
-func _new_shake(level: String):
+func _new_shake(span_cm: float):
 	var sh = ShakeRes.new()
-	sh.level = level
+	sh.travel = span_cm / 100.0
 	sh.falsify_no_travel = falsify == "shake"
 	return sh
+
+
+func _new_swipe(span_cm: float):
+	var sw = SwipeRes.new()
+	sw.distance = clampf(span_cm / 100.0 * 3.0, 0.15, 0.30)
+	sw.falsify_any_direction = falsify == "swipe"
+	return sw
 
 
 ## Встряхивание шара — возврат на верхний уровень (menu/shake.gd). Проверяется вместе
 ## с контролем: обычные движения руки жест давать не должны, иначе меню будет
 ## прыгать на корень само.
-func _shake_checks() -> void:
-	var bursts := [[0.2, 1.0], [2.0, 1.0]]
-	var fires: Array[float] = _shake_feed(_new_shake("normal"), 3.0, 0.09, 3.0, bursts)
-	var off: Array[float] = _shake_feed(_new_shake("off"), 3.0, 0.09, 3.0, bursts)
+## Трасса взмаха: рука едет вдоль dir на dist метров за dur секунд (плавный профиль),
+## остальное время стоит; walk — общий перенос головы и руки.
+func _swipe_feed(sw, seconds: float, dir: Vector3, dist: float, t0: float, dur: float,
+		head_basis: Basis = Basis(), walk: float = 0.0) -> Array[float]:
+	var dt := 1.0 / 90.0
+	var fires: Array[float] = []
+	for i in int(seconds / dt):
+		var t := i * dt
+		var head := Vector3(0.0, 1.6, -walk * t)
+		var u := clampf((t - t0) / dur, 0.0, 1.0)
+		var moved := dir * dist * smoothstep(0.0, 1.0, u)
+		var hand := head + Vector3(0.10, -0.45, -0.25) + moved
+		if sw.feed(hand, head, head_basis, dt):
+			fires.append(snappedf(t, 0.01))
+	return fires
+
+
+## Резкий взмах влево — второй жест возврата (решение владельца, отзыв сессии 5:
+## встряхивание слишком долгое). Проверяется вместе с контролем: обычные движения руки
+## взмахом считаться не должны.
+func _swipe_checks() -> void:
+	var left := Vector3.LEFT      # шлем смотрит на −Z, его «влево» — мировое −X
+	var fires: Array[float] = _swipe_feed(_new_swipe(6.0), 2.0, left, 0.20, 0.3, 0.25)
+	var disabled = _new_swipe(6.0)
+	disabled.enabled = false
+	var off: Array[float] = _swipe_feed(disabled, 2.0, left, 0.20, 0.3, 0.25)
+	# Поворот головы при неподвижной руке: сигнал — разность в мировых осях, она не
+	# меняется вовсе. Проверка держит это свойство: в системе головы жест бы сработал.
+	var turned := _swipe_feed(_new_swipe(6.0), 2.0, left, 0.0, 0.3, 0.25,
+			Basis(Vector3.UP, 1.2))
 	var controls := {
-		"перенос руки 0,2 м/с": _shake_feed(_new_shake("normal"), 3.0, 0.0, 0.0, [], 0.2),
-		"покачивание 0,5 Гц ±10 см": _shake_feed(_new_shake("normal"), 3.0, 0.10, 0.5, [[0.0, 3.0]]),
-		"дрожь 6 Гц ±3 см": _shake_feed(_new_shake("normal"), 3.0, 0.03, 6.0, [[0.0, 3.0]]),
-		"ходьба 1,2 м/с с махом руки": _shake_feed(_new_shake("normal"), 3.0, 0.04, 1.0, [[0.0, 3.0]], 0.0, 1.2),
+		"медленный перенос влево 0,4 м за 2 с": _swipe_feed(_new_swipe(6.0), 3.0, left, 0.40, 0.3, 2.0),
+		"резкий взмах вправо": _swipe_feed(_new_swipe(6.0), 2.0, Vector3.RIGHT, 0.20, 0.3, 0.25),
+		"резкий взмах вверх": _swipe_feed(_new_swipe(6.0), 2.0, Vector3.UP, 0.20, 0.3, 0.25),
+		"ходьба 1,2 м/с": _swipe_feed(_new_swipe(6.0), 3.0, left, 0.0, 0.3, 0.25, Basis(), 1.2),
+	}
+	var bad: Array[String] = []
+	if fires.size() != 1:
+		bad.append("взмах 20 см за 0,25 с дал %d срабатываний (%s)" % [fires.size(), fires])
+	if not off.is_empty():
+		bad.append("выключенный взмах сработал %d раз" % off.size())
+	if not turned.is_empty():
+		bad.append("поворот головы при неподвижной руке дал %d срабатываний" % turned.size())
+	for name in controls:
+		var f: Array = controls[name]
+		if not f.is_empty():
+			bad.append("контроль «%s»: %d срабатываний (%s)" % [name, f.size(), f])
+	if bad.is_empty():
+		r.pass_("взмах влево: 20 см за 0,25 с — одно срабатывание (%s с); выключенный молчит; поворот головы при неподвижной руке, медленный перенос, взмахи вправо и вверх, ходьба — 0" % [fires])
+	else:
+		r.fail("взмах влево: %s" % "; ".join(bad))
+
+
+func _shake_checks() -> void:
+	var bursts := [[0.2, 0.6], [2.0, 0.6]]
+	# Вспышка короче прежней: двух разворотов хватает, и 0.5 с достаточно.
+	var fires: Array[float] = _shake_feed(_new_shake(6.0), 3.0, 0.07, 3.0, bursts)
+	var disabled = _new_shake(6.0)
+	disabled.enabled = false
+	var off: Array[float] = _shake_feed(disabled, 3.0, 0.07, 3.0, bursts)
+	var controls := {
+		"перенос руки 0,2 м/с": _shake_feed(_new_shake(6.0), 3.0, 0.0, 0.0, [], 0.2),
+		"покачивание 0,5 Гц ±10 см": _shake_feed(_new_shake(6.0), 3.0, 0.10, 0.5, [[0.0, 3.0]]),
+		# Дрожь подобрана так, чтобы её держал ИМЕННО порог пути: сглаженная пиковая
+		# скорость (0.66 м/с) выше порога 0.57, а путь за полупериод 5 см меньше размаха
+		# 6 см. Иначе фальсификатор shake краснел бы не тем сигналом (PRACTICES §2.6).
+		"дрожь 7 Гц ±2,5 см": _shake_feed(_new_shake(6.0), 3.0, 0.025, 7.0, [[0.0, 3.0]]),
+		"ходьба 1,2 м/с с махом руки": _shake_feed(_new_shake(6.0), 3.0, 0.04, 1.0, [[0.0, 3.0]], 0.0, 1.2),
 	}
 	var bad: Array[String] = []
 	if fires.size() != 2:
@@ -1285,7 +1396,7 @@ func _shake_checks() -> void:
 		if not f.is_empty():
 			bad.append("контроль «%s»: %d срабатываний (%s)" % [name, f.size(), f])
 	if bad.is_empty():
-		r.pass_("встряхивание: две вспышки ±9 см на 3 Гц — ровно 2 срабатывания (%s с), пауза держит; выключенный жест молчит; перенос, покачивание 0,5 Гц, дрожь 6 Гц ±3 см и ходьба с махом руки — 0" % [fires])
+		r.pass_("встряхивание: две вспышки ±7 см на 3 Гц — ровно 2 срабатывания (%s с), пауза держит; выключенный жест молчит; перенос, покачивание 0,5 Гц, дрожь 7 Гц ±2,5 см и ходьба с махом руки — 0" % [fires])
 	else:
 		r.fail("встряхивание: %s" % "; ".join(bad))
 

@@ -198,11 +198,31 @@ func run(host: Node, menu: Menu) -> bool:
 		pnl.scroll_by(-10000.0)
 		var back_to: int = pnl.scroll_pos()
 		pnl.show_text("", "", "", "")
+		# Правка: едет ВСЁ содержимое, а не одно пояснение (отзыв сессии 4). Свидетель —
+		# прямоугольник ползунка; строка кнопок обязана стоять. Кадры разные: и раскладка
+		# контейнера, и сдвиг прокрутки доходят до детей отложенно.
+		var ed := SettingEdit.new(st, "radius_cm")
+		ed.message = "длинное пояснение, занимающее несколько строк подряд, ".repeat(14)
+		pnl.open_editor(ed, "прокрутка правки", ["done"])
+		for _i in 3:
+			await host.get_tree().process_frame
+		var e_span: int = pnl.scroll_max()
+		var slider0: float = pnl._slider.get_global_rect().position.y
+		var footer0: float = pnl._buttons_box.get_global_rect().position.y
+		pnl.scroll_by(float(mini(200, e_span)))
+		var e_at: int = pnl.scroll_pos()
+		await host.get_tree().process_frame
+		var slider_moved: float = slider0 - pnl._slider.get_global_rect().position.y
+		var footer_moved: float = footer0 - pnl._buttons_box.get_global_rect().position.y
+		pnl.close_editor()
 		menu.panel_locked = false
-		if span > 0 and moved and at == 300 and idle_renders == 0 and back_to == 0:
-			r.pass_("прокрутка панели: ход %d px, стик сдвинул на %d, кадры без движения не перерисовывают, верх возвращается" % [span, at])
+		var edit_ok := e_span > 0 and e_at > 0 and is_equal_approx(slider_moved, float(e_at)) \
+				and is_equal_approx(footer_moved, 0.0)
+		if span > 0 and moved and at == 300 and idle_renders == 0 and back_to == 0 and edit_ok:
+			r.pass_("прокрутка панели: ход %d px, стик сдвинул на %d, кадры без движения не перерисовывают, верх возвращается; в правке ход %d, ползунок уехал на %.0f вместе с содержимым, кнопки стоят" % [span, at, e_span, slider_moved])
 		else:
-			r.fail("прокрутка панели: ход %d px, сдвиг %s → %d, перерисовок без движения %d, возврат %d" % [span, moved, at, idle_renders, back_to])
+			r.fail("прокрутка панели: ход %d px, сдвиг %s → %d, перерисовок без движения %d, возврат %d; правка: ход %d, окно %d, ползунок %.1f, кнопки %.1f" % [
+					span, moved, at, idle_renders, back_to, e_span, e_at, slider_moved, footer_moved])
 	else:
 		r.fail("прокрутка панели: панель без прокрутки (%s)" % pnl)
 

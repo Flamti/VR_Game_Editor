@@ -88,10 +88,10 @@ func _process(delta: float) -> void:
 	if stick.length() > DEADZONE:
 		menu.rotate_stick(stick, float(menu.settings.get_value("stick_speed")) * delta)
 
-	# Встряхивание шара — на верхний уровень. Сигнал берётся от самой руки, а не от
-	# шара: положение шара сглажено следованием, и рывок в нём заметно слабее.
+	# Жест возврата — на верхний уровень. Сигнал берётся от самой руки, а не от шара:
+	# положение шара сглажено следованием, и рывок в нём заметно слабее.
 	if menu.head != null:
-		menu.shake_update(left.global_position, menu.head.global_position, delta)
+		menu.gesture_update(left.global_position, menu.head.global_transform, delta)
 
 	menu.press_active(left.is_button_pressed("trigger_click"), now)
 
@@ -103,6 +103,7 @@ func _process(delta: float) -> void:
 	if panel != null and panel.visible:
 		var rs: Vector2 = right.get_vector2("primary")
 		if absf(rs.y) > DEADZONE:
+			panel.scroll_how = "stick"
 			panel.scroll_by(-rs.y * SCROLL_SPEED * delta)
 	# Нажатие или захват, начатые на шаре, доводятся на шаре: иначе увод луча на
 	# панель отпускал бы курок на ячейке и срабатывал короткий выбор.

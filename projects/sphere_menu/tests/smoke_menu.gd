@@ -11,9 +11,17 @@ extends SceneTree
 ##   godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
 ##       --script res://tests/smoke_menu.gd [-- --falsify=scroll]
 ##
-## Фальсификатор:
-##   --falsify=scroll  прокрутка панели теряет остаток доли пикселя — краснеет только
-##                     «прокрутка панели» (медленный стик перестаёт двигать содержимое).
+## Фальсификаторы:
+##   --falsify=scroll      прокрутка панели теряет остаток доли пикселя — краснеет только
+##                         «прокрутка панели» (медленный стик перестаёт двигать содержимое);
+##   --falsify=editscroll  в окне прокрутки правки остаётся одно пояснение, как в шаге 1д, —
+##                         краснеет только «прокрутка правки» (ползунок стоит на месте);
+##   --falsify=panelshow   пустая ячейка считается содержимым (панель висит всегда) —
+##                         краснеет только «панель по делу»;
+##   --falsify=arrows      кнопки ▲/▼ возвращаются колонкой справа, поверх содержимого, —
+##                         краснеет только «раскладка панели»;
+##   --falsify=gestureboth настройка «Жест возврата» не слушается, живут оба детектора, —
+##                         краснеет только «жест возврата».
 ## Пол — по числу исполненных шагов; ошибки выполнения печатаются движком, их
 ## ищет вызывающий по «SCRIPT ERROR».
 
@@ -29,7 +37,8 @@ const Wizard := preload("res://menu/wizard.gd")
 const STEPS := ["открыть", "войти коротким", "действия удержанием", "копировать", "вставить",
 		"удалить удержанием", "отменить", "линза и захват", "панель и атлас", "мастер",
 		"вращение рукой", "правка открыта", "ползунок лучом", "клавиатура лучом", "демонстрация доводки", "журнал", "назад на корне", "замок панели",
-		"поиск на панели", "плюс", "прокрутка панели", "встряхивание", "раскладки", "выход удержанием"]
+		"поиск на панели", "плюс", "прокрутка панели", "прокрутка правки", "раскладка панели",
+		"панель по делу", "жест возврата", "встряхивание", "раскладки", "выход удержанием"]
 
 var r: Report = Report.new()
 ## Фальсификатор дымового прогона: --falsify=scroll снимает ограничение хода прокрутки.
@@ -76,9 +85,13 @@ func _initialize() -> void:
 	_script = [
 		[5, _open], [10, _enter], [20, _hold_actions], [60, _copy], [70, _paste],
 		[90, _delete_hold], [140, _undo], [150, _lens_grab], [200, _panel_atlas], [210, _wizard], [215, _hand_modes], [220, _edit_open], [230, _edit_slider],
-		[240, _edit_keypad], [250, _demo_start], [260, _demo_check], [265, _journal], [268, _root_back], [270, _panel_lock], [271, _search_open], [274, _search], [276, _plus],
-		[278, _scroll_prep], [281, _scroll_read], [284, _scroll_check], [286, _shake_root],
-		[288, _layouts], [292, _exit_hold], [298, _finish],
+		[240, _edit_keypad], [250, _demo_start], [260, _demo_check], [265, _journal], [268, _root_back],
+		[270, _panel_lock_open], [273, _panel_lock_a], [276, _panel_lock_b],
+		[278, _search_open], [281, _search], [283, _plus],
+		[285, _scroll_prep], [288, _scroll_read], [291, _scroll_check],
+		[293, _edit_scroll_open], [296, _edit_scroll_move], [299, _edit_scroll_check],
+		[301, _panel_layout_open], [304, _panel_layout], [307, _panel_show], [306, _gesture_choice], [308, _shake_root],
+		[310, _layouts], [314, _exit_hold], [320, _finish],
 	]
 
 
@@ -406,29 +419,48 @@ func _root_back() -> void:
 ## Замок панели: помеха контроллера (указатель мимо панели) между нажатием и перетаскиванием
 ## проверки. Без замка ползунок обязан НЕ доехать — контроль, что помеха воспроизведена; с
 ## замком — доехать. Без контроля зелёный «с замком» ничего бы не доказывал (§1.5).
-func _panel_lock() -> void:
+## Замок панели — три кадра: содержимое правки живёт в контейнере, а он раскладывает
+## детей отложенно, и в кадре открытия прямоугольник ползунка ещё нулевой (тот же урок,
+## что с клавиатурой поиска в сессии 11).
+var _lock_got: Array[float] = []
+
+
+func _panel_lock_open() -> void:
+	menu.settings.values["radius_cm"] = 11.0
+	menu.panel.open_editor(SettingEdit.new(menu.settings, "radius_cm"), "замок", ["done"])
+
+
+## Перетаскивание ползунка лучом с помехой контроллера посередине.
+func _lock_drag(lock: bool) -> float:
 	var p: Panel3D = menu.panel
-	var got := []
-	for lock in [false, true]:
-		menu.settings.values["radius_cm"] = 11.0
-		p.open_editor(SettingEdit.new(menu.settings, "radius_cm"), "замок", ["done"])
-		p.synthetic_lock = lock
-		var rect: Rect2 = p._slider.get_global_rect()
-		var a: Variant = _aim(rect.position + Vector2(rect.size.x * 0.2, rect.size.y * 0.5))
-		var b: Variant = _aim(rect.position + Vector2(rect.size.x * 0.8, rect.size.y * 0.5))
-		p.pointer_update(a, false, "check")
-		p.pointer_update(a, true, "check")
-		p.pointer_update(null, false)          # кадр контроллера: луч мимо панели
-		p.pointer_update(b, true, "check")
-		p.pointer_update(b, false, "check")
-		p.pointer_update(null, false, "check")
-		p.synthetic_lock = false
-		got.append(float(menu.settings.get_value("radius_cm")))
-		p.close_editor()
-	if got[0] < 15.0 and got[1] > 15.0:
-		r.pass_("замок панели: без замка помеха контроллера сорвала перетаскивание (%s см), с замком — доехал (%s см)" % got)
+	menu.settings.values["radius_cm"] = 11.0
+	p.synthetic_lock = lock
+	var rect: Rect2 = p._slider.get_global_rect()
+	var a: Variant = _aim(rect.position + Vector2(rect.size.x * 0.2, rect.size.y * 0.5))
+	var b: Variant = _aim(rect.position + Vector2(rect.size.x * 0.8, rect.size.y * 0.5))
+	p.pointer_update(a, false, "check")
+	p.pointer_update(a, true, "check")
+	p.pointer_update(null, false)          # кадр контроллера: луч мимо панели
+	p.pointer_update(b, true, "check")
+	p.pointer_update(b, false, "check")
+	p.pointer_update(null, false, "check")
+	p.synthetic_lock = false
+	var got := float(menu.settings.get_value("radius_cm"))
+	p.close_editor()
+	return got
+
+
+func _panel_lock_a() -> void:
+	_lock_got.append(_lock_drag(false))
+	menu.panel.open_editor(SettingEdit.new(menu.settings, "radius_cm"), "замок", ["done"])
+
+
+func _panel_lock_b() -> void:
+	_lock_got.append(_lock_drag(true))
+	if _lock_got[0] < 15.0 and _lock_got[1] > 15.0:
+		r.pass_("замок панели: без замка помеха контроллера сорвала перетаскивание (%s см), с замком — доехал (%s см)" % [_lock_got[0], _lock_got[1]])
 	else:
-		r.fail("замок панели: без замка %s см (помеха не воспроизведена, если > 15), с замком %s см" % got)
+		r.fail("замок панели: без замка %s см (помеха не воспроизведена, если > 15), с замком %s см" % [_lock_got[0], _lock_got[1]])
 
 
 func _to_root_open() -> void:
@@ -521,6 +553,7 @@ var _scroll_short := {}
 
 func _scroll_prep() -> void:
 	menu.panel_locked = true
+	menu.falsify_panel_always = falsify == "panelshow"
 	menu.panel.falsify_no_frac = falsify == "scroll"
 	menu.panel.show_text("Короткая", "", "одна строка", "")
 
@@ -587,6 +620,197 @@ func _scroll_check() -> void:
 		r.fail("прокрутка панели: %s" % "; ".join(bad))
 
 
+## Прокрутка правки: едет ВСЁ содержимое, а не одно пояснение (отзыв сессии 4).
+## Свидетель — прямоугольник ползунка: он обязан уехать ровно на ту же величину, на
+## которую прокрутилось окно, а строка кнопок обязана остаться на месте. Кадры разные:
+## и раскладка контейнера, и сдвиг прокрутки доходят до детей отложенно.
+var _edit_before := {}
+
+
+func _edit_scroll_open() -> void:
+	var p: Panel3D = menu.panel
+	p.falsify_hint_only = falsify == "editscroll"
+	menu.panel_locked = true
+	var e := SettingEdit.new(menu.settings, "radius_cm")
+	# Длинное пояснение задаётся нарочно, и с запасом: у штатных подсказок длина на грани
+	# высоты окна, а фальсификатору editscroll нужно, чтобы окно всё равно прокручивалось —
+	# иначе он покраснел бы «ход 0», а не «ползунок стоит», то есть мерил бы не тот
+	# сигнал (PRACTICES §2.6).
+	e.message = "длинное пояснение, занимающее несколько строк подряд, ".repeat(14)
+	p.open_editor(e, "прокрутка правки", ["default", "done"])
+
+
+func _edit_scroll_move() -> void:
+	var p: Panel3D = menu.panel
+	_edit_before = {
+		"span": p.scroll_max(),
+		"slider": p._slider.get_global_rect().position,
+		"footer": p._buttons_box.get_global_rect().position,
+		"moved": p.scroll_by(float(mini(200, p.scroll_max()))),
+		"at": 0,
+	}
+	_edit_before["at"] = p.scroll_pos()
+
+
+func _edit_scroll_check() -> void:
+	var p: Panel3D = menu.panel
+	var at := int(_edit_before["at"])
+	var slider_moved: float = float(_edit_before["slider"].y) - p._slider.get_global_rect().position.y
+	var footer_moved: float = float(_edit_before["footer"].y) - p._buttons_box.get_global_rect().position.y
+	var buttons_seen := p._up_btn.visible and p._down_btn.visible
+	p.close_editor()
+	menu.panel_locked = false
+	var bad: Array[String] = []
+	if int(_edit_before["span"]) <= 0:
+		bad.append("правка не прокручивается (ход %d)" % int(_edit_before["span"]))
+	if not bool(_edit_before["moved"]) or at <= 0:
+		bad.append("прокрутка не сдвинулась (%s, %d)" % [_edit_before["moved"], at])
+	if not is_equal_approx(slider_moved, float(at)):
+		bad.append("ползунок уехал на %.1f px вместо %d — едет не всё содержимое" % [slider_moved, at])
+	if not is_equal_approx(footer_moved, 0.0):
+		bad.append("строка кнопок уехала на %.1f px — она обязана быть закреплена" % footer_moved)
+	if not buttons_seen:
+		bad.append("кнопки ▲/▼ в правке не показались")
+	if bad.is_empty():
+		r.pass_("прокрутка правки: ход %d px, окно на %d — ползунок уехал вместе с содержимым, строка кнопок закреплена, ▲/▼ видны" % [int(_edit_before["span"]), at])
+	else:
+		r.fail("прокрутка правки: %s" % "; ".join(bad))
+
+
+## Раскладка панели (отзыв сессии 5: стрелки и подсказки перекрывали содержимое).
+## Свидетели — прямоугольники: окно прокрутки во всю ширину, кнопки ▲/▼ с ним не
+## пересекаются ни в одном режиме, подсказки выключены, стрелка у края погашена.
+func _panel_layout_open() -> void:
+	var p: Panel3D = menu.panel
+	p.falsify_arrow_column = falsify == "arrows"
+	menu.panel_locked = true
+	var long := ""
+	for i in 40:
+		long += "строка %d описания объекта, которая должна уехать за нижний край панели\n" % i
+	p.show_text("Раскладка", "значение", long, "подсказка")
+
+
+## Мерится кадром позже: контейнер раскладывает детей отложенно, и в кадре смены
+## содержимого ход прокрутки ещё нулевой — обе стрелки выглядели бы погашенными.
+func _panel_layout() -> void:
+	var p: Panel3D = menu.panel
+	p.scroll_tick()
+	var sc: ScrollContainer = p.active_scroll()
+	var win := Rect2(sc.position, sc.size)
+	var up := Rect2(p._up_btn.position, p._up_btn.size)
+	var down := Rect2(p._down_btn.position, p._down_btn.size)
+	var hints: int = sc.scroll_hint_mode
+	var at_top := [p._up_btn.disabled, p._down_btn.disabled]
+	p.scroll_by(200.0)
+	p.scroll_tick()
+	var middle := [p._up_btn.disabled, p._down_btn.disabled]
+	p.scroll_by(10000.0)
+	p.scroll_tick()
+	var at_end := [p._up_btn.disabled, p._down_btn.disabled]
+	p.show_text("", "", "", "")
+	menu.panel_locked = false
+	p.falsify_arrow_column = false
+	var bad: Array[String] = []
+	if win.intersects(up) or win.intersects(down):
+		bad.append("кнопки лезут на содержимое: окно %s, ▲ %s, ▼ %s" % [win, up, down])
+	if not is_equal_approx(win.size.x, 480.0):
+		bad.append("окно не во всю ширину: %.0f px" % win.size.x)
+	if hints != ScrollContainer.SCROLL_HINT_MODE_DISABLED:
+		bad.append("подсказки поверх содержимого включены (режим %d)" % hints)
+	if at_top != [true, false] or middle != [false, false] or at_end != [false, true]:
+		bad.append("гашение стрелок: наверху %s, посередине %s, внизу %s" % [at_top, middle, at_end])
+	if bad.is_empty():
+		r.pass_("раскладка панели: окно %.0f×%.0f, кнопки ▲ %s и ▼ %s вне его, подсказки выключены, у краёв гаснет своя стрелка" % [
+				win.size.x, win.size.y, up.position, down.position])
+	else:
+		r.fail("раскладка панели: %s" % "; ".join(bad))
+
+
+## Настройка «Жест возврата» выбирает, какие детекторы живут.
+func _gesture_choice() -> void:
+	menu.falsify_gestures_always = falsify == "gestureboth"
+	var got := {}
+	for mode in ["off", "shake", "swipe", "both"]:
+		menu.settings.values["return_gesture"] = mode
+		menu.apply_settings()
+		got[mode] = [menu.shake.enabled, menu.swipe.enabled]
+	menu.settings.values["gesture_cm"] = 10.0
+	menu.apply_settings()
+	var span := [menu.shake.travel, menu.swipe.distance]
+	menu.settings.values["return_gesture"] = "both"
+	menu.settings.values["gesture_cm"] = SettingsRes.SPEC["gesture_cm"]["default"]
+	menu.falsify_gestures_always = false
+	menu.apply_settings()
+	var want := {"off": [false, false], "shake": [true, false], "swipe": [false, true], "both": [true, true]}
+	var bad: Array[String] = []
+	for mode in want:
+		if got[mode] != want[mode]:
+			bad.append("«%s» дал %s вместо %s" % [mode, got[mode], want[mode]])
+	if not is_equal_approx(span[0], 0.10) or not is_equal_approx(span[1], 0.30):
+		bad.append("размах 10 см дал встряхивание %.3f м и взмах %.3f м" % [span[0], span[1]])
+	if bad.is_empty():
+		r.pass_("жест возврата: выкл — ни одного, встряхивание и взмах — только свой, оба — оба; размах 10 см → путь 0,10 м и взмах 0,30 м (упор)")
+	else:
+		r.fail("жест возврата: %s" % "; ".join(bad))
+
+
+## Панель появляется, только когда есть что показывать (решение владельца, сессия 4).
+func _panel_show() -> void:
+	var p: Panel3D = menu.panel
+	_to_root_open()
+	var slot := _slot_of("files")
+	var on_item := _panel_state(_key_of(slot))
+	var empty_key: Variant = _empty_key()
+	var on_empty_now := _panel_state(empty_key)
+	# удержание: сразу после ухода объекта панель ещё видна, после PANEL_HOLD_MS — нет
+	var on_empty_later := _panel_state(empty_key, Menu.PANEL_HOLD_MS + 50)
+	var pointer_hidden := p.pointer_active()
+	menu.panel_locked = true
+	p.open_editor(SettingEdit.new(menu.settings, "radius_cm"), "сценарий", ["done"])
+	var in_editor := _panel_state(empty_key)
+	p.close_editor()
+	menu.panel_locked = false
+	menu.close()
+	menu._update_panel(_t)
+	var when_closed := p.visible
+	menu.toggle()
+	var bad: Array[String] = []
+	if not on_item:
+		bad.append("на объекте панель скрыта")
+	if not on_empty_now:
+		bad.append("панель погасла сразу, без удержания")
+	if on_empty_later:
+		bad.append("панель не погасла на пустой ячейке через %d мс" % Menu.PANEL_HOLD_MS)
+	if pointer_hidden:
+		bad.append("спрятанная панель берёт указатель")
+	if not in_editor:
+		bad.append("в правке панель скрыта")
+	if when_closed:
+		bad.append("при закрытом шаре панель видна")
+	if bad.is_empty():
+		r.pass_("панель по делу: на объекте видна, на пустой ячейке держится %d мс и гаснет, указатель не берёт; в правке видна; закрытый шар гасит" % Menu.PANEL_HOLD_MS)
+	else:
+		r.fail("панель по делу: %s" % "; ".join(bad))
+
+
+## Ключ пустой ячейки (без пункта) среди видимых.
+func _empty_key() -> Variant:
+	for c in menu.surface().render_cells():
+		if int(c["slot"]) == Surface.SLOT_EMPTY:
+			return c["key"]
+	return null
+
+
+## Навести на ключ, прокрутить время на ms и вернуть видимость панели.
+func _panel_state(key: Variant, ms: int = 0) -> bool:
+	menu.hover_key = key
+	menu._update_panel(_t)
+	_t += ms
+	menu.hover_key = key
+	menu._update_panel(_t)
+	return menu.panel.visible
+
+
 ## Встряхивание шара из вложенной папки: меню возвращается на верхний уровень и
 ## остаётся открытым. Контроль — то же расстояние, пройденное ровно, без разворотов.
 func _shake_root() -> void:
@@ -615,7 +839,7 @@ func _shake_trace(head: Vector3, seconds: float, amp: float, freq: float, carry:
 		var t := i * dt
 		var win := clampf(minf(t / 0.15, (seconds - t) / 0.15), 0.0, 1.0)
 		var x := carry * t + amp * sin(TAU * freq * t) * win
-		menu.shake_update(head + Vector3(0.10 + x, -0.45, -0.25), head, dt)
+		menu.gesture_update(head + Vector3(0.10 + x, -0.45, -0.25), Transform3D(Basis(), head), dt)
 		if menu.nav.state.folder() != before:
 			fired = true
 	return fired

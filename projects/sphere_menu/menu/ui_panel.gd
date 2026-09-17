@@ -31,10 +31,11 @@ const TEXT_KEYS := ["Й", "Ц", "У", "К", "Е", "Н", "Г", "Ш", "Щ", "З", 
 		"О", "Л", "Д", "Ж", "Э", "Я", "Ч", "С", "М", "И", "Т", "Ь", "Б", "Ю", "Ё", "␣", "⌫", "C"]
 ## Кончик у панели: расстояние до плоскости квада, м.
 const TIP_GAP := 0.02
-## Окно пояснения под значением и окно итога мастера, px.
-const HINT_WIDTH := 416.0
-const HINT_HEIGHT := 84.0
-const SUMMARY_HEIGHT := 440.0
+## Полоса содержимого правки: окно прокрутки 480 минус полоса прокрутки, px.
+## Кнопки ▲/▼ ушли в нижнюю строку, и колонка справа больше ширину не отнимает.
+const EDIT_WIDTH := 468.0
+## Ползунок между кнопками −/+ (по 72 px по краям полосы, зазор 8).
+const SLIDER_WIDTH := 308.0
 
 var edit: SettingEdit = null
 ## Строка под значением (например, фактический размер ячейки глобуса).
@@ -46,6 +47,10 @@ var _e_value: Label
 var _e_hint: Label
 var _number_box: Control
 var _e_scroll: ScrollContainer
+var _e_box: VBoxContainer
+## Фальсификатор «editscroll» дымового прогона: в окне прокрутки остаётся одно пояснение,
+## как было в шаге 1д, — остальное содержимое правки снова стоит на месте.
+var falsify_hint_only := false
 var _slider: HSlider
 var _marks_box: Control
 var _choice_box: VBoxContainer
@@ -90,7 +95,7 @@ func active_scroll() -> ScrollContainer:
 ## прокрутить. Пока прокручивать нечего, луч в режиме информации проходит мимо
 ## панели к ячейкам шара под ней.
 func pointer_active() -> bool:
-	return interactive() or scrollable()
+	return visible and (interactive() or scrollable())
 
 
 ## Кнопка указателя зажата на панели (перетаскивание ползунка ушло за край квада).
@@ -102,6 +107,12 @@ func pointer_held() -> bool:
 
 ## Правка настройки. buttons — имена из BUTTON_TITLES по порядку слева направо.
 func open_editor(p_edit: SettingEdit, title: String, buttons: Array, p_note: Callable = Callable()) -> void:
+	# Фальсификатор «editscroll»: ползунок с цифрами снова живёт вне окна прокрутки —
+	# ровно как в шаге 1д, где ехало одно пояснение.
+	if falsify_hint_only and _number_box.get_parent() == _e_box:
+		_e_box.remove_child(_number_box)
+		_editor.add_child(_number_box)
+		_number_box.position = Vector2(50, 240)
 	edit = p_edit
 	note_fn = p_note
 	_set_info_visible(false)
@@ -141,7 +152,6 @@ func open_summary(title: String, lines: PackedStringArray, buttons: Array) -> vo
 	_e_title.text = title
 	_e_value.text = ""
 	_e_hint.text = "\n".join(lines)
-	_e_scroll.size = Vector2(HINT_WIDTH, SUMMARY_HEIGHT)
 	scroll_reset()
 	_number_box.visible = false
 	_choice_box.visible = false
@@ -160,7 +170,6 @@ func open_text(title: String, buttons: Array) -> void:
 	_e_title.text = title
 	_e_value.text = "_"
 	_e_hint.text = "временно: ввод на панели — системная клавиатура Meta будет модулем"
-	_e_scroll.size = Vector2(HINT_WIDTH, HINT_HEIGHT)
 	scroll_reset()
 	_number_box.visible = false
 	_choice_box.visible = false
@@ -188,7 +197,6 @@ func close_editor() -> void:
 func refresh() -> void:
 	if edit == null:
 		return
-	_e_scroll.size = Vector2(HINT_WIDTH, HINT_HEIGHT)
 	scroll_reset()
 	_e_value.text = edit.text()
 	var hint: String = edit.spec()["hint"]
@@ -265,6 +273,7 @@ func pointer_update(px: Variant, pressed: bool, source: String = "user") -> void
 	# как мышиный путь push_input уже отлажен на ползунке; колесо мыши даёт ступени,
 	# а не ход за рукой.
 	if not interactive() and _pointer_down and _pointer_px.x >= 0.0 and not over_scroll_button(pos):
+		scroll_how = "drag"
 		scroll_by(_pointer_px.y - pos.y)
 	if pos != _pointer_px:
 		var mm := InputEventMouseMotion.new()
@@ -305,9 +314,14 @@ func _pointer_release() -> void:
 
 # --- построение ---------------------------------------------------------------------
 
+## Содержимое режима информации ↔ содержимое правки. Заодно решает судьбу самой
+## панели: правка, мастер и поиск — это сценарий, панель им нужна, даже когда шар
+## закрыт (иначе «Готово» пропало бы). Когда правка закрывается, слово снова за
+## меню: _update_panel в том же кадре покажет панель, если есть что показывать.
 func _set_info_visible(on: bool) -> void:
 	for n in _info_nodes:
 		n.visible = on
+	visible = not on
 	scroll_reset()
 
 
@@ -318,32 +332,37 @@ func _build_editor() -> void:
 	_editor.visible = false
 	viewport.add_child(_editor)
 
-	_e_title = _elabel(Vector2(24, 14), Vector2(464, 44), 30, Color.WHITE)
-	_e_value = _elabel(Vector2(24, 58), Vector2(464, 48), 34, Color(1.0, 0.85, 0.35))
-	# Пояснение и итог мастера — в окне прокрутки: длинный итог обрезался по clip_text
-	# так же, как содержимое панели (отзыв сессии 3). Ширина 416 — колонка кнопок ▲/▼.
-	_e_scroll = make_scroll(Rect2(24, 106, HINT_WIDTH, HINT_HEIGHT))
+	# Всё содержимое правки — в том же окне прокрутки, что и режим информации
+	# (отзыв сессии 4: ехало только пояснение, а ползунок, цифры и варианты стояли).
+	# Вне прокрутки остаётся одна строка кнопок: «Готово» и «Далее» обязаны быть под
+	# рукой всегда, докручивать до них нечестно.
+	_e_scroll = make_scroll(SCROLL_RECT)
 	_editor.add_child(_e_scroll)
-	_e_hint = _elabel(Vector2.ZERO, Vector2(HINT_WIDTH, HINT_HEIGHT), 19, Color(0.80, 0.84, 0.90), _e_scroll)
-	_e_hint.clip_text = false
-	_e_hint.custom_minimum_size = Vector2(HINT_WIDTH, 0)
+	_e_box = VBoxContainer.new()
+	_e_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_e_box.add_theme_constant_override("separation", 8)
+	_e_box.sort_children.connect(_dirty)    # раскладка отложена на кадр — см. info_panel
+	_e_scroll.add_child(_e_box)
+
+	_e_title = _elabel(30, Color.WHITE)
+	_e_value = _elabel(34, Color(1.0, 0.85, 0.35))
+	_e_hint = _elabel(19, Color(0.80, 0.84, 0.90))
 
 	_number_box = Control.new()
-	_number_box.position = Vector2(0, 192)
-	_number_box.size = Vector2(512, 370)
+	_number_box.custom_minimum_size = Vector2(EDIT_WIDTH, 370)
 	_number_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_editor.add_child(_number_box)
+	_e_box.add_child(_number_box)
 	var minus := _button("−", Vector2(72, 64), 36)
-	minus.position = Vector2(20, 0)
+	minus.position = Vector2(0, 0)
 	minus.pressed.connect(func(): _on_nudge(-1))
 	_number_box.add_child(minus)
 	var plus := _button("+", Vector2(72, 64), 36)
-	plus.position = Vector2(420, 0)
+	plus.position = Vector2(EDIT_WIDTH - 72, 0)
 	plus.pressed.connect(func(): _on_nudge(1))
 	_number_box.add_child(plus)
 	_slider = HSlider.new()
-	_slider.position = Vector2(104, 0)
-	_slider.size = Vector2(304, 64)
+	_slider.position = Vector2(80, 0)
+	_slider.size = Vector2(SLIDER_WIDTH, 64)
 	_slider.focus_mode = Control.FOCUS_NONE
 	_slider.add_theme_icon_override("grabber", _disc(36, Color(1.0, 0.85, 0.35)))
 	_slider.add_theme_icon_override("grabber_highlight", _disc(40, Color(1.0, 0.95, 0.6)))
@@ -360,13 +379,14 @@ func _build_editor() -> void:
 	_slider.value_changed.connect(_on_slider)
 	_number_box.add_child(_slider)
 	_marks_box = Control.new()
-	_marks_box.position = Vector2(104, 66)
-	_marks_box.size = Vector2(304, 28)
+	_marks_box.position = Vector2(80, 66)
+	_marks_box.size = Vector2(SLIDER_WIDTH, 28)
 	_marks_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_number_box.add_child(_marks_box)
 	var grid := GridContainer.new()
 	grid.columns = 4
-	grid.position = Vector2(96, 104)
+	# 4 колонки по 72 с зазором 8 — 312 px, по центру полосы
+	grid.position = Vector2((EDIT_WIDTH - 312) * 0.5, 104)
 	grid.add_theme_constant_override("h_separation", 8)
 	grid.add_theme_constant_override("v_separation", 8)
 	for k in SettingEdit.KEYS:
@@ -375,9 +395,10 @@ func _build_editor() -> void:
 		grid.add_child(kb)
 	_number_box.add_child(grid)
 
+	# Клавиша снова 70 px (24 мм на кваде): в полосу 468 шесть колонок по 70 с зазором 6
+	# входят — сужение до 62 в шаге 1е было следствием колонки кнопок справа.
 	_text_box = GridContainer.new()
 	_text_box.columns = 6
-	_text_box.position = Vector2(34, 196)
 	_text_box.add_theme_constant_override("h_separation", 6)
 	_text_box.add_theme_constant_override("v_separation", 6)
 	_text_box.visible = false
@@ -385,35 +406,30 @@ func _build_editor() -> void:
 		var tb := _button(k, Vector2(70, 56), 28)
 		tb.pressed.connect(_on_text_key.bind(k))
 		_text_box.add_child(tb)
-	_editor.add_child(_text_box)
+	_e_box.add_child(_text_box)
 
 	_choice_box = VBoxContainer.new()
-	_choice_box.position = Vector2(24, 206)
-	_choice_box.size = Vector2(464, 300)
+	_choice_box.custom_minimum_size = Vector2(EDIT_WIDTH, 0)
 	_choice_box.add_theme_constant_override("separation", 12)
-	_editor.add_child(_choice_box)
+	_e_box.add_child(_choice_box)
 
 	_buttons_box = HBoxContainer.new()
 	_buttons_box.position = Vector2(16, 566)
-	_buttons_box.size = Vector2(480, 60)
+	_buttons_box.size = Vector2(360, 60)    # правее — кнопки ▲/▼
 	_buttons_box.add_theme_constant_override("separation", 8)
 	_buttons_box.alignment = BoxContainer.ALIGNMENT_CENTER
 	_editor.add_child(_buttons_box)
 
 
-func _elabel(pos: Vector2, size: Vector2, font: int, color: Color, parent: Node = null) -> Label:
+func _elabel(font: int, color: Color) -> Label:
 	var l := Label.new()
-	l.position = pos
-	l.size = size
+	l.custom_minimum_size = Vector2(EDIT_WIDTH, 0)
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD
-	l.clip_text = true
+	l.clip_text = false
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	l.add_theme_font_size_override("font_size", font)
 	l.add_theme_color_override("font_color", color)
-	if parent != null:
-		parent.add_child(l)
-	else:
-		_editor.add_child(l)
+	_e_box.add_child(l)
 	return l
 
 
@@ -445,7 +461,7 @@ func _set_buttons(names: Array) -> void:
 	for c in _buttons_box.get_children():
 		(c as Control).visible = false
 		c.queue_free()
-	var w := (480.0 - 8.0 * (names.size() - 1)) / maxf(1.0, names.size())
+	var w := (_buttons_box.size.x - 8.0 * (names.size() - 1)) / maxf(1.0, names.size())
 	for n in names:
 		var b := _button(BUTTON_TITLES.get(n, n), Vector2(w, 60), 22)
 		b.pressed.connect(func(): button.emit(n))

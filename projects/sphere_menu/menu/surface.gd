@@ -11,6 +11,12 @@ extends RefCounted
 ## Слот ячейки: индекс пункта папки ≥ 0, служебная «назад» или пустая.
 const SLOT_BACK := -1
 const SLOT_EMPTY := -2
+## Страницы (отзыв сессии 7): «Дальше» — сосед справа от активной, «Раньше» — рядом с ним
+## сверху. Позиции фиксированы, как у «Назад», — искать их не приходится.
+const SLOT_NEXT := -3
+const SLOT_PREV := -4
+## Ёмкость без предела (линза: решётка бесконечна).
+const UNLIMITED := 0
 
 ## Направление на голову, локально. Меню обновляет каждый кадр.
 var front := Vector3(0, 0, 1)
@@ -23,9 +29,16 @@ var version := 0
 
 
 ## Раздать n пунктов по ячейкам от текущей активной. Вызывается при открытии папки.
-## with_back = false — без ячейки «Назад» (корень: назад некуда, сессия 2).
-func assign(_item_count: int, _with_back: bool = true) -> void:
+## with_back = false — без ячейки «Назад» (корень: назад некуда, сессия 2); with_next и
+## with_prev — служебные ячейки страниц.
+func assign(_item_count: int, _with_back: bool = true, _with_next: bool = false, _with_prev: bool = false) -> void:
 	pass
+
+
+## Сколько ячеек могут занять пункты и служебные «Дальше»/«Раньше», кроме «Назад».
+## UNLIMITED — без предела.
+func capacity(_with_back: bool = true) -> int:
+	return UNLIMITED
 
 
 ## Видимые ячейки: Array словарей

@@ -67,7 +67,26 @@ var tasks_on := false
 var picking := false
 var search_query := ""
 
+## Текущая страница вида: голова (центр у search/actions/letters/path) + срез полного списка.
+## Все слоты — индексы в ней: шар, атлас и нажатия страниц не знают.
 var _list: Array = []
+## Полный список вида.
+var _full: Array = []
+
+## Страницы (отзыв сессии 7): пунктов больше, чем ячеек на шаре или подписей в атласе.
+## Пределы ставит меню. cells — ячеек под пункты и «Дальше»/«Раньше» (0 — без предела),
+## labels — пунктов на странице с подписью (0 — без предела). Первая страница без «Раньше»,
+## последняя без «Дальше», по кругу не ходят (решение владельца).
+var page_cells := 0
+var page_labels := 0
+## вид|папка → номер страницы
+var _page_of: Dictionary = {}
+## Начала страниц в теле полного списка (без головы).
+var _starts: PackedInt32Array = PackedInt32Array([0])
+var _page := 0
+var _head := 0
+## Фальсификатор «pagegap»: каждая следующая страница начинается на пункт позже.
+var falsify_page_gap := false
 ## Недавние на момент входа в папку. Внутри папки порядок не меняется: открытый
 ## объект не должен переезжать под рукой в первое кольцо (прокрутка вернулась бы
 ## к другим пунктам). Обновляется при смене папки.
@@ -89,6 +108,112 @@ func _init(p_catalog: Catalog, p_settings: Settings) -> void:
 
 func items() -> Array:
 	return _list
+
+
+## Полный список вида — для журнала и проверок.
+func full_items() -> Array:
+	return _full
+
+
+func has_next() -> bool:
+	return _page < _starts.size() - 1
+
+
+func has_prev() -> bool:
+	return _page > 0
+
+
+## {from, to, total, page, pages}: номера пунктов текущей страницы с 1, без головы.
+func page_info() -> Dictionary:
+	var body := _full.size() - _head
+	var start := _starts[_page]
+	var end := _starts[_page + 1] if has_next() else body
+	return {"from": start + 1, "to": end, "total": body, "page": _page + 1, "pages": _starts.size()}
+
+
+## Пределы страницы. Возвращает true, если разбиение изменилось: при смене предела остаётся
+## страница с первым пунктом прежней — человек не теряет место.
+func set_page_limits(cells: int, labels: int) -> bool:
+	if cells == page_cells and labels == page_labels:
+		return false
+	var first := _starts[_page] if _page < _starts.size() else 0
+	page_cells = cells
+	page_labels = labels
+	_paginate(first)
+	return true
+
+
+func page_next() -> Dictionary:
+	if not has_next():
+		return {"do": "none"}
+	_page_of[_page_key()] = _page + 1
+	_paginate()
+	message = "Пункты %d–%d из %d" % [page_info()["from"], page_info()["to"], page_info()["total"]]
+	return {"do": "reload", "scroll": null, "page": page_info()}
+
+
+func page_prev() -> Dictionary:
+	if not has_prev():
+		return {"do": "none"}
+	_page_of[_page_key()] = _page - 1
+	_paginate()
+	message = "Пункты %d–%d из %d" % [page_info()["from"], page_info()["to"], page_info()["total"]]
+	return {"do": "reload", "scroll": null, "page": page_info()}
+
+
+func _page_key() -> String:
+	return "%s|%s" % [view, state.folder()]
+
+
+## Разбиение проходом: страница берёт столько, сколько влезает с учётом «Раньше» (не первая) и
+## «Дальше» (если остаток не влез). keep_body — номер пункта тела, чью страницу сделать текущей.
+func _paginate(keep_body: int = -1) -> void:
+	_head = 0 if view == "browse" else 1
+	var body := maxi(0, _full.size() - _head)
+	_starts = PackedInt32Array([0])
+	var cells := page_cells - _head if page_cells > 0 else 0
+	var fits_all := (cells <= 0 or body <= cells) and (page_labels <= 0 or body + _head <= page_labels)
+	if not fits_all:
+		var pos := 0
+		while true:
+			var prev := 1 if _starts.size() > 1 else 0
+			var room_last := _room(cells - prev)
+			if body - pos <= room_last:
+				break
+			var room := maxi(1, _room(cells - prev - 1))
+			pos += room + (1 if falsify_page_gap else 0)
+			if pos >= body:
+				break
+			_starts.append(pos)
+	var key := _page_key()
+	var page: int = _page_of.get(key, 0)
+	if keep_body >= 0:
+		page = 0
+		for i in _starts.size():
+			if _starts[i] <= keep_body:
+				page = i
+	_page = clampi(page, 0, _starts.size() - 1)
+	_page_of[key] = _page
+	var start := _starts[_page]
+	var end := _starts[_page + 1] if _page + 1 < _starts.size() else body
+	_list = _full.slice(0, _head) + _full.slice(_head + start, _head + end)
+
+
+## Сколько пунктов тела влезает при cells ячеек под тело (0 — без предела) и пределе подписей.
+func _room(cells: int) -> int:
+	var room := cells if page_cells > 0 else 1 << 30
+	if page_labels > 0:
+		room = mini(room, page_labels - _head)
+	return room
+
+
+## Страница с пунктом полного списка index; возвращает слот в текущей странице.
+func _show_index(index: int) -> int:
+	var b := index - _head
+	if b < 0:
+		return index
+	_paginate(b)
+	return _head + b - _starts[_page]
 
 
 func item_at(slot: int) -> Item:
@@ -121,7 +246,7 @@ func hint() -> String:
 		"path":
 			return "выберите уровень; «Отмена» слева"
 		"search":
-			return "найдено %d; курок — открыть, «Отмена» слева" % maxi(0, _list.size() - 1)
+			return "найдено %d; курок — открыть, «Отмена» слева" % maxi(0, _full.size() - 1)
 	if picking:
 		return "выберите объект — он появится в меню; «Назад» — отмена"
 	if state.folder() == State.ROOT:
@@ -147,18 +272,19 @@ func _rebuild() -> void:
 	match view:
 		"browse":
 			if state.folder() == State.ROOT:
-				_list = catalog.home_view()
+				_full = catalog.home_view()
 			else:
-				_list = catalog.view(state.folder(), folder_sort(), folder_filter(), _view_recent)
+				_full = catalog.view(state.folder(), folder_sort(), folder_filter(), _view_recent)
 		"search":
 			var c: Item = _center("search_center", "Поиск: %s" % search_query if search_query != "" else "Поиск", "search")
-			_list = [c] + catalog.search(search_query)
+			_full = [c] + catalog.search(search_query)
 		"actions":
-			_list = [_center_for(_targets)] + _actions_for(_targets)
+			_full = [_center_for(_targets)] + _actions_for(_targets)
 		"letters":
-			_list = [_center("letters_center", "Буква", "letter")] + _letters()
+			_full = [_center("letters_center", "Буква", "letter")] + _letters()
 		"path":
-			_list = [_center("path_center", "Путь", "path")] + _ancestors()
+			_full = [_center("path_center", "Путь", "path")] + _ancestors()
+	_paginate()
 
 
 func _center(id: String, title: String, icon: String) -> Item:
@@ -443,9 +569,12 @@ func _run_action(action: String, scroll: Variant) -> Dictionary:
 	if action.begins_with("letter:"):
 		var ch := action.substr(7)
 		var back_res := _to_browse(true)
-		for i in _list.size():
-			if (_list[i] as Item).title.substr(0, 1).to_upper() == ch:
-				return {"do": "focus", "scroll": back_res["scroll"], "slot": i}
+		for i in _full.size():
+			if (_full[i] as Item).title.substr(0, 1).to_upper() == ch:
+				var page_before := _page
+				var slot := _show_index(i)
+				# страница сменилась — прежняя прокрутка раздавала другие пункты
+				return {"do": "focus", "scroll": back_res["scroll"] if _page == page_before else null, "slot": slot}
 		return back_res
 	if action.begins_with("path:"):
 		var depth := int(action.substr(5))
@@ -537,10 +666,12 @@ func _run_action(action: String, scroll: Variant) -> Dictionary:
 			return _after_change()
 		"sort":
 			sort_of[state.folder()] = SORTS[(SORTS.find(folder_sort()) + 1) % SORTS.size()]
+			_page_of.erase("browse|" + state.folder())
 			message = "Сортировка: %s" % SORT_TITLES[folder_sort()]
 			return _after_change()
 		"filter":
 			filter_of[state.folder()] = FILTERS[(FILTERS.find(folder_filter()) + 1) % FILTERS.size()]
+			_page_of.erase("browse|" + state.folder())
 			message = "Фильтр: %s" % FILTER_TITLES[folder_filter()]
 			return _after_change()
 		"letters", "path":
@@ -568,6 +699,7 @@ func set_query(q: String) -> Dictionary:
 	if view != "search":
 		return {"do": "none"}
 	search_query = q
+	_page_of.erase(_page_key())
 	_rebuild()
 	return {"do": "reload", "scroll": null}
 

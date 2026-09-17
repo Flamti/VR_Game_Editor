@@ -33,7 +33,7 @@ const Lens := preload("res://menu/surface_lens.gd")
 const Surface := preload("res://menu/surface.gd")
 const Active := preload("res://menu/active_cell.gd")
 const Spring := preload("res://menu/spring.gd")
-const Atlas := preload("res://menu/label_atlas.gd")
+const LabelText := preload("res://menu/label_text.gd")
 const Renderer := preload("res://menu/cell_renderer.gd")
 const Navigator := preload("res://menu/navigator.gd")
 const Settings := preload("res://menu/settings.gd")
@@ -80,7 +80,6 @@ var press_right: Press = Press.new()
 var grab: Grab = Grab.new()
 var shake: Shake = Shake.new()
 var swipe: Swipe = Swipe.new()
-var atlas: Atlas
 var renderer: Renderer
 
 var globe: RefCounted
@@ -101,17 +100,20 @@ var falsify_panel_always := false
 ## Фальсификатор «gestureboth» дымового прогона: настройка «Жест возврата» не слушается,
 ## живут оба детектора.
 var falsify_gestures_always := false
+## Подписи ячеек собирает шейдер (menu/label_text.gd).
+var label_text: LabelText
 var _scroll_last_pos := 0
 var _scroll_last_ms := -100000
 
 
 func _ready() -> void:
 	nav = Navigator.new(catalog, settings)
-	atlas = Atlas.new()
-	add_child(atlas)
+	label_text = LabelText.new()
+	add_child(label_text)
 	renderer = Renderer.new()
 	add_child(renderer)
-	renderer.setup(atlas.texture())
+	renderer.setup()
+	renderer.set_label_text(label_text)
 	apply_settings()
 	visible = false
 
@@ -165,14 +167,14 @@ func apply_settings() -> void:
 		active.reset()
 		if is_open():
 			_update_front()
-			surface().assign(nav.items().size())
+			_load_list(null)
 		_list_version += 1
 
 
 ## Прокрутка для навигатора — с подписью геометрии: прокрутку глобуса m=3 нельзя
 ## применить к глобусу m=5 или к линзе.
 func _scroll() -> Dictionary:
-	return {"__sig": _surface_sig, "v": surface().get_scroll()}
+	return {"__sig": _surface_sig, "page": _page_sig(), "v": surface().get_scroll()}
 
 
 # --- намерения ------------------------------------------------------------------
@@ -275,6 +277,10 @@ func _press(p: Press, hand: String, key: Variant, pressed: bool, now_ms: int) ->
 		"short":
 			if tslot == Surface.SLOT_BACK:
 				_handle(nav.back(_scroll()))
+			elif tslot == Surface.SLOT_NEXT:
+				_handle(nav.page_next())
+			elif tslot == Surface.SLOT_PREV:
+				_handle(nav.page_prev())
 			else:
 				_handle(nav.short(tslot, _scroll()))
 		"hold", "confirm":
@@ -389,10 +395,15 @@ func _process(delta: float) -> void:
 	_detent(delta)
 
 	var sig := [settings.get_value("surface"), sf.render_version(), _surface_sig, _list_version]
+	var cell_r: float = settings.actual_cell_cm() * 0.5 / 100.0
 	if renderer.needs_redraw(sig):
-		var cell_r: float = settings.actual_cell_cm() * 0.5 / 100.0
-		renderer.draw(sf.render_cells(), radius(), cell_r, _codes, _marks, sig)
+		if sf == lens:
+			renderer.draw_lens(sf, _codes, _marks, sig)
+		else:
+			renderer.draw(sf.render_cells(), radius(), cell_r, _codes, _marks, sig)
 	renderer.transform.basis = sf.render_basis()
+	# Проекцию линзы считает шейдер: сдвиг и закрутка — каждый кадр (surface_lens.gd).
+	renderer.set_lens(sf if sf == lens else null, radius(), cell_r)
 	var prog := maxf(press_left.progress(now), press_right.progress(now))
 	if _demo_progress >= 0.0:
 		renderer.set_state(active.key, hover_key, active.key, _demo_progress)
@@ -492,19 +503,26 @@ func _update_panel(now: int) -> void:
 	var slot: int = surface().slot_of(key) if key != null else Surface.SLOT_EMPTY
 	if slot >= 0:
 		_last_item_ms = now
+	# «Дальше»/«Раньше» — содержимое: панель говорит, какие пункты откроются
 	panel.visible = panel_should_show(is_open(), panel_locked or panel.interactive(),
-			slot >= 0 or falsify_panel_always, panel.has_toast(now), now - _last_item_ms)
+			slot >= 0 or slot == Surface.SLOT_NEXT or slot == Surface.SLOT_PREV or falsify_panel_always,
+			panel.has_toast(now), now - _last_item_ms)
 	if panel_locked:
 		return
 	var it: Item = nav.item_at(slot)
 	var extra := ""
+	var service_icon := ""
 	if slot == Surface.SLOT_BACK:
 		extra = "Назад" if nav.view == "browse" and not nav.multi else "Отмена"
+		service_icon = "back" if extra == "Назад" else "cancel"
+	elif slot == Surface.SLOT_NEXT or slot == Surface.SLOT_PREV:
+		extra = page_text(slot == Surface.SLOT_NEXT)
+		service_icon = "next" if slot == Surface.SLOT_NEXT else "prev"
 	elif it != null and it.setting != "":
 		extra = settings.label(it.setting)
 	elif it != null and it.kind == Item.Kind.TOGGLE:
 		extra = "вкл" if it.on else "выкл"
-	var icon := atlas.icon(it.icon) if it != null else atlas.icon("back" if extra == "Назад" else "cancel")
+	var icon := label_text.icon(it.icon) if it != null else label_text.icon(service_icon if service_icon != "" else "cancel")
 	panel.show_item(it, icon, nav.breadcrumbs(), nav.hint(), extra)
 
 
@@ -545,8 +563,19 @@ func set_search_query(q: String) -> void:
 		_handle(nav.set_query(q))
 
 
+## Подпись панели на «Дальше»/«Раньше»: какие пункты откроются.
+func page_text(forward: bool) -> String:
+	var p: Dictionary = nav.page_info()
+	var per: int = p["to"] - p["from"] + 1
+	if forward:
+		return "Дальше: с %d из %d" % [p["to"] + 1, p["total"]]
+	return "Раньше: %d–%d из %d" % [maxi(1, p["from"] - per), p["from"] - 1, p["total"]]
+
+
 func _handle(res: Dictionary) -> void:
 	var data := {"do": res.get("do", ""), "view": nav.view, "folder": nav.state.folder()}
+	if res.has("page"):
+		event.emit("page", res["page"])
 	if res.get("search_end", false):
 		search_closed.emit()
 	if res.get("reload", false):
@@ -601,21 +630,31 @@ func _handle(res: Dictionary) -> void:
 
 
 func _load_list(scroll: Variant) -> void:
+	var sf := surface()
+	# Пределы страницы — до чтения списка: ячеек у поверхности и подписей в атласе.
+	nav.set_page_limits(sf.capacity(_needs_back()), LabelText.MAX_ITEMS)
 	var list: Array = nav.items()
 	var texts: Array = []
 	var icons: Array = []
 	for it in list:
 		texts.append(it.label())
 		icons.append(it.icon)
-	atlas.set_cells(texts, icons, "Назад" if nav.view == "browse" and not nav.multi else "Отмена")
+	var back_text := "Назад" if nav.view == "browse" and not nav.multi else "Отмена"
+	label_text.set_items(texts, icons, back_text)
 	_refresh_codes()
 	active.reset()
-	var sf := surface()
-	if scroll is Dictionary and scroll.get("__sig", "") == _surface_sig:
+	# Прокрутка хранит раздачу слотов: применима только к той же геометрии и той же странице.
+	if scroll is Dictionary and scroll.get("__sig", "") == _surface_sig and scroll.get("page", []) == _page_sig():
 		sf.set_scroll(scroll["v"])
 	else:
-		sf.assign(list.size(), _needs_back())
-	event.emit("folder", {"folder": nav.state.folder(), "view": nav.view, "items": list.size()})
+		sf.assign(list.size(), _needs_back(), nav.has_next(), nav.has_prev())
+	event.emit("folder", {"folder": nav.state.folder(), "view": nav.view, "items": list.size(),
+			"total": nav.page_info()["total"], "page": nav.page_info()["page"], "pages": nav.page_info()["pages"]})
+
+
+func _page_sig() -> Array:
+	var p: Dictionary = nav.page_info()
+	return [p["page"], p["pages"], nav.items().size()]
 
 
 ## «Назад» не нужна только на корне в обычном просмотре: в действиях и множественном выборе

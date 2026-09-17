@@ -31,6 +31,9 @@ var favorites: Array = []
 const HOME_HEAD := ["files", "settings", "home_search", "set_tasks"]
 const HOME_TAIL := ["home_plus", "home_exit"]
 const FAVORITES_PATH := "user://favorites.cfg"
+## Большая папка: проверка отображения папки, где пунктов больше, чем подписей в атласе.
+const BULK_FOLDER := "bulk"
+const BULK_COUNT := 128
 var _next_id := 0
 ## Фальсификатор настольных проверок «favorite»: удаление не чистит избранное.
 var prune_favorites_disabled := false
@@ -87,6 +90,12 @@ func _init() -> void:
 	for l in [["logic_trigger", "Триггер"], ["logic_timer", "Таймер"], ["logic_door", "Дверь"],
 			["logic_dialog", "Диалог"], ["logic_quest", "Квест"]]:
 		_object("logic", l[0], l[1], K.FILE, "скрипт", 4, "2026-09-10", "")
+
+	# Папка на 128 файлов (просьба владельца 2026-09-17): как меню показывает большую папку.
+	# Пустые скрипты, номер в имени с нулями — сортировка по имени совпадает с порядком.
+	_folder("files", BULK_FOLDER, "Много файлов", "Много")
+	for i in BULK_COUNT:
+		_object(BULK_FOLDER, "bulk_%03d" % (i + 1), "Файл %03d" % (i + 1), K.FILE, "файл", 0, "2026-09-17", "")
 
 	_folder("settings", "settings_sphere", "Шар-меню")
 	for sid in Settings.MAIN:

@@ -66,21 +66,35 @@ func frequency() -> int:
 
 ## Пункты — спиралью BFS от активной ячейки. «Назад» — сосед активной, ближайший
 ## к направлению «влево» от переда (как у линзы: слева от центра).
-func assign(item_count: int, with_back: bool = true) -> void:
+func assign(item_count: int, with_back: bool = true, with_next: bool = false, with_prev: bool = false) -> void:
 	_slots.fill(SLOT_EMPTY)
 	var start: int = active_at(front)
-	var left := up.cross(front).normalized() * -1.0
-	var back := -1
-	var best := -INF
-	for j in g.neighbors[start]:
-		var d: float = (orientation * g.centers[j] - orientation * g.centers[start]).normalized().dot(left)
-		if d > best:
-			best = d
-			back = j
+	var right := up.cross(front).normalized()
+	var back := _neighbor_toward(start, -right)
 	var seen := {start: true}
 	if with_back:
 		_slots[back] = SLOT_BACK
 		seen[back] = true
+	# «Дальше» — сосед справа; «Раньше» — общий сосед активной и «Дальше», тот, что выше.
+	var nxt := _neighbor_toward(start, _next_dir(right))
+	if with_next or with_prev:
+		if with_next:
+			_slots[nxt] = SLOT_NEXT
+			seen[nxt] = true
+		if with_prev:
+			var prv := -1
+			var best_up := -INF
+			var base: Vector3 = orientation * g.centers[start]
+			for j in g.neighbors[start]:
+				if j == nxt or j == back or not (g.neighbors[nxt] as Array).has(j):
+					continue
+				var d: float = (orientation * g.centers[j] - base).dot(up)
+				if d > best_up:
+					best_up = d
+					prv = j
+			if prv >= 0:
+				_slots[prv] = SLOT_PREV
+				seen[prv] = true
 	version += 1
 	_slot_version += 1
 	var queue: Array[int] = [start]
@@ -88,13 +102,43 @@ func assign(item_count: int, with_back: bool = true) -> void:
 	while not queue.is_empty() and next < item_count:
 		var c: int = queue.pop_front()
 		# обход идёт и через дефекты (иначе они рвали бы спираль), пункты на них не ставятся
-		if not (hide_defects and g.is_defect(c)):
+		if _slots[c] == SLOT_EMPTY and not (hide_defects and g.is_defect(c)):
 			_slots[c] = next
 			next += 1
 		for j in g.neighbors[c]:
 			if not seen.has(j):
 				seen[j] = true
 				queue.append(j)
+
+
+## Фальсификатор «nextleft»: «Дальше» встаёт слева, где и «Назад».
+var falsify_next_left := false
+
+
+func _next_dir(right: Vector3) -> Vector3:
+	return -right if falsify_next_left else right
+
+
+## Сосед ячейки, чьё смещение от неё сильнее всего смотрит в направлении dir (в мире шара).
+func _neighbor_toward(cell: int, dir: Vector3) -> int:
+	var base: Vector3 = orientation * g.centers[cell]
+	var out := -1
+	var best := -INF
+	for j in g.neighbors[cell]:
+		var d: float = (orientation * g.centers[j] - base).normalized().dot(dir)
+		if d > best:
+			best = d
+			out = j
+	return out
+
+
+func capacity(with_back: bool = true) -> int:
+	var n: int = g.centers.size()
+	if hide_defects:
+		for i in n:
+			if g.is_defect(i):
+				n -= 1
+	return n - (1 if with_back else 0)
 
 
 func visible_cells() -> Array:

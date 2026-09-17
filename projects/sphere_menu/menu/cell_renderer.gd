@@ -21,7 +21,7 @@ const PENT := preload("res://menu/pent_mesh.tres")
 const QUAD := preload("res://menu/quad_mesh.tres")
 const HEPT := preload("res://menu/hept_mesh.tres")
 const Surface := preload("res://menu/surface.gd")
-const Atlas := preload("res://menu/label_atlas.gd")
+const LabelText := preload("res://menu/label_text.gd")
 
 ## Зазор между ячейками: доля радиуса.
 const GAP := 0.9
@@ -43,13 +43,17 @@ var _active: Variant = null
 var _hover: Variant = null
 var _progress_key: Variant = null
 var _progress := 0.0
+## Линза: кольцевой порядок ячеек (как в шейдере) и буфер MultiMesh — трансформ 12 + custom 4.
+const LENS_STRIDE := 16
+var _lens_ring: Array[Vector2i] = []
+var _lens_buf := PackedFloat32Array()
+var _lens_on := false
 
 
-func setup(atlas: Texture2D) -> void:
+func setup() -> void:
 	# у спирали и колец дефектов больше двенадцати — ёмкость на все ячейки у каждого вида
 	for pair in [[6, HEX], [5, PENT], [4, QUAD], [7, HEPT]]:
 		_by_sides[pair[0]] = _make(pair[1], MAX_CELLS)
-		((pair[1] as PrimitiveMesh).material as ShaderMaterial).set_shader_parameter("atlas", atlas)
 
 
 func _make(mesh: Mesh, count: int) -> MultiMeshInstance3D:
@@ -94,18 +98,7 @@ func draw(cells: Array, radius: float, cell_radius: float, codes: PackedInt32Arr
 		var x := n.cross(z)
 		var xf := Transform3D(Basis(x * s, n * s, z * s), n * radius)
 
-		var slot: int = c["slot"]
-		var cell := -1.0
-		var code := CODE_EMPTY
-		var mark := 0.0
-		if slot >= 0 and slot < codes.size():
-			cell = float(slot) if slot < Atlas.MAX_ITEMS else -1.0
-			code = codes[slot]
-			mark = 2.0 if slot < marks.size() and marks[slot] == 1 else 0.0
-		elif slot == Surface.SLOT_BACK:
-			cell = float(Atlas.BACK_INDEX)
-			code = CODE_BACK
-		var base := Color(cell, mark, float(code) / 20.0, 0.0)
+		var base := _base(c["slot"], codes, marks)
 
 		var sides: int = int(c["sides"])
 		if not _by_sides.has(sides):
@@ -116,12 +109,108 @@ func draw(cells: Array, radius: float, cell_radius: float, codes: PackedInt32Arr
 			continue
 		used[sides] = idx + 1
 		mm.set_instance_transform(idx, xf)
-		_where[c["key"]] = [mm, idx, base]
+		_where[c["key"]] = [mm, idx, base, int(c["slot"])]
 		mm.set_instance_custom_data(idx, _with_state(c["key"], base))
 	drawn = 0
 	for k in _by_sides:
 		(_by_sides[k] as MultiMeshInstance3D).multimesh.visible_instance_count = used[k]
 		drawn += int(used[k])
+
+
+## Данные ячейки без состояния: индекс подписи, отметка, код цвета.
+func _base(slot: int, codes: PackedInt32Array, marks: PackedByteArray) -> Color:
+	var code := CODE_EMPTY
+	var mark := 0.0
+	if slot >= 0 and slot < codes.size():
+		code = codes[slot]
+		mark = 2.0 if slot < marks.size() and marks[slot] == 1 else 0.0
+	elif slot == Surface.SLOT_BACK or slot == Surface.SLOT_NEXT or slot == Surface.SLOT_PREV:
+		code = CODE_BACK
+	return Color(_label_index(slot, codes.size()), mark, float(code) / 20.0, 0.0)
+
+
+func _label_index(slot: int, count: int) -> float:
+	if slot == Surface.SLOT_BACK:
+		return float(LabelText.BACK_ROW)
+	if slot == Surface.SLOT_NEXT:
+		return float(LabelText.NEXT_ROW)
+	if slot == Surface.SLOT_PREV:
+		return float(LabelText.PREV_ROW)
+	if slot < 0 or slot >= count or slot >= LabelText.MAX_ITEMS:
+		return -1.0
+	return float(slot)
+
+
+## Текстуры подписей на всех материалах ячеек (menu/label_text.gd).
+func set_label_text(text: LabelText) -> void:
+	for pair in [HEX, PENT, QUAD, HEPT]:
+		var mat := (pair as PrimitiveMesh).material as ShaderMaterial
+		mat.set_shader_parameter("label_data", text.data_texture)
+		mat.set_shader_parameter("icon_atlas", text.icon_texture)
+		if text.glyph_texture() != null:
+			mat.set_shader_parameter("glyph_atlas", text.glyph_texture())
+			mat.set_shader_parameter("glyph_atlas_px", Vector2(LabelText.GLYPH_COLS * LabelText.GLYPH_CELL.x, text.glyph_rows() * LabelText.GLYPH_CELL.y))
+
+
+## Линза: проекцию считает шейдер (surface_lens.gd, «рендер проекцией в шейдере»). Здесь —
+## только данные ячеек вокруг центральной, одним буфером: трансформы единичные, экземпляр
+## номер i — ячейка center + ring_cell(i). Зовётся при смене центра или раздачи, не на каждом
+## повороте.
+func draw_lens(sf, codes: PackedInt32Array, marks: PackedByteArray, sig: Array) -> void:
+	_sig_hash = sig.hash()
+	redraws += 1
+	_where.clear()
+	if _lens_ring.is_empty():
+		for i in MAX_CELLS:
+			_lens_ring.append(sf.ring_cell(i))
+		_lens_buf.resize(MAX_CELLS * LENS_STRIDE)
+		for i in MAX_CELLS:
+			var o := i * LENS_STRIDE
+			_lens_buf[o] = 1.0
+			_lens_buf[o + 5] = 1.0
+			_lens_buf[o + 10] = 1.0
+	var mm: MultiMesh = (_by_sides[6] as MultiMeshInstance3D).multimesh
+	var n: int = sf.render_count(MAX_CELLS)
+	var center: Vector2i = sf.render_center()
+	for i in n:
+		var key: Vector2i = center + _lens_ring[i]
+		var slot: int = sf.slot_of(key)
+		var base := _base(slot, codes, marks)
+		_where[key] = [mm, i, base, slot]
+		var c := _with_state(key, base)
+		var o := i * LENS_STRIDE + 12
+		_lens_buf[o] = c.r
+		_lens_buf[o + 1] = c.g
+		_lens_buf[o + 2] = c.b
+		_lens_buf[o + 3] = c.a
+	mm.buffer = _lens_buf
+	for k in _by_sides:
+		(_by_sides[k] as MultiMeshInstance3D).multimesh.visible_instance_count = n if k == 6 else 0
+	drawn = n
+
+
+## Uniform'ы линзы на кадр; sf == null выключает режим линзы у материала шестиугольника
+## (он общий с глобусом и прогревом).
+func set_lens(sf, radius: float, cell_radius: float) -> void:
+	var mat := HEX.material as ShaderMaterial
+	if sf == null:
+		if _lens_on:
+			mat.set_shader_parameter("lens_mode", false)
+			_lens_on = false
+		return
+	var u: Dictionary = sf.render_uniforms()
+	mat.set_shader_parameter("lens_mode", true)
+	mat.set_shader_parameter("lens_shift", u["shift"])
+	mat.set_shader_parameter("lens_twist", u["twist"])
+	mat.set_shader_parameter("lens_alpha", u["alpha"])
+	mat.set_shader_parameter("lens_max_theta", u["max_theta"])
+	mat.set_shader_parameter("lens_right", u["right"])
+	mat.set_shader_parameter("lens_up", u["up"])
+	mat.set_shader_parameter("lens_front", u["front"])
+	mat.set_shader_parameter("lens_radius", radius)
+	mat.set_shader_parameter("lens_cell_radius", cell_radius)
+	mat.set_shader_parameter("lens_gap", GAP)
+	_lens_on = true
 
 
 func _with_state(key: Variant, base: Color) -> Color:

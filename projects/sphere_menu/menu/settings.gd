@@ -67,6 +67,11 @@ const SPEC := {
 	"hand_smoothing": {"title": "Сглаживание руки", "kind": "number", "default": 0.5, "min": 0.0, "max": 1.0,
 		"round": 0.05, "unit": "", "marks": [[0.0, "нет"], [0.5, "среднее"], [1.0, "сильное"]],
 		"hint": "Гасит дрожь и рывки кисти. 0 — шар повторяет руку в точности."},
+	# Сессия 7: обе клавиатуры сразу мешали. Системная перекрывает шар и забирает ввод, пока
+	# открыта (журнал: session_visible до скрытия) — выбирать найденное после «Готово».
+	"search_keyboard": {"title": "Клавиатура поиска", "kind": "choice", "default": "system",
+		"options": [["system", "системная Quest"], ["panel", "на панели"]],
+		"hint": "Системная — привычная клавиатура Quest; пока она открыта, шар закрыт ею и не отвечает: нажмите на ней «Готово» и выбирайте найденное. На панели — раскладка лучом, шар остаётся доступен."},
 }
 ## Основные — шаги мастера по порядку (решение владельца 2026-09-15: доводка с
 ## демонстрацией в мастере).
@@ -74,7 +79,8 @@ const MAIN := ["surface", "hand_rotation", "radius_cm", "cell_cm", "stick_speed"
 		"hold_ms", "panel_side", "haptics"]
 ## «Дополнительно» — в настройках, не в мастере: владелец не понял, что они делают;
 ## у каждой — демонстрация.
-const ADVANCED := ["grab_friction", "hysteresis", "return_gesture", "gesture_cm", "hand_smoothing"]
+const ADVANCED := ["grab_friction", "hysteresis", "return_gesture", "gesture_cm", "hand_smoothing",
+		"search_keyboard"]
 const ORDER := MAIN + ADVANCED
 ## Поверхность → семейство сетки (menu/goldberg.gd). Линзы нет: у неё своя решётка.
 const FAMILY := {"globe": "icosa", "globe_hex": "icosa", "octa": "octa", "rings": "rings", "fib": "fib"}

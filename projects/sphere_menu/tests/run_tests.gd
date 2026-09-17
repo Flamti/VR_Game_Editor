@@ -46,7 +46,20 @@ extends SceneTree
 ##   --falsify=shake      отрезок встряхивания засчитывается без порога пройденного пути —
 ##                        краснеет только «встряхивание» (на контроле «дрожь 6 Гц»);
 ##   --falsify=panelshow  пустая ячейка считается содержимым панели (панель висит всегда,
-##                        как до шага 1е) — краснеет только «видимость панели».
+##                        как до шага 1е) — краснеет только «видимость панели»;
+##   --falsify=redraw     версия рендера линзы меняется на каждом повороте (как до шага 1з) —
+##                        краснеет только «перерисовка по делу»;
+##   --falsify=lenstwin   близнец шейдера линзы закручивает плоскость в обратную сторону —
+##                        краснеет только «шейдер линзы»;
+##   --falsify=pagegap    следующая страница начинается на пункт позже — краснеет только «страницы»;
+##   --falsify=nextleft   «Дальше» глобуса встаёт слева, на место «Назад», — краснеет только
+##                        «служебные ячейки»;
+##   --falsify=glyphx     начало буквы не сдвигается на ширину предыдущей — краснеет только
+##                        «раскладка подписи»;
+##   --falsify=shotlimit  порог места сравнивается в мегабайтах, сумма — в байтах — краснеет только
+##                        «место под скриншоты»;
+##   --falsify=chordone   скриншот от одного стика — краснеет только «оба стика»;
+##   --falsify=scenarioorder «Раньше» засчитывается без «Дальше» — краснеет только «сценарий теста».
 
 const Report := preload("res://probe_report.gd")
 const Goldberg := preload("res://menu/goldberg.gd")
@@ -74,6 +87,10 @@ const SHAKE_RAMP := 0.15
 const SettingEdit := preload("res://menu/setting_edit.gd")
 const DemoRes := preload("res://menu/demo.gd")
 const ExportRes := preload("res://session/export.gd")
+const LabelTextRes := preload("res://menu/label_text.gd")
+const ScreenshotRes := preload("res://session/screenshot.gd")
+const ChordRes := preload("res://input/chord.gd")
+const ScenarioRes := preload("res://session/scenario.gd")
 
 ## Уровни икосаэдра под проверками поверхностей: там O(n²) поиски, крупные ничего не добавляют.
 const FREQS := [1, 2, 3, 4, 5]
@@ -99,7 +116,8 @@ const MODEL_CHECKS := ["короткое и удержание", "трекбол
 		"действие по умолчанию", "изменения и отмена", "множественный выбор", "сортировка и переходы",
 		"опасное без удержания", "стик", "видимость панели", "вращение рукой", "лицом к шлему устойчиво",
 		"вращение и мир", "сглаживание руки", "встряхивание", "взмах влево", "правка значения", "демонстрации",
-		"корень", "избранное", "плюс", "поиск", "выход"]
+		"корень", "избранное", "плюс", "поиск", "выход", "страницы", "раскладка подписи",
+		"имя скриншота", "место под скриншоты", "оба стика", "сценарий теста"]
 const SHARED_COPIES := ["probe_window.gd", "probe_stats.gd", "probe_report.gd", "probe_budget.gd"]
 
 var r: Report = Report.new()
@@ -151,7 +169,7 @@ func _expected() -> int:
 
 const SURFACE_CHECKS := ["ячейка под направлением", "шаг вращения", "раздача глобуса",
 		"детент", "гистерезис активной", "закрутка линзы", "ориентация контура", "ориентация подписи",
-		"размер по контуру", "скрытые дефекты", "поиск ячейки"]
+		"размер по контуру", "скрытые дефекты", "поиск ячейки", "перерисовка по делу", "шейдер линзы", "служебные ячейки"]
 
 
 func extra_expected() -> int:
@@ -783,6 +801,128 @@ func _surfaces() -> void:
 		r.pass_("скрытые дефекты: 70 пунктов мимо 12 пятиугольников; пятиугольник напротив лица — активная и доводка на шестиугольнике (%.3f рад)" % hx.snap_error())
 	else:
 		r.fail("скрытые дефекты: пунктов на пятиугольниках %d, активная дефект %s, остаток доводки %.4f" % [on_defect, hx.g.is_defect(hact), hx.snap_error()])
+
+	# 12. Перерисовка по делу: поворот не требует пересчёта ячеек — у глобуса вообще, у линзы
+	# внутри ячейки; смена центральной ячейки линзы и новая раздача — требуют. Механизм, на
+	# котором держится пропуск перерисовки самопроверки (§3.10).
+	var rd_bad: Array[String] = []
+	var rg = Globe.new(3)
+	rg.assign(40)
+	var rgv: int = rg.render_version()
+	rg.apply_rotation(Quaternion(Vector3(0.3, 1.0, 0.2).normalized(), 0.7))
+	if rg.render_version() != rgv:
+		rd_bad.append("глобус: поворот сменил версию")
+	var rl = Lens.new(0.22)
+	rl.falsify_version_on_rotate = falsify == "redraw"
+	rl.assign(40)
+	var rlv: int = rl.render_version()
+	# поворот на треть ячейки вокруг «верха»: центр остаётся прежним
+	rl.apply_rotation(Quaternion(rl.up, rl.cell_angle() * 0.3))
+	if rl.render_center() != Vector2i.ZERO or rl.render_version() != rlv:
+		rd_bad.append("линза: поворот внутри ячейки (центр %s) сменил версию" % rl.render_center())
+	rl.apply_rotation(Quaternion(rl.up, rl.cell_angle() * 1.5))
+	if rl.render_center() == Vector2i.ZERO or rl.render_version() == rlv:
+		rd_bad.append("линза: смена центра (%s) не сменила версию" % rl.render_center())
+	var rlv2: int = rl.render_version()
+	rl.assign(41)
+	if rl.render_version() == rlv2:
+		rd_bad.append("линза: новая раздача не сменила версию")
+	if rd_bad.is_empty():
+		r.pass_("перерисовка по делу: поворот глобуса и поворот линзы внутри ячейки версию рендера не меняют; смена центра линзы и раздача — меняют")
+	else:
+		r.fail("перерисовка по делу: %s" % "; ".join(rd_bad))
+
+	# 13. Шейдер линзы: номер экземпляра даёт ячейку в порядке Layout.ring, а близнец
+	# вершинного шейдера (surface_lens.shader_twin — те же шаги, что lens_mode в cell.gdshader)
+	# ставит каждую видимую ячейку туда же, куда visible_cells: направление, сжатие и ось на
+	# вершину. Сдвиг и закрутка произвольные. СЛАБАЯ в части GLSL: шейдер headless не
+	# исполняется, проверяется близнец; перенос в GLSL видят глаза на шлеме.
+	var sh_bad: Array[String] = []
+	var ring_order: Array[Vector2i] = []
+	for k in 16:
+		ring_order.append_array(Layout.ring(k))
+	for i in ring_order.size():
+		if Lens.ring_cell(i) != ring_order[i]:
+			sh_bad.append("ring_cell(%d) = %s вместо %s" % [i, Lens.ring_cell(i), ring_order[i]])
+			break
+	var ls = Lens.new(0.12)
+	ls.falsify_twin_twist = falsify == "lenstwin"
+	ls.assign(60)
+	ls.apply_rotation(Quaternion(Vector3(0.4, 1.0, 0.1).normalized(), 2.3))
+	ls.apply_rotation(Quaternion(ls.front, 0.8))
+	var want := {}
+	for cd in ls.visible_cells():
+		want[cd["key"]] = cd
+	var u: Dictionary = ls.render_uniforms()
+	var n_cells: int = ls.render_count(700)
+	var matched := 0
+	for i in n_cells:
+		var key: Vector2i = ls.render_center() + Lens.ring_cell(i)
+		var tw: Dictionary = ls.shader_twin(i, u)
+		var visible: bool = float(tw["theta"]) <= ls.max_theta
+		if visible != want.has(key):
+			sh_bad.append("%s: видимость близнеца %s, visible_cells %s" % [key, visible, want.has(key)])
+			break
+		if not visible:
+			continue
+		var cd: Dictionary = want[key]
+		var z_ref := _drawn_vertex(cd["dir"], cd["spin"])
+		if (tw["dir"] as Vector3).angle_to(cd["dir"]) > 1e-3 or absf(float(tw["scale"]) - float(cd["scale"])) > 1e-3 \
+				or (tw["z"] as Vector3).angle_to(z_ref) > 1e-3:
+			sh_bad.append("%s: направление %.4f рад, сжатие %.4f/%.4f, ось %.4f рад" % [key, (tw["dir"] as Vector3).angle_to(cd["dir"]),
+					tw["scale"], cd["scale"], (tw["z"] as Vector3).angle_to(z_ref)])
+			break
+		matched += 1
+	# 14. Служебные ячейки страниц: «Дальше» — сосед справа от активной, «Раньше» — рядом с
+	# ним и выше, пунктов на них нет. Глобус и линза.
+	var sv_bad: Array[String] = []
+	var sg = Globe.new(3)
+	sg.falsify_next_left = falsify == "nextleft"
+	sg.assign(40, true, true, true)
+	var start_i: int = sg.active_at(sg.front)
+	var g_right: Vector3 = sg.up.cross(sg.front).normalized()
+	var keys := {}
+	var placed_n := 0
+	for i in sg.g.centers.size():
+		var sl: int = sg.slot_of(i)
+		if sl < 0:
+			keys[sl] = i
+		else:
+			placed_n += 1
+	if not (keys.has(Surface.SLOT_NEXT) and keys.has(Surface.SLOT_PREV) and keys.has(Surface.SLOT_BACK)):
+		sv_bad.append("глобус: служебные %s" % keys)
+	else:
+		var d0: Vector3 = sg.direction_of(start_i)
+		var dn: Vector3 = sg.direction_of(keys[Surface.SLOT_NEXT])
+		var dp: Vector3 = sg.direction_of(keys[Surface.SLOT_PREV])
+		if (dn - d0).normalized().dot(g_right) < 0.7:
+			sv_bad.append("глобус: «Дальше» не справа (%.2f)" % (dn - d0).normalized().dot(g_right))
+		if (dp - dn).dot(sg.up) <= 0.0 or not (sg.g.neighbors[keys[Surface.SLOT_NEXT]] as Array).has(keys[Surface.SLOT_PREV]):
+			sv_bad.append("глобус: «Раньше» не рядом с «Дальше» сверху")
+	if placed_n != 40:
+		sv_bad.append("глобус: пунктов %d из 40" % placed_n)
+	var sl2 = Lens.new(0.22)
+	sl2.assign(40, true, true, true)
+	var l_right: Vector3 = sl2.up.cross(sl2.front).normalized()
+	var ln_dir: Vector3 = sl2.direction_of(Layout.NEXT_CELL)
+	var lp_dir: Vector3 = sl2.direction_of(Layout.PREV_CELL)
+	if sl2.slot_of(Layout.NEXT_CELL) != Surface.SLOT_NEXT or sl2.slot_of(Layout.PREV_CELL) != Surface.SLOT_PREV:
+		sv_bad.append("линза: служебные слоты %d/%d" % [sl2.slot_of(Layout.NEXT_CELL), sl2.slot_of(Layout.PREV_CELL)])
+	if (ln_dir - sl2.front).normalized().dot(l_right) < 0.7 or (lp_dir - ln_dir).dot(sl2.up) <= 0.0:
+		sv_bad.append("линза: «Дальше» справа %.2f, «Раньше» выше %.3f" % [(ln_dir - sl2.front).normalized().dot(l_right), (lp_dir - ln_dir).dot(sl2.up)])
+	var sl3 = Lens.new(0.22)
+	sl3.assign(40)
+	if sl3.slot_of(Layout.NEXT_CELL) < 0:
+		sv_bad.append("линза без страниц: ячейка справа пустая")
+	if sv_bad.is_empty():
+		r.pass_("служебные ячейки: «Дальше» справа от активной, «Раньше» рядом сверху, пункты мимо — глобус и линза; без страниц справа пункт")
+	else:
+		r.fail("служебные ячейки: %s" % "; ".join(sv_bad))
+
+	if sh_bad.is_empty() and matched == want.size() and n_cells >= want.size():
+		r.pass_("шейдер линзы (близнец, слабая в части GLSL): порядок колец %d ячеек; %d видимых ячеек из %d экземпляров совпали с visible_cells при сдвиге и закрутке" % [ring_order.size(), matched, n_cells])
+	else:
+		r.fail("шейдер линзы: %s (совпало %d из %d видимых, экземпляров %d)" % ["; ".join(sh_bad), matched, want.size(), n_cells])
 
 
 static func _drawn_vertex(n: Vector3, spin: float) -> Vector3:
@@ -1605,6 +1745,209 @@ func _home_checks() -> void:
 		r.pass_("выход: короткое — подсказка удерживать, удержание — выход; выгрузка записала %s" % [ex["ok"]])
 	else:
 		r.fail("выход: короткое %s, удержание %s, выгрузка %s" % [xs, xh, ex])
+
+	# Страницы (отзыв сессии 7): «Много файлов» (128) при 30 ячейках — каждый пункт ровно на одной
+	# странице и по порядку; первая без «Раньше», последняя без «Дальше», на странице не больше
+	# пунктов, чем ячеек за вычетом служебных; память страницы у папки; смена предела оставляет
+	# на экране первый пункт прежней страницы; предел подписей режет так же.
+	var pg_bad: Array[String] = []
+	var npg = Navigator.new(Catalog.new(), SettingsRes.new())
+	npg.falsify_page_gap = falsify == "pagegap"
+	npg.short(_slot_of(npg, "files"), null)
+	npg.short(_slot_of(npg, "bulk"), null)
+	var full_ids: Array = npg.full_items().map(func(x): return x.id)
+	npg.set_page_limits(30, 0)
+	var seen_ids: Array = []
+	var pages := 0
+	while true:
+		pages += 1
+		var service := (1 if npg.has_next() else 0) + (1 if npg.has_prev() else 0)
+		if npg.items().size() + service > 30:
+			pg_bad.append("страница %d: %d пунктов + %d служебных > 30" % [pages, npg.items().size(), service])
+		if pages == 1 and npg.has_prev():
+			pg_bad.append("у первой страницы есть «Раньше»")
+		seen_ids.append_array(npg.items().map(func(x): return x.id))
+		if not npg.has_next() or pages > 20:
+			break
+		npg.page_next()
+	if seen_ids != full_ids:
+		pg_bad.append("страницы дали %d пунктов, порядок %s" % [seen_ids.size(), "совпал" if seen_ids == full_ids.slice(0, seen_ids.size()) else "сбит"])
+	npg.page_prev()
+	npg.page_prev()
+	var remembered: int = npg.page_info()["page"]
+	npg.back(null)
+	npg.short(_slot_of(npg, "bulk"), null)
+	if npg.page_info()["page"] != remembered:
+		pg_bad.append("память страницы: вернулись на %d вместо %d" % [npg.page_info()["page"], remembered])
+	var first_id: String = npg.items()[0].id
+	npg.set_page_limits(50, 0)
+	if not npg.items().map(func(x): return x.id).has(first_id):
+		pg_bad.append("смена предела 30→50 потеряла пункт %s" % first_id)
+	npg.set_page_limits(0, 61)
+	var label_max := 0
+	npg._page_of.clear()
+	npg.set_page_limits(0, 60)
+	npg.set_page_limits(0, 61)
+	while true:
+		label_max = maxi(label_max, npg.items().size())
+		if not npg.has_next():
+			break
+		npg.page_next()
+	if label_max > 61:
+		pg_bad.append("предел подписей 61: страница на %d" % label_max)
+	if pg_bad.is_empty():
+		r.pass_("страницы: 128 пунктов при 30 ячейках — %d страниц, каждый пункт ровно раз и по порядку; память страницы; смена предела держит первый пункт; предел подписей 61" % pages)
+	else:
+		r.fail("страницы: %s" % "; ".join(pg_bad))
+
+	# Раскладка подписи для шейдера: буквы идут подряд (начало — сумма ширин предыдущих), строка
+	# не шире клетки, длинное имя переносится по словам и обрывается многоточием на второй строке.
+	var lt_bad: Array[String] = []
+	var lt = LabelTextRes.new()
+	lt.falsify_no_advance = falsify == "glyphx"
+	for text in ["Файл 001", "Очень длинное название объекта сцены"]:
+		var lay: Dictionary = lt.layout(text)
+		var lines: Array = lay["lines"]
+		for li in lines.size():
+			var x := 0.0
+			for e in lines[li]:
+				if absf(float(e[1]) - x) > 0.01:
+					lt_bad.append("«%s» строка %d: буква с x %.1f вместо %.1f" % [text, li, e[1], x])
+					break
+				x += float(e[2])
+			if absf(float(lay["widths"][li]) - x) > 0.01 or x > LabelTextRes.TEXT_WIDTH:
+				lt_bad.append("«%s» строка %d: ширина %.1f, сумма %.1f" % [text, li, lay["widths"][li], x])
+	var long_lay: Dictionary = lt.layout("Очень длинное название объекта сцены")
+	var long_lines: Array = long_lay["lines"]
+	if (lt.layout("Файл 001")["lines"] as Array).size() != 1 or long_lines.size() != 2:
+		lt_bad.append("строк: короткое %d, длинное %d" % [(lt.layout("Файл 001")["lines"] as Array).size(), long_lines.size()])
+	lt.free()
+	if lt_bad.is_empty():
+		r.pass_("раскладка подписи: буквы подряд, строка не шире %d px, длинное имя — две строки" % LabelTextRes.TEXT_WIDTH)
+	else:
+		r.fail("раскладка подписи: %s" % "; ".join(lt_bad.slice(0, 4)))
+
+	# Имя скриншота: screenshot_ + локальное время с миллисекундами, без двоеточий; имена по
+	# времени сортируются так же, как время.
+	var sn_bad: Array[String] = []
+	var t_base := 1789000000.5
+	var names: Array = [ScreenshotRes.file_name(t_base + 61.25), ScreenshotRes.file_name(t_base), ScreenshotRes.file_name(t_base + 0.007)]
+	var re := RegEx.create_from_string("^screenshot_\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\.\\d{3}\\.png$")
+	for nm in names:
+		if re.search(nm) == null or nm.contains(":"):
+			sn_bad.append("формат «%s»" % nm)
+	var sorted_names := names.duplicate()
+	sorted_names.sort()
+	if sorted_names != [names[1], names[2], names[0]]:
+		sn_bad.append("порядок %s" % [sorted_names])
+	if not names[1].ends_with(".500.png") or not names[2].ends_with(".507.png"):
+		sn_bad.append("миллисекунды: %s, %s" % [names[1], names[2]])
+	if sn_bad.is_empty():
+		r.pass_("имя скриншота: %s — время с миллисекундами, без двоеточий, сортируется по времени" % names[1])
+	else:
+		r.fail("имя скриншота: %s" % "; ".join(sn_bad))
+
+	# Место под скриншоты: сумма размеров только screenshot_*.png, предел 100 МиБ.
+	ScreenshotRes.falsify_limit_units = falsify == "shotlimit"
+	var sp_bad: Array[String] = []
+	var tdir := "user://test_shots"
+	DirAccess.make_dir_recursive_absolute(tdir)
+	for f in DirAccess.get_files_at(tdir):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(tdir.path_join(f)))
+	var mk_file := func(name: String, bytes: int) -> void:
+		var fa := FileAccess.open(tdir.path_join(name), FileAccess.WRITE)
+		fa.seek(bytes - 1)
+		fa.store_8(0)
+		fa.close()
+	mk_file.call("screenshot_a.png", 60 * 1024 * 1024)
+	mk_file.call("other.png", 70 * 1024 * 1024)
+	var s60: Dictionary = ScreenshotRes.folder_bytes(tdir)
+	var over60: bool = ScreenshotRes.over_limit(s60["bytes"])
+	mk_file.call("screenshot_b.png", 50 * 1024 * 1024)
+	var s110: Dictionary = ScreenshotRes.folder_bytes(tdir)
+	var over110: bool = ScreenshotRes.over_limit(s110["bytes"])
+	for f in DirAccess.get_files_at(tdir):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(tdir.path_join(f)))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(tdir))
+	ScreenshotRes.falsify_limit_units = false
+	if s60["bytes"] != 60 * 1024 * 1024 or over60:
+		sp_bad.append("60 МиБ: сумма %d, предел %s" % [s60["bytes"], over60])
+	if s110["bytes"] != 110 * 1024 * 1024 or not over110:
+		sp_bad.append("110 МиБ: сумма %d, предел %s" % [s110["bytes"], over110])
+	var note: String = ScreenshotRes.notice({"ok": true, "name": "screenshot_x.png", "width": 1920, "height": 1080,
+			"bytes": 2400000, "total_bytes": s110["bytes"], "over_limit": over110, "error": ""})
+	if not note.contains("освободите место"):
+		sp_bad.append("сообщение без просьбы освободить место: «%s»" % note)
+	if sp_bad.is_empty():
+		r.pass_("место под скриншоты: чужой файл не считается, 60 МиБ — без сообщения, 110 МиБ — «%s»" % note.get_slice("\n", 2))
+	else:
+		r.fail("место под скриншоты: %s" % "; ".join(sp_bad))
+
+	# Оба стика: снимок только от двух нажатий почти разом, один раз на удержание.
+	var ch := ChordRes.new()
+	ch.falsify_one = falsify == "chordone"
+	var shots := {}
+	var run_trace := func(label: String, trace: Array) -> void:
+		var c2 := ChordRes.new()
+		c2.falsify_one = ch.falsify_one
+		var n := 0
+		for step in trace:
+			if c2.update(step[0], step[1], step[2]):
+				n += 1
+		shots[label] = n
+	run_trace.call("разом", [[true, true, 0], [true, true, 16], [false, false, 32]])
+	run_trace.call("один стик", [[true, false, 0], [true, false, 500], [false, false, 600]])
+	run_trace.call("второй через 400 мс", [[true, false, 0], [true, true, 400], [false, false, 500]])
+	run_trace.call("второй через 100 мс", [[true, false, 0], [true, true, 100], [false, false, 200]])
+	var hold: Array = []
+	for t in range(0, 2000, 16):
+		hold.append([true, true, t])
+	hold.append([false, false, 2000])
+	hold.append([true, true, 2100])
+	run_trace.call("удержание и повтор", hold)
+	var want_shots := {"разом": 1, "один стик": 0, "второй через 400 мс": 0, "второй через 100 мс": 1, "удержание и повтор": 2}
+	if shots == want_shots:
+		r.pass_("оба стика: %s" % str(shots))
+	else:
+		r.fail("оба стика: %s, ожидалось %s" % [shots, want_shots])
+
+	# Сценарий теста: шаги засчитываются своими событиями в любом порядке (сессия 9: строгий порядок
+	# терял сделанное); чужая папка и «Раньше» без «Дальше» шаг не закрывают; B пропускает первый
+	# оставшийся; повторное включение продолжает, а не начинает заново.
+	var sc_bad: Array[String] = []
+	var sc = ScenarioRes.new()
+	sc.falsify_order = falsify == "scenarioorder"
+	if not sc.start():
+		sc_bad.append("первое включение не начало сценарий")
+	sc.event("screenshot", {"ok": true}, {"folder": ""})
+	if sc.result.get("screenshot", "") != "да":
+		sc_bad.append("скриншот раньше остальных не засчитан")
+	for _i in ScenarioRes.ROTATE_ACTIVE:
+		sc.event("active", {}, {"folder": "files"})
+	if sc.result.has("labels"):
+		sc_bad.append("вращение не в «Много файлов» засчитало подписи")
+	sc.event("page", {"page": 1}, {"folder": "bulk"})
+	if sc.result.has("pages"):
+		sc_bad.append("«Раньше» без «Дальше» засчитало страницы")
+	sc.active = false
+	if sc.start() or sc.result.get("screenshot", "") != "да":
+		sc_bad.append("повторное включение стёрло пройденное")
+	sc.event("page", {"page": 2}, {"folder": "bulk"})
+	sc.event("page", {"page": 1}, {"folder": "bulk"})
+	sc.event("select", {}, {"folder": ""})
+	if sc.result.has("search"):
+		sc_bad.append("выбор без «Готово» клавиатуры засчитал поиск")
+	sc.event("keyboard", {"state": "enter"}, {"folder": ""})
+	sc.event("select", {}, {"folder": ""})
+	var skipped: String = sc.skip()
+	if skipped != "labels" or not sc.done() or sc.active or sc.result != {"screenshot": "да", "pages": "да", "search": "да", "labels": "пропущен"}:
+		sc_bad.append("итог %s, пропущен «%s», завершён %s" % [sc.result, skipped, sc.done()])
+	if not sc.start() or not sc.result.is_empty():
+		sc_bad.append("после прохождения включение не начало заново")
+	if sc_bad.is_empty():
+		r.pass_("сценарий теста: %d шагов в любом порядке, чужая папка и «Раньше» без «Дальше» не засчитаны, повторное включение продолжает, B пропускает" % ScenarioRes.STEPS.size())
+	else:
+		r.fail("сценарий теста: %s" % "; ".join(sc_bad))
 
 
 static func _slot_of(nav: RefCounted, id: String) -> int:

@@ -24,23 +24,39 @@ var max_theta := PI * 0.85
 var _item_count := 0
 ## ячейка решётки → слот; всё, чего нет, — пусто
 var _slots: Dictionary = {}
+## Версия раздачи слотов: рендеру нужна она и центральная ячейка, а не каждый поворот.
+var _slot_version := 0
+## Фальсификатор «redraw»: версия рендера меняется на каждом повороте, как до шага 1з.
+var falsify_version_on_rotate := false
+## Фальсификатор «lenstwin»: близнец шейдера закручивает плоскость в обратную сторону.
+var falsify_twin_twist := false
 
 
 func _init(p_alpha: float = 0.22) -> void:
 	alpha = p_alpha
 
 
-func assign(item_count: int, with_back: bool = true) -> void:
+func assign(item_count: int, with_back: bool = true, with_next: bool = false, with_prev: bool = false) -> void:
 	_item_count = item_count
 	_slots.clear()
 	# Раскладка от центра переда: активная ячейка получает первый пункт.
 	var origin := Layout.from_plane(offset)
 	if with_back:
 		_slots[origin + Layout.BACK_CELL] = SLOT_BACK
-	var sp: Array[Vector2i] = Layout.spiral(item_count)
+	if with_next:
+		_slots[origin + Layout.NEXT_CELL] = SLOT_NEXT
+	if with_prev:
+		_slots[origin + Layout.PREV_CELL] = SLOT_PREV
+	var skip: Array[Vector2i] = []
+	if with_next:
+		skip.append(Layout.NEXT_CELL)
+	if with_prev:
+		skip.append(Layout.PREV_CELL)
+	var sp: Array[Vector2i] = Layout.spiral(item_count, skip)
 	for i in sp.size():
 		_slots[origin + sp[i]] = i
 	version += 1
+	_slot_version += 1
 
 
 ## Базис касательной плоскости в переде: right, up_t.
@@ -162,6 +178,7 @@ func set_scroll(v: Variant) -> void:
 		_slots = v["slots"]
 		_item_count = v["count"]
 		version += 1
+		_slot_version += 1
 
 
 ## Поворот шестиугольника вокруг нормали: угол от касательной оси рендера до
@@ -183,3 +200,86 @@ func _spin(dir: Vector3) -> float:
 static func _tangent_ref(n: Vector3) -> Vector3:
 	var a := Vector3.UP if absf(n.y) < 0.9 else Vector3.RIGHT
 	return (a - n * a.dot(n)).normalized()
+
+
+# --- рендер проекцией в шейдере ------------------------------------------------------------
+#
+# Проекция ячеек линзы считается в вершинном шейдере (menu/cell.gdshader, lens_mode). До шага 1з
+# каждый кадр вращения пересчитывал до 700 ячеек в GDScript: 66 мс скриптов на шлеме, 24 мс на
+# настольном процессоре (tests/bench_menu.gd). Экземпляр MultiMesh номер i — ячейка
+# center + ring_cell(i) в порядке колец Layout.ring; сдвиг, закрутка и базис — uniform'ы кадра.
+# CPU переписывает только данные ячеек, и только когда сменилась центральная ячейка или раздача.
+# Отвергнуто: пересчёт только при смене центра без шейдера — при худшей линзе (α 0.0375) и
+# вращении 1.5 рад/с центр сменяется ≈23 раза в секунду, то есть пересчёт шёл бы каждый 4-й кадр.
+
+## Версия рендера: меняется при смене центральной ячейки или раздачи, но не при повороте
+## внутри ячейки.
+func render_version() -> int:
+	if falsify_version_on_rotate:
+		return version
+	return [Layout.from_plane(offset), _slot_version].hash()
+
+
+func render_center() -> Vector2i:
+	return Layout.from_plane(offset)
+
+
+## Сколько колец нужно, чтобы покрыть max_theta, в числе ячеек.
+func render_count(cap: int) -> int:
+	var rings := int(ceil(max_theta / (alpha * sqrt(3.0)))) + 1
+	return mini(cap, 3 * rings * (rings + 1) + 1)
+
+
+## Ячейка номер i в порядке колец Layout.ring (0 — центр). Повторена в шейдере
+## (lens_ring_cell) — совпадение с Layout.ring проверяет «шейдер линзы».
+static func ring_cell(i: int) -> Vector2i:
+	if i == 0:
+		return Vector2i.ZERO
+	var k := int(floor((3.0 + sqrt(float(12 * i - 3))) / 6.0))
+	while 3 * k * (k + 1) + 1 <= i:
+		k += 1
+	while 3 * k * (k - 1) + 1 > i:
+		k -= 1
+	var j := i - (3 * k * (k - 1) + 1)
+	var side := j / k
+	var st := j % k
+	return RING_CORNERS[side] * k + Layout.DIRS[side] * st
+
+
+## Углы кольца радиуса 1 по сторонам: начало стороны side в Layout.ring.
+const RING_CORNERS: Array[Vector2i] = [Vector2i(-1, 1), Vector2i(0, 1), Vector2i(1, 0),
+		Vector2i(1, -1), Vector2i(0, -1), Vector2i(-1, 0)]
+
+
+## Uniform'ы кадра для шейдера. shift — центр центральной ячейки минус сдвиг плоскости:
+## считается здесь в double, в шейдер уходит малое число (сдвиг растёт без предела).
+func render_uniforms() -> Dictionary:
+	var b := _basis()
+	return {"shift": Layout.to_plane(render_center()) - offset, "twist": twist, "alpha": alpha,
+			"max_theta": max_theta, "right": b[0], "up": b[1], "front": front}
+
+
+## Близнец вершинного шейдера для экземпляра i: направление, сжатие и ось Z ячейки (на
+## вершину) — по тем же uniform'ам и тем же шагам, что lens_mode в menu/cell.gdshader.
+## Шейдер headless не исполняется: проверка сверяет близнеца с visible_cells, а
+## перенос в GLSL остаётся глазам на шлеме.
+func shader_twin(i: int, u: Dictionary) -> Dictionary:
+	var rel := Layout.to_plane(ring_cell(i)) + (u["shift"] as Vector2)
+	var d := _twin_dir(rel, u)
+	var theta: float = d[1]
+	var squeeze := 1.0 if theta < 1e-4 else clampf(sin(theta) / theta, 0.0, 1.0)
+	var vtx: Vector3 = _twin_dir(rel + Vector2(0.0, 0.3), u)[0]
+	var n: Vector3 = d[0]
+	var z := (vtx - n * vtx.dot(n)).normalized()
+	return {"dir": n, "theta": theta, "scale": squeeze, "z": z}
+
+
+func _twin_dir(rel: Vector2, u: Dictionary) -> Array:
+	var tw: float = -u["twist"] if falsify_twin_twist else u["twist"]
+	var v := Vector2(rel.x * cos(tw) - rel.y * sin(tw), rel.x * sin(tw) + rel.y * cos(tw))
+	var ln := v.length()
+	var theta: float = ln * float(u["alpha"])
+	if theta < 1e-6:
+		return [u["front"], 0.0]
+	var t: Vector3 = ((u["right"] as Vector3) * v.x + (u["up"] as Vector3) * v.y) / ln
+	return [((u["front"] as Vector3) * cos(theta) + t * sin(theta)).normalized(), theta]

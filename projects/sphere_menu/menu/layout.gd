@@ -15,6 +15,11 @@ const DIRS: Array[Vector2i] = [
 ## «Назад» — западный сосед центра: слева от активной, куда тянется рука к
 ## шару в левой руке. Позиция фиксирована, чтобы искать её не приходилось.
 const BACK_CELL := Vector2i(-1, 0)
+## «Дальше» — восточный сосед центра, «Раньше» — общий сосед центра и «Дальше» сверху
+## (to_plane: y = 1.5·r, и плоскость линзы смотрит «верхом» по +y). Проверка «служебные
+## ячейки» сверяет это с направлениями на шаре.
+const NEXT_CELL := Vector2i(1, 0)
+const PREV_CELL := Vector2i(0, 1)
 
 
 static func distance(a: Vector2i, b: Vector2i) -> int:
@@ -43,13 +48,14 @@ static func ring(k: int) -> Array[Vector2i]:
 	return out
 
 
-## Ячейки для n пунктов: спираль от центра, без служебной «назад».
-static func spiral(n: int) -> Array[Vector2i]:
+## Ячейки для n пунктов: спираль от центра, без служебной «назад» и без skip (служебные
+## ячейки страниц — только когда страницы есть, иначе справа от центра зияли бы дыры).
+static func spiral(n: int, skip: Array[Vector2i] = []) -> Array[Vector2i]:
 	var out: Array[Vector2i] = []
 	var k := 0
 	while out.size() < n:
 		for c in ring(k):
-			if c == BACK_CELL:
+			if c == BACK_CELL or skip.has(c):
 				continue
 			out.append(c)
 			if out.size() == n:

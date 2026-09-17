@@ -42,10 +42,19 @@ tools/bake_grids.py                    # запечь сетки шар-меню
 
 ```bash
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
-    --script res://tests/run_tests.gd [-- --falsify=<имя>]    # пол, 13 фальсификаторов
+    --script res://tests/run_tests.gd [-- --falsify=<имя>]    # пол 83, 28 фальсификаторов
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
-    --script res://tests/smoke_menu.gd                         # интеграция, push_input панели
+    --script res://tests/smoke_menu.gd [-- --falsify=<имя>]   # интеграция, пол 31, 7 фальсификаторов
+godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
+    --script res://tests/bench_menu.gd                         # замер кадра меню: глобус и линза
+# сверки КАРТИНКОЙ — нужен дисплей, без --headless (GLSL в headless не компилируется):
+godot/bin/godot.linuxbsd.editor.x86_64 --path projects/sphere_menu --rendering-method mobile \
+    --script res://tests/render_lens.gd|render_labels.gd|render_screenshot.gd [-- --falsify=glsl|nolabel|noworld]
 ```
+
+С шлема после сессии: журнал — `adb pull /sdcard/Download/VRGE/<дата-время>`, скриншоты —
+`adb pull /sdcard/Download/VRGE/screenshots`. Эталон подписей — `tests/golden/labels_shader.png`
+(папка с `.gdignore`, в APK не попадает; менять только сознательно, после проверки глазами).
 
 Исследовательские фазы прибора включаются маркерами в `user://`: `hands` (R), `curve` (K),
 `synthesis` (S, только сборка пресета «Quest synthesis»), `falsify_gate` (фальсификатор гейта C–D).
@@ -200,6 +209,18 @@ tools/         сборка, деплой, проверка артефактов
     так и останется — до следующего изменения. Лечится подпиской на `Container.sort_children`,
     которая помечает вьюпорт заново. Та же отложенность ломает и проверки: шаг, который меняет
     содержимое и тут же меряет прямоугольники, видит нули — разносить на разные кадры.
+
+27. **Кадр XR-вьюпорта не прочитать.** Вьюпорт рисует прямо в swapchain OpenXR
+    (`renderer_viewport.cpp:882`), а swapchain создан без `TRANSFER_SRC` (`openxr_api.cpp:1320`):
+    `get_texture().get_image()` данных не отдаст. Скриншот — отдельный `SubViewport` того же мира
+    камерой в позе головы (`session/screenshot.gd`). Системных слоёв Quest в нём нет.
+28. **Godot сам включает обработку на `NOTIFICATION_READY`**, если у скрипта есть `_process`.
+    `set_process(false)` до входа узла в дерево не действует — в замере кадр меню шёл дважды
+    (движком и замером). Выключать после `_ready`.
+29. **Системная клавиатура Quest забирает фокус ввода, но не рендер.** Показ → `session_visible`
+    через 0.4 с, `session_focussed` — только после скрытия; кадры идут на 90 Гц. «Готово» IME
+    приходит как `KEY_ENTER`, **одно нажатие — несколькими событиями за 20 мс**. Пока клавиатура
+    открыта, контроллеры приложению не доходят.
 
 ## Архитектурные правила
 

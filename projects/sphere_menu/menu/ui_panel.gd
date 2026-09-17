@@ -17,16 +17,19 @@ extends "res://menu/info_panel.gd"
 
 signal edit_changed
 signal button(name: String)
-## Текст ввода на панели изменился (временный ввод поиска до модуля клавиатуры Meta).
+## Текст ввода поиска изменился — с системной клавиатуры или с раскладки панели.
 signal text_changed(text: String)
+## Системная клавиатура: «show»/«hide» — запрошен показ или скрытие; «unavailable» — у
+## платформы её нет (настольный прогон), ввод только раскладкой панели.
+signal keyboard(state: String)
 
 const SettingEdit := preload("res://menu/setting_edit.gd")
 const Settings := preload("res://menu/settings.gd")
 
 const BUTTON_TITLES := {"back": "Назад", "default": "Умолч.", "demo": "Демо", "next": "Далее",
-		"done": "Готово", "save": "Сохранить"}
-## Временная клавиатура поиска: владелец выбрал системную клавиатуру Meta (ADR-0009); пока
-## модуля нет, поиск проверяется этой раскладкой. Убирается, когда модуль пройдёт сессию.
+		"done": "Готово", "save": "Сохранить", "keyboard": "Клавиатура"}
+## Раскладка поиска на панели — одно из двух значений настройки «Клавиатура поиска» (второе —
+## системная клавиатура Quest, ADR-0009). Обе сразу мешали (сессия 7).
 const TEXT_KEYS := ["Й", "Ц", "У", "К", "Е", "Н", "Г", "Ш", "Щ", "З", "Х", "Ъ", "Ф", "Ы", "В", "А", "П", "Р",
 		"О", "Л", "Д", "Ж", "Э", "Я", "Ч", "С", "М", "И", "Т", "Ь", "Б", "Ю", "Ё", "␣", "⌫", "C"]
 ## Кончик у панели: расстояние до плоскости квада, м.
@@ -56,8 +59,25 @@ var _marks_box: Control
 var _choice_box: VBoxContainer
 var _buttons_box: HBoxContainer
 var _text_box: GridContainer
-## Набранный текст временного ввода.
+## Набранный текст поиска.
 var text := ""
+## Длина запроса поиска — одна на обе клавиатуры.
+const TEXT_MAX := 40
+## Сколько раз запрошен показ системной клавиатуры — для дымового прогона.
+var keyboard_requests := 0
+## Фальсификатор «imekey» дымового прогона: ввод системной клавиатуры не принимается.
+var falsify_no_ime := false
+## Фальсификатор «enterclose»: «Готово» системной клавиатуры снова закрывает поиск (как в сессии 7).
+var falsify_enter_closes := false
+## Запрос показа считается, но системная клавиатура не зовётся: самопроверка сессии 7 показывала
+## её посреди замеров.
+var keyboard_dry_run := false
+## Ввод поиска открыт и каким способом: «system» — системная клавиатура, «panel» — раскладка.
+var _text_mode := ""
+## Одно «Готово» системной клавиатуры приходит несколькими ENTER за 20 мс (журнал сессии 8: три
+## пары hide/enter) — повторы в этом окне отбрасываются.
+const ENTER_REPEAT_MS := 150
+var _last_enter_ms := -100000
 var _syncing := false
 var _pointer_in := false
 var _pointer_down := false
@@ -161,29 +181,49 @@ func open_summary(title: String, lines: PackedStringArray, buttons: Array) -> vo
 	_dirty()
 
 
-## Ввод текста (временный ввод поиска): поле, русская раскладка, кнопки.
-func open_text(title: String, buttons: Array) -> void:
+## Ввод текста поиска. mode «system» — системная клавиатура Quest, на панели только поле и
+## кнопки «Клавиатура» (показать снова) и «Готово»; «panel» — русская раскладка лучом.
+func open_text(title: String, buttons: Array, mode: String = "system") -> void:
 	edit = null
 	text = ""
+	_text_mode = mode
 	_set_info_visible(false)
 	_editor.visible = true
 	_e_title.text = title
 	_e_value.text = "_"
-	_e_hint.text = "временно: ввод на панели — системная клавиатура Meta будет модулем"
+	if mode == "system":
+		_e_hint.text = "«Готово» на клавиатуре — спрятать её и выбрать найденное на шаре"
+	else:
+		_e_hint.text = "набор лучом; «Готово» — закрыть поиск"
 	scroll_reset()
 	_number_box.visible = false
 	_choice_box.visible = false
-	_text_box.visible = true
-	_set_buttons(buttons)
+	_text_box.visible = mode == "panel"
+	_set_buttons((["keyboard"] + buttons) if mode == "system" else buttons)
 	_last_key = ""
 	_dirty()
+	if mode == "system":
+		_keyboard_show()
 
 
 func is_text_open() -> bool:
-	return interactive() and _text_box.visible
+	return interactive() and _text_mode != ""
+
+
+func text_mode() -> String:
+	return _text_mode
+
+
+## Кнопка «Клавиатура»: показать системную снова с набранным текстом.
+func keyboard_again() -> void:
+	if _text_mode == "system":
+		_keyboard_show()
 
 
 func close_editor() -> void:
+	if _text_mode == "system":
+		_keyboard_hide()
+	_text_mode = ""
 	edit = null
 	if _editor != null:
 		_editor.visible = false
@@ -538,8 +578,12 @@ func _on_text_key(k: String) -> void:
 		"␣":
 			text += " "
 		_:
-			if text.length() < 40:
+			if text.length() < TEXT_MAX:
 				text += k.to_lower()
+	_text_changed()
+
+
+func _text_changed() -> void:
 	_e_value.text = text + "_"
 	_last_key = ""
 	_dirty()
@@ -551,3 +595,62 @@ func _on_choice(i: int) -> void:
 		return
 	edit.choose(i)
 	_changed()
+
+
+# --- системная клавиатура ---------------------------------------------------------------
+
+## Системная клавиатура Quest поверх приложения: Godot поднимает Android IME
+## (DisplayServer.virtual_keyboard_show → GodotEditText.showSoftInput), оболочка рисует его
+## поверх сцены, если в манифесте oculus.software.overlay_keyboard (пресет
+## meta_xr_features/use_overlay_keyboard). Отвергнут свой модуль на XR_META_virtual_keyboard:
+## Meta объявила Virtual Keyboard устаревшим в пользу этой клавиатуры (ADR-0009).
+func _keyboard_show() -> void:
+	if not keyboard_dry_run and not DisplayServer.has_feature(DisplayServer.FEATURE_VIRTUAL_KEYBOARD):
+		keyboard.emit("unavailable")
+		return
+	keyboard_requests += 1
+	if not keyboard_dry_run:
+		DisplayServer.virtual_keyboard_show(text, Rect2(), DisplayServer.KEYBOARD_TYPE_DEFAULT, TEXT_MAX)
+	keyboard.emit("show")
+
+
+func _keyboard_hide() -> void:
+	if keyboard_dry_run or not DisplayServer.has_feature(DisplayServer.FEATURE_VIRTUAL_KEYBOARD):
+		return
+	DisplayServer.virtual_keyboard_hide()
+	keyboard.emit("hide")
+
+
+## IME приходит событиями клавиш (GodotTextInputWrapper.java): символ — keycode 0 и unicode,
+## стирание — KEY_BACKSPACE, «Готово» клавиатуры — KEY_ENTER. В _input, а не в
+## _unhandled_input: панель — не Control, фокуса у неё нет, и перехватить событие некому.
+func _input(event: InputEvent) -> void:
+	if falsify_no_ime or _text_mode != "system" or not interactive():
+		return
+	var k := event as InputEventKey
+	if k == null or not k.pressed:
+		return
+	match k.keycode:
+		KEY_BACKSPACE:
+			text = text.substr(0, maxi(0, text.length() - 1))
+		KEY_ENTER, KEY_KP_ENTER:
+			# «Готово» системной клавиатуры только прячет её: пока она открыта, приложение без
+			# фокуса ввода, и выбрать найденное можно лишь после. Сессия 7: ENTER закрывал
+			# поиск кнопкой done — слово сбрасывалось, найденное пропадало.
+			get_viewport().set_input_as_handled()
+			var now_ms := Time.get_ticks_msec()
+			if now_ms - _last_enter_ms < ENTER_REPEAT_MS:
+				return
+			_last_enter_ms = now_ms
+			if falsify_enter_closes:
+				button.emit("done")
+				return
+			_keyboard_hide()
+			keyboard.emit("enter")
+			return
+		_:
+			if k.unicode < 32 or text.length() >= TEXT_MAX:
+				return
+			text += String.chr(k.unicode).to_lower()
+	get_viewport().set_input_as_handled()
+	_text_changed()

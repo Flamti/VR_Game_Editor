@@ -18,8 +18,11 @@ extends Node
 ## Действия — из стандартной карты Godot (openxr_action_map.tres).
 
 signal next_task
+## Оба стика нажаты разом — скриншот (не пункт шара, просьба владельца 2026-09-17).
+signal screenshot_requested
 
 const Menu := preload("res://menu/sphere_menu.gd")
+const Chord := preload("res://input/chord.gd")
 const UiPanel := preload("res://menu/ui_panel.gd")
 const RAY_MAT := preload("res://menu/ray_material.tres")
 
@@ -39,6 +42,7 @@ var ray: MeshInstance3D
 var tasks_on := false
 
 var _prev := {}
+var _chord: Chord = Chord.new()
 
 
 func setup(p_left: XRController3D, p_right: XRController3D, p_menu: Menu, p_session: Node) -> void:
@@ -78,6 +82,9 @@ func _process(delta: float) -> void:
 	if left == null or right == null or menu == null:
 		return
 	var now := Time.get_ticks_msec()
+
+	if _chord.update(left.is_button_pressed("primary_click"), right.is_button_pressed("primary_click"), now):
+		screenshot_requested.emit()
 
 	if _pressed_edge(left, "by_button"):
 		menu.toggle()

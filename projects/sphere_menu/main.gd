@@ -8,6 +8,10 @@ extends Node3D
 const ProbeBudget := preload("res://probe_budget.gd")
 const Menu := preload("res://menu/sphere_menu.gd")
 const Controllers := preload("res://input/controller_source.gd")
+const Screenshot := preload("res://session/screenshot.gd")
+const Scenario := preload("res://session/scenario.gd")
+## Сколько висит сообщение о скриншоте, мс.
+const NOTICE_MS := 4000
 const Journal := preload("res://session/journal.gd")
 const SelfCheck := preload("res://session/selfcheck.gd")
 const Item := preload("res://menu/item.gd")
@@ -38,6 +42,15 @@ var selfcheck_lines: Array = []
 var controllers: Controllers
 var journal: Journal = Journal.new()
 var task_label: Label3D
+## Сообщение о скриншоте перед лицом — видно и при закрытом шаре (тост панели — только при открытом).
+var notice: Label3D
+var _notice_until := 0
+var _shooting := false
+var scenario: Scenario = Scenario.new()
+var _step_ms := 0
+## Подсказка сценария следует за взглядом (сессия 9: поставленная один раз, она уходила из виду
+## и срезалась сверху). Скорость догона — доля пути за кадр при 90 Гц.
+const TASK_FOLLOW := 0.08
 var wizard: Wizard = null
 var _tasks: Array = []
 var _task_id := ""
@@ -74,6 +87,12 @@ func _ready() -> void:
 	menu.search_closed.connect(_on_search_closed)
 	menu.exit_requested.connect(_exit_app)
 	panel.text_changed.connect(_on_search_text)
+	panel.keyboard.connect(_on_keyboard)
+	if iface != null:
+		# Системная клавиатура забирает фокус ввода (Meta, «Enable Keyboard Overlay»). Идёт ли
+		# при этом рендер и доходит ли ввод контроллеров — не измерено: журнал это и покажет.
+		for sig in ["session_begun", "session_visible", "session_focussed", "session_stopping"]:
+			iface.connect(sig, _on_xr_session.bind(sig))
 	menu.catalog.load_favorites()
 	panel.edit_changed.connect(_on_edit_changed)
 	panel.button.connect(_on_panel_button)
@@ -83,6 +102,15 @@ func _ready() -> void:
 	controllers.setup(left, right, menu, self)
 	controllers.panel = panel
 	controllers.next_task.connect(_next_task)
+	controllers.screenshot_requested.connect(_take_screenshot)
+
+	notice = Label3D.new()
+	notice.font_size = 40
+	notice.pixel_size = 0.001
+	notice.outline_size = 10
+	notice.no_depth_test = true
+	notice.visible = false
+	add_child(notice)
 
 	task_label = Label3D.new()
 	task_label.font_size = 48
@@ -117,7 +145,7 @@ func _ready() -> void:
 
 
 func _show_help() -> void:
-	task_label.text = "Y — шар · курок — открыть · удержание — действия · X — назад · встряхнуть — верхний уровень\nправый: луч или касание + курок · касание + грип — вращать · B — отменить · стик — прокрутка панели\nнастройки — лучом по панели: ползунок, кнопки, цифры"
+	task_label.text = "Y — шар · курок — открыть · удержание — действия · X — назад · встряхнуть — верхний уровень · оба стика — скриншот\nправый: луч или касание + курок · касание + грип — вращать · B — отменить · стик — прокрутка панели\nнастройки — лучом по панели: ползунок, кнопки, цифры"
 	_place_task_label()
 
 
@@ -145,6 +173,44 @@ func _warm_in_xr() -> void:
 	panel.close_editor()
 	panel.visible = false
 	controllers.ray.visible = false
+
+
+## Скриншот: снимок — до сообщения, чтобы сообщение не попало в кадр.
+func _take_screenshot() -> void:
+	if _shooting:
+		return
+	_shooting = true
+	notice.visible = false
+	var dir := Screenshot.folder(OS.get_system_dir(OS.SYSTEM_DIR_DOWNLOADS))
+	var res: Dictionary = await Screenshot.capture(self, camera.global_transform, dir)
+	_shooting = false
+	notice.text = Screenshot.notice(res)
+	notice.modulate = Color(1.0, 0.55, 0.45) if res["over_limit"] or not res["ok"] else Color(0.8, 1.0, 0.8)
+	# Над меню, а не посреди взгляда: в сессии 8 надпись пересекалась с шаром и панелью. 0.55 м вверх
+	# на 1.5 м — около 20° над осью взгляда; шар и панель держат ниже неё.
+	var fwd := -camera.global_basis.z
+	notice.global_position = camera.global_position + fwd * 1.5 + camera.global_basis.y * 0.55
+	notice.look_at(notice.global_position + fwd, camera.global_basis.y)
+	notice.visible = true
+	_notice_until = Time.get_ticks_msec() + NOTICE_MS
+	journal.log("скриншот", menu.params(), "", "да" if res["ok"] else "нет", -1,
+			"%s, %d×%d, %d байт, всего %d (%s), %d мс%s%s" % [res["name"], res["width"], res["height"], res["bytes"],
+			res["total_bytes"], res["how"], res["ms"], ", ПРЕДЕЛ" if res["over_limit"] else "",
+			(", ошибка: " + res["error"]) if res["error"] != "" else ""])
+	print("скриншот: %s" % Screenshot.notice(res).replace("\n", " | "))
+	_scenario_event("screenshot", {"ok": res["ok"]})
+
+
+func _process(_delta: float) -> void:
+	if notice != null and notice.visible and Time.get_ticks_msec() > _notice_until:
+		notice.visible = false
+	if scenario.active and task_label != null:
+		var fwd := -camera.global_basis.z
+		fwd.y = 0.0
+		fwd = fwd.normalized() if fwd.length() > 0.01 else Vector3.FORWARD
+		var target := camera.global_position + fwd * 1.5 + Vector3(0, 0.3, 0)
+		task_label.global_position = task_label.global_position.lerp(target, TASK_FOLLOW)
+		task_label.look_at(task_label.global_position + fwd, Vector3.UP)
 
 
 func _place_task_label() -> void:
@@ -256,6 +322,8 @@ func _on_panel_button(name: String) -> void:
 		if name == "done":
 			menu.back()       # закрывает вид поиска; search_closed закроет ввод
 			_on_search_closed()
+		elif name == "keyboard":
+			panel.keyboard_again()
 		return
 	if wizard_active():
 		match name:
@@ -310,13 +378,22 @@ func _wizard_done() -> void:
 
 func _on_search_requested() -> void:
 	menu.panel_locked = true
-	panel.open_text("Поиск", ["done"])
+	panel.open_text("Поиск", ["done"], menu.settings.get_value("search_keyboard"))
 	journal.log("поиск_открыт", menu.params())
 
 
 func _on_search_text(t: String) -> void:
 	menu.set_search_query(t)
 	journal.log("поиск_запрос", menu.params(), "", "", -1, "%s → %d" % [t, maxi(0, menu.nav.items().size() - 1)])
+
+
+func _on_keyboard(state: String) -> void:
+	journal.log("клавиатура", menu.params(), "", "", -1, state)
+	_scenario_event("keyboard", {"state": state})
+
+
+func _on_xr_session(state: String) -> void:
+	journal.log("сессия_openxr", menu.params(), "", "", -1, "%s кадр %d" % [state, Engine.get_process_frames()])
 
 
 func _on_search_closed() -> void:
@@ -345,19 +422,56 @@ func _exit_app() -> void:
 
 func _on_tasks(on: bool) -> void:
 	controllers.tasks_on = on
-	task_label.text = "Режим заданий: B — следующее задание" if on else ""
+	if on:
+		var fresh := scenario.start()
+		_step_ms = Time.get_ticks_msec()
+		journal.log("сценарий_начат" if fresh else "сценарий_продолжен", menu.params(), "", "", -1,
+				"%d шагов, осталось %d" % [Scenario.STEPS.size(), scenario.remaining().size()])
+		_show_scenario()
+	else:
+		scenario.active = false
+		task_label.text = ""
+	_place_task_label()
+
+
+func _scenario_ctx() -> Dictionary:
+	return {"folder": menu.nav.state.folder()}
+
+
+## Событие для сценария теста: шаг засчитан — в журнал и к следующему.
+func _scenario_event(name: String, data: Dictionary) -> void:
+	if not scenario.active:
+		return
+	var id: String = scenario.event(name, data, _scenario_ctx())
+	if id != "":
+		journal.log("сценарий_шаг", menu.params(), id, "да", Time.get_ticks_msec() - _step_ms)
+		_step_ms = Time.get_ticks_msec()
+		_show_scenario()
+
+
+func _show_scenario() -> void:
+	task_label.text = scenario.text() if scenario.active else "Сценарий пройден. Режим заданий: B — следующее задание"
 	_place_task_label()
 
 
 func _prepare_tasks() -> void:
 	for id in menu.catalog.all_ids():
 		var it: Item = menu.catalog.items[id]
+		# 128 одинаковых «Файл NNN» заняли бы почти все задания «найдите»
+		if menu.catalog.parent_of.get(id, "") == menu.catalog.BULK_FOLDER:
+			continue
 		if it.kind in [Item.Kind.SCENE, Item.Kind.IMAGE, Item.Kind.ASSET, Item.Kind.FILE]:
 			_tasks.append([id, it.title])
 	_tasks.shuffle()
 
 
 func _next_task() -> void:
+	if scenario.active:
+		var sid := scenario.skip()
+		journal.log("сценарий_шаг", menu.params(), sid, "нет", Time.get_ticks_msec() - _step_ms, "пропущен")
+		_step_ms = Time.get_ticks_msec()
+		_show_scenario()
+		return
 	if _tasks.is_empty():
 		task_label.text = "Задания закончились"
 		return
@@ -371,6 +485,7 @@ func _next_task() -> void:
 
 
 func _on_menu_event(name: String, data: Dictionary) -> void:
+	_scenario_event(name, data)
 	var hit := ""
 	var since := -1
 	if _task_id != "":

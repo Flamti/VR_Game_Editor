@@ -21,7 +21,11 @@ extends SceneTree
 ##   --falsify=arrows      кнопки ▲/▼ возвращаются колонкой справа, поверх содержимого, —
 ##                         краснеет только «раскладка панели»;
 ##   --falsify=gestureboth настройка «Жест возврата» не слушается, живут оба детектора, —
-##                         краснеет только «жест возврата».
+##                         краснеет только «жест возврата»;
+##   --falsify=imekey      панель не принимает клавиши системной клавиатуры — краснеет только
+##                         «системная клавиатура»;
+##   --falsify=enterclose  «Готово» системной клавиатуры закрывает поиск, как в сессии 7, —
+##                         краснеет только «системная клавиатура».
 ## Пол — по числу исполненных шагов; ошибки выполнения печатаются движком, их
 ## ищет вызывающий по «SCRIPT ERROR».
 
@@ -37,8 +41,8 @@ const Wizard := preload("res://menu/wizard.gd")
 const STEPS := ["открыть", "войти коротким", "действия удержанием", "копировать", "вставить",
 		"удалить удержанием", "отменить", "линза и захват", "панель и атлас", "мастер",
 		"вращение рукой", "правка открыта", "ползунок лучом", "клавиатура лучом", "демонстрация доводки", "журнал", "назад на корне", "замок панели",
-		"поиск на панели", "плюс", "прокрутка панели", "прокрутка правки", "раскладка панели",
-		"панель по делу", "жест возврата", "встряхивание", "раскладки", "выход удержанием"]
+		"поиск на панели", "системная клавиатура", "плюс", "прокрутка панели", "прокрутка правки", "раскладка панели",
+		"панель по делу", "страницы", "подписи большой папки", "жест возврата", "встряхивание", "раскладки", "выход удержанием"]
 
 var r: Report = Report.new()
 ## Фальсификатор дымового прогона: --falsify=scroll снимает ограничение хода прокрутки.
@@ -51,6 +55,7 @@ var _script: Array = []
 var _done := false
 var _demo_started := false
 var _exit_asked := false
+var _panel_buttons: Array[String] = []
 
 
 func _initialize() -> void:
@@ -78,19 +83,29 @@ func _initialize() -> void:
 		menu.panel_locked = true
 		panel.open_editor(SettingEdit.new(menu.settings, id), id, ["default", "done"]))
 	panel.edit_changed.connect(menu.apply_settings)
-	menu.search_requested.connect(func(): panel.open_text("Поиск", ["done"]))
+	menu.search_requested.connect(func(): panel.open_text("Поиск", ["done"], menu.settings.get_value("search_keyboard")))
 	menu.search_closed.connect(func(): if panel.is_text_open(): panel.close_editor())
 	panel.text_changed.connect(menu.set_search_query)
+	panel.falsify_no_ime = falsify == "imekey"
+	panel.falsify_enter_closes = falsify == "enterclose"
+	panel.keyboard_dry_run = true       # в headless клавиатуры нет — считаем запросы
+	panel.button.connect(func(n: String):
+		_panel_buttons.append(n)
+		# минимум main.gd: «Готово» закрывает поиск, «Клавиатура» показывает системную снова
+		if panel.is_text_open() and n == "keyboard":
+			panel.keyboard_again()
+		elif panel.is_text_open() and n == "done":
+			menu.back())
 	menu.exit_requested.connect(func(): _exit_asked = true)
 	_script = [
 		[5, _open], [10, _enter], [20, _hold_actions], [60, _copy], [70, _paste],
 		[90, _delete_hold], [140, _undo], [150, _lens_grab], [200, _panel_atlas], [210, _wizard], [215, _hand_modes], [220, _edit_open], [230, _edit_slider],
 		[240, _edit_keypad], [250, _demo_start], [260, _demo_check], [265, _journal], [268, _root_back],
 		[270, _panel_lock_open], [273, _panel_lock_a], [276, _panel_lock_b],
-		[278, _search_open], [281, _search], [283, _plus],
+		[278, _search_open], [281, _search], [282, _ime_open], [283, _ime], [283, _plus],
 		[285, _scroll_prep], [288, _scroll_read], [291, _scroll_check],
 		[293, _edit_scroll_open], [296, _edit_scroll_move], [299, _edit_scroll_check],
-		[301, _panel_layout_open], [304, _panel_layout], [307, _panel_show], [306, _gesture_choice], [308, _shake_root],
+		[301, _panel_layout_open], [304, _panel_layout], [307, _panel_show], [307, _pages], [307, _big_folder_labels], [306, _gesture_choice], [308, _shake_root],
 		[310, _layouts], [314, _exit_hold], [320, _finish],
 	]
 
@@ -234,10 +249,11 @@ func _lens_grab() -> void:
 
 func _panel_atlas() -> void:
 	var p: Panel3D = menu.panel
-	if p.renders > 0 and menu.atlas.renders > 0 and menu.atlas.icon("folder") != null:
-		r.pass_("панель и атлас: панель перерисована %d, атлас %d, иконки загружаются" % [p.renders, menu.atlas.renders])
+	var lt = menu.label_text
+	if p.renders > 0 and lt.rebuilds > 0 and lt.icon("folder") != null:
+		r.pass_("панель и атлас: панель перерисована %d, строки подписей собраны %d, иконки загружаются" % [p.renders, lt.rebuilds])
 	else:
-		r.fail("панель и атлас: панель %d, атлас %d, иконка %s" % [p.renders, menu.atlas.renders, menu.atlas.icon("folder")])
+		r.fail("панель и атлас: панель %d, сборок подписей %d, иконка %s" % [p.renders, lt.rebuilds, lt.icon("folder")])
 
 
 func _wizard() -> void:
@@ -480,6 +496,7 @@ func _to_root_open() -> void:
 ## отложенно, и в кадре открытия их прямоугольники ещё нулевые (первая версия шага
 ## попадала лучом «в панель», но не в кнопки).
 func _search_open() -> void:
+	menu.settings.values["search_keyboard"] = "panel"
 	_to_root_open()
 	_tap(_key_of(_slot_of("home_search")))
 
@@ -505,6 +522,122 @@ func _search() -> void:
 		r.pass_("поиск на панели: ввод открыт, «мост» лучом → %s, «Назад» закрыл поиск и ввод" % [found])
 	else:
 		r.fail("поиск на панели: открыт %s, попадания %s, найдено %s, ввод открыт %s, вид %s" % [opened, hits, found, p.is_text_open(), menu.nav.view])
+
+
+## Подписи большой папки: «Много файлов» (128) на мелком глобусе — страниц нет, подпись у каждого
+## пункта, номер строки данных = слот.
+func _big_folder_labels() -> void:
+	var saved: Dictionary = menu.settings.values.duplicate()
+	menu.settings.values["surface"] = "globe"
+	menu.settings.values["cell_cm"] = 1.5
+	menu.apply_settings()
+	_to_root_open()
+	_tap(_key_of(_slot_of("files")))
+	_tap(_key_of(_slot_of("bulk")))
+	for _i in 5:
+		menu._process(1.0 / 90.0)
+	var labeled := 0
+	var item_cells := 0
+	var slot_rows := true
+	for key in menu.renderer._where:
+		var w: Array = menu.renderer._where[key]
+		if int(w[3]) < 0:
+			continue
+		item_cells += 1
+		var lr: float = (w[2] as Color).r
+		if lr >= 0.0:
+			labeled += 1
+		if not is_equal_approx(lr, float(w[3])):
+			slot_rows = false
+	var pages: int = menu.nav.page_info()["pages"]
+	menu.settings.values = saved
+	menu.apply_settings()
+	_to_root_open()
+	if item_cells == 128 and labeled == 128 and slot_rows and pages == 1:
+		r.pass_("подписи большой папки: 128 пунктов, у всех подпись, строка данных = слот, страниц 1")
+	else:
+		r.fail("подписи большой папки: пунктов %d, с подписью %d, строки = слоты %s, страниц %d" % [item_cells, labeled, slot_rows, pages])
+
+
+## Страницы: «Много файлов» на глобусе радиуса 11 см с ячейкой 5 см (91 ячейка) — не помещается; «Дальше» открывает
+## следующие пункты, «Раньше» возвращает первую страницу, панель на «Дальше» говорит, какие.
+func _pages() -> void:
+	var saved: Dictionary = menu.settings.values.duplicate()
+	# Размеры явно: страниц делает только нехватка ячеек (подписей шейдером хватает на 1021), а
+	# радиус 19.5 см от шага ползунка вмещал бы все 128 пунктов.
+	menu.settings.values["surface"] = "globe"
+	menu.settings.values["radius_cm"] = 11.0
+	menu.settings.values["cell_cm"] = 5.0
+	menu.apply_settings()
+	_to_root_open()
+	_tap(_key_of(_slot_of("files")))
+	_tap(_key_of(_slot_of("bulk")))
+	var p1: Array = menu.nav.items().map(func(x): return x.id)
+	var had_next: bool = menu.nav.has_next()
+	var next_key: Variant = _key_of(Surface.SLOT_NEXT)
+	var text := menu.page_text(true)
+	_tap(next_key)
+	var p2: Array = menu.nav.items().map(func(x): return x.id)
+	var prev_key: Variant = _key_of(Surface.SLOT_PREV)
+	_tap(prev_key)
+	var back1: Array = menu.nav.items().map(func(x): return x.id)
+	var full: Array = menu.nav.full_items().map(func(x): return x.id)
+	menu.settings.values = saved
+	menu.apply_settings()
+	_to_root_open()
+	var ok: bool = had_next and next_key != null and prev_key != null and p1.size() < 128 \
+			and p2.size() > 0 and p2[0] == full[p1.size()] and back1 == p1
+	if ok:
+		r.pass_("страницы: «Много файлов» на ячейке 5 см — на первой %d, «Дальше» → с «%s» (%d пунктов), «Раньше» вернула первую; панель: «%s»" % [p1.size(), p2[0], p2.size(), text])
+	else:
+		r.fail("страницы: «Дальше» было %s, ключи %s/%s, первая %d, вторая %s, возврат %s" % [had_next, next_key, prev_key, p1.size(), p2.slice(0, 2), back1 == p1])
+
+
+## Системная клавиатура: IME приходит событиями клавиш в корневой вьюпорт
+## (GodotTextInputWrapper.java) — символ unicode, стирание KEY_BACKSPACE, «Готово» KEY_ENTER.
+## Набор «мостх», стирание, «Готово» — запрос «мост», на шаре «мост», панель отдала «done».
+func _ime_open() -> void:
+	menu.settings.values["search_keyboard"] = "system"
+	_to_root_open()
+	_tap(_key_of(_slot_of("home_search")))
+
+
+func _ime() -> void:
+	var p: Panel3D = menu.panel
+	var opened: bool = p.is_text_open() and menu.nav.view == "search"
+	# системный режим: раскладки на панели нет, есть «Клавиатура» и «Готово»
+	var grid_hidden: bool = not p._text_box.visible
+	var buttons: Array = p._buttons_box.get_children().filter(func(b): return (b as Button).visible).map(func(b): return (b as Button).text)
+	for ch in "МОСТХ":
+		var ev := InputEventKey.new()
+		ev.pressed = true
+		ev.unicode = ch.unicode_at(0)
+		get_root().push_input(ev)
+	var bs := InputEventKey.new()
+	bs.pressed = true
+	bs.keycode = KEY_BACKSPACE
+	get_root().push_input(bs)
+	_panel_buttons.clear()
+	var enter := InputEventKey.new()
+	enter.pressed = true
+	enter.keycode = KEY_ENTER
+	get_root().push_input(enter)
+	# «Готово» клавиатуры: поиск, запрос и найденное остаются — выбирать после
+	var still_open: bool = p.is_text_open() and menu.nav.view == "search"
+	var query: String = menu.nav.search_query
+	var found: Array = menu.nav.items().slice(1).map(func(x): return x.id)
+	var after_enter := _panel_buttons.duplicate()
+	var req0: int = p.keyboard_requests
+	p.button.emit("keyboard")
+	var again: int = p.keyboard_requests - req0
+	if menu.nav.view == "search":
+		menu.back()
+	if opened and grid_hidden and buttons == ["Клавиатура", "Готово"] and still_open and query == "мост" \
+			and found.size() >= 1 and found[0] == "asset_bridge" and after_enter.is_empty() and again == 1 and not p.is_text_open():
+		r.pass_("системная клавиатура: раскладки нет, кнопки %s; «МОСТХ» и стирание → «%s», «Готово» клавиатуры оставил поиск и найденное %s; «Клавиатура» показала снова" % [buttons, query, found])
+	else:
+		r.fail("системная клавиатура: открыт %s, раскладка скрыта %s, кнопки %s, после «Готово» открыт %s, запрос «%s», найдено %s, кнопки панели %s, повторный показ %d" % [
+				opened, grid_hidden, buttons, still_open, query, found, after_enter, again])
 
 
 ## «+» → Сцены → Лес: объект на корне перед «+».

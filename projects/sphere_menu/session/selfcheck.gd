@@ -1,6 +1,6 @@
 extends RefCounted
 
-## Самопроверка на шлеме при запуске (Ф2, шаги 1б–1в). ~40 с, ШЛЕМ НА ГОЛОВЕ: без
+## Самопроверка на шлеме при запуске (Ф2, шаги 1б–1в). ~85 с (40 до пар окон пропуска перерисовки, 10 — подписи), ШЛЕМ НА ГОЛОВЕ: без
 ## присутствия шлем засыпает, рендер встаёт, и проверка зависает (запуск 2026-09-15).
 ##
 ## Проверяет укладку, а не бюджет: число из паспорта сюда не переносится,
@@ -29,6 +29,9 @@ const COUNTERS := {
 }
 ## Скорость вращения для худшего случая, рад/с: активная меняется часто.
 const WORST_SPIN := 1.5
+## Пар окон «покой, вращение» подряд в проверке пропуска перерисовки. Чётное — медиана по
+## двум средним.
+const REDRAW_PAIRS := 4
 
 var r: Report = Report.new()
 var expected := 0
@@ -38,7 +41,7 @@ var results := {}
 func run(host: Node, menu: Menu) -> bool:
 	var checks := ["xr", "частота", "msaa", "прогрев", "глобус худший", "глобус крупный", "линза худшая",
 			"раскладки худшие", "атлас", "панель", "панель лучом", "прокрутка панели", "пропуск перерисовки",
-			"клавиатура meta"]
+			"подписи", "клавиатура overlay"]
 	expected = checks.size()
 	r.note("=== САМОПРОВЕРКА ШАР-МЕНЮ ===")
 	r.note("ожидается исполненных проверок: %d" % expected)
@@ -128,12 +131,14 @@ func run(host: Node, menu: Menu) -> bool:
 		r.fail("раскладки худшие вне бюджета %.2f мс: %s (все: %s)" % [budget, "; ".join(over), "; ".join(seen)])
 	menu.debug_spin = 0.0
 
-	var tex := menu.atlas.texture()
-	var icon_ok: bool = menu.atlas.icon("folder") != null and menu.atlas.icon("delete") != null
-	if tex != null and tex.get_width() == menu.atlas.viewport.size.x and menu.atlas.renders > 0 and icon_ok:
-		r.pass_("атлас: %dx%d, перерисован %d раз, иконки загружаются" % [tex.get_width(), tex.get_height(), menu.atlas.renders])
+	# Подписи шейдером: атлас глифов нарисован, иконки загружаются, строки данных собраны.
+	var lt = menu.label_text
+	var gtex: Texture2D = lt.glyph_texture()
+	var icon_ok: bool = lt.icon("folder") != null and lt.icon("delete") != null
+	if gtex != null and gtex.get_width() == lt.GLYPH_COLS * lt.GLYPH_CELL.x and lt.rebuilds > 0 and icon_ok:
+		r.pass_("атлас: глифы %dx%d, строки данных собраны %d раз, иконки загружаются" % [gtex.get_width(), gtex.get_height(), lt.rebuilds])
 	else:
-		r.fail("атлас: текстура %s, перерисовок %d, иконки %s" % [tex, menu.atlas.renders, icon_ok])
+		r.fail("атлас: глифы %s, сборок данных %d, иконки %s" % [gtex, lt.rebuilds, icon_ok])
 
 	var pnl = menu.panel
 	var img: Texture2D = pnl.preview_of(menu.catalog.items["img_map"]) if pnl != null else null
@@ -226,38 +231,109 @@ func run(host: Node, menu: Menu) -> bool:
 	else:
 		r.fail("прокрутка панели: панель без прокрутки (%s)" % pnl)
 
-	# Пропуск перерисовки: неподвижный глобус не пересчитывается, скрипты падают.
+	# Пропуск перерисовки: ни неподвижный, ни вращающийся глобус ячейки не пересчитывает —
+	# вращение поворачивает узел. Отказ — только по МЕХАНИЗМУ (§3.10): сравнение скриптов
+	# держится на структуре расходов и переворачивается молча. Прежняя версия сравнивала
+	# неподвижный глобус в конце прогона с вращающимся в начале, и дрейф до 13% переворачивал
+	# сравнение (сессия 6, §3.5). Теперь окна чередуются подряд, сравнение — числом рядом.
 	st.values["surface"] = "globe"
 	menu.apply_settings()
 	await ProbeWindow.settle(host, 0.8)
-	var redraws0: int = menu.renderer.redraws
-	var still: Dictionary = await _measure(host, rid, budget)
-	var redrawn: int = menu.renderer.redraws - redraws0
-	var still_proc: float = (still["process"] as ProbeStats).percentile(0.95)
-	var spin_proc: float = results.values()[0]["proc95"] if not results.is_empty() else NAN
-	if redrawn <= 2 and still_proc < spin_proc:
-		r.pass_("пропуск перерисовки: неподвижный глобус пересчитан %d раз, скрипты p95 %.2f мс против %.2f при вращении" % [redrawn, still_proc, spin_proc])
+	var redrawn := 0
+	var diffs := PackedFloat32Array()
+	var pairs := PackedStringArray()
+	for _p in REDRAW_PAIRS:
+		menu.debug_spin = 0.0
+		await ProbeWindow.settle(host, 0.3)
+		var redraws0: int = menu.renderer.redraws
+		var still: Dictionary = await _measure(host, rid, budget)
+		redrawn += menu.renderer.redraws - redraws0
+		menu.debug_spin = WORST_SPIN
+		await ProbeWindow.settle(host, 0.3)
+		redraws0 = menu.renderer.redraws
+		var spin: Dictionary = await _measure(host, rid, budget)
+		redrawn += menu.renderer.redraws - redraws0
+		var s95: float = (still["process"] as ProbeStats).percentile(0.95)
+		var v95: float = (spin["process"] as ProbeStats).percentile(0.95)
+		diffs.append(v95 - s95)
+		pairs.append("%.2f/%.2f" % [s95, v95])
+	menu.debug_spin = 0.0
+	diffs.sort()
+	var med: float = (diffs[diffs.size() / 2 - 1] + diffs[diffs.size() / 2]) * 0.5
+	var cmp_line := "скрипты p95 неподвижно/вращение по парам подряд: %s; разность вращение − покой медиана %+.2f мс, разброс %+.2f…%+.2f" % [
+			", ".join(pairs), med, diffs[0], diffs[diffs.size() - 1]]
+	if redrawn <= 2:
+		r.pass_("пропуск перерисовки: глобус за %d пар окон (покой и вращение) пересчитан %d раз; %s" % [REDRAW_PAIRS, redrawn, cmp_line])
 	else:
-		r.fail("пропуск перерисовки: пересчётов %d, скрипты p95 %.2f мс против %.2f при вращении" % [redrawn, still_proc, spin_proc])
+		r.fail("пропуск перерисовки: глобус за %d пар окон пересчитан %d раз — вращение пересчитывает ячейки; %s" % [REDRAW_PAIRS, redrawn, cmp_line])
 
-	# Клавиатура Meta (ADR-0009): есть ли у рантайма расширения. Контроль — XR_KHR_vulkan_enable2,
-	# без него сессия не рендерила бы: если модуль говорит «нет» о нём, опросу не верить.
-	if not Engine.has_singleton("VRGEProbe"):
-		r.unkn("клавиатура meta: синглтон VRGEProbe отсутствует — модуль не в сборке")
+	# Подписи шейдером в большой папке: «Много файлов» (128 подписей сразу) на худшем глобусе и
+	# худшей линзе при вращении. Сессия 9 выбрала этот режим: 3.03 мс CPU на глобусе, 8.22 на линзе.
+	var lab_seen := PackedStringArray()
+	var lab_over := PackedStringArray()
+	for surf in ["globe", "lens"]:
+		st.values["surface"] = surf
+		st.values["radius_cm"] = Settings.SPEC["radius_cm"]["max"]
+		st.values["cell_cm"] = Settings.SPEC["cell_cm"]["min"]
+		menu.apply_settings()
+		_open_folder(menu, ["files", "bulk"])
+		menu.debug_spin = WORST_SPIN
+		await ProbeWindow.settle(host, 0.5)
+		var lm: Dictionary = await _measure(host, rid, budget)
+		var lg95: float = (lm["gpu"] as ProbeStats).percentile(0.95)
+		var lc95: float = (lm["cpu"] as ProbeStats).percentile(0.95) + (lm["process"] as ProbeStats).percentile(0.95)
+		var line := "%s %d на странице: GPU %.2f / CPU+скрипты %.2f мс (%s), промахов %d" % [
+				surf, menu.nav.items().size(), lg95, lc95, "GPU" if lg95 >= lc95 else "CPU", int(lm["over"])]
+		lab_seen.append(line)
+		if maxf(lg95, lc95) > budget or int(lm["over"]) > 0:
+			lab_over.append(line)
+	menu.debug_spin = 0.0
+	st.values["surface"] = "globe"
+	menu.apply_settings()
+	_open_folder(menu, [])
+	if lab_over.is_empty():
+		r.pass_("подписи, бюджет %.2f мс: %s" % [budget, "; ".join(lab_seen)])
 	else:
-		var probe = Engine.get_singleton("VRGEProbe")
-		var control: int = probe.has_openxr_extension("XR_KHR_vulkan_enable2")
-		var kb: int = probe.has_openxr_extension("XR_META_virtual_keyboard")
-		var rm: int = probe.has_openxr_extension("XR_FB_render_model")
-		var rm_ext: int = probe.has_openxr_extension("XR_EXT_render_model")
-		if control != 1 or kb < 0 or rm < 0 or rm_ext < 0:
-			r.unkn("клавиатура meta: контроль vulkan_enable2=%d, keyboard=%d, FB_render_model=%d, EXT_render_model=%d — опрос недостоверен или имя не в списке модуля" % [control, kb, rm, rm_ext])
-		else:
-			var word := func(x: int) -> String: return "доступно" if x == 1 else "НЕТ"
-			r.pass_("клавиатура meta: XR_META_virtual_keyboard %s, XR_FB_render_model %s, XR_EXT_render_model %s (контроль vulkan_enable2 доступен)" % [word.call(kb), word.call(rm), word.call(rm_ext)])
+		r.fail("подписи вне бюджета %.2f мс: %s (все: %s)" % [budget, "; ".join(lab_over), "; ".join(lab_seen)])
+
+	# Клавиатура overlay (ADR-0009, пересмотр 2026-09-17): платформа отдаёт виртуальную
+	# клавиатуру, и открытие поиска запрашивает её показ. Слабая проверка: видна ли клавиатура
+	# поверх сцены и доходит ли текст, изнутри не проверить — это интерактивная часть сессии.
+	# Манифест (oculus.software.overlay_keyboard) проверяется aapt2 на хосте. Опрос расширений
+	# XR_META_virtual_keyboard / render_model снят: модуль отвергнут, ответ больше не нужен.
+	var has_vk := DisplayServer.has_feature(DisplayServer.FEATURE_VIRTUAL_KEYBOARD)
+	var req0: int = pnl.keyboard_requests if pnl != null else -1
+	if pnl != null and pnl.has_method("open_text"):
+		# Без настоящего показа: в сессии 7 клавиатура всплывала посреди замеров и забирала фокус.
+		menu.panel_locked = true
+		pnl.keyboard_dry_run = true
+		pnl.open_text("самопроверка клавиатуры", ["done"], "system")
+		await host.get_tree().process_frame
+		pnl.close_editor()
+		pnl.keyboard_dry_run = false
+		menu.panel_locked = false
+	var req: int = (pnl.keyboard_requests - req0) if pnl != null else -1
+	if has_vk and req == 1:
+		r.pass_("клавиатура overlay: платформа отдаёт виртуальную клавиатуру, открытие ввода запросило показ 1 раз (без показа)")
+	else:
+		r.fail("клавиатура overlay: FEATURE_VIRTUAL_KEYBOARD %s, запросов показа %d из 1" % [has_vk, req])
 
 	menu.close()
 	return _verdict()
+
+
+## Открыть папку по пути id от корня (пустой путь — корень) через навигатор, как короткими нажатиями.
+static func _open_folder(menu: Menu, path: Array) -> void:
+	var guard := 0
+	while (menu.nav.state.folder() != "" or menu.nav.view != "browse") and guard < 8:
+		menu.back()
+		guard += 1
+	for id in path:
+		var list: Array = menu.nav.items()
+		for i in list.size():
+			if list[i].id == id:
+				menu._handle(menu.nav.short(i, menu._scroll()))
+				break
 
 
 ## Луч из точки перед панелью в пиксель её вьюпорта.

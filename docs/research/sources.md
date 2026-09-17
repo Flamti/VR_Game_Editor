@@ -63,6 +63,25 @@
 
 ---
 
+### Клавиатура: Virtual Keyboard устарел (разобрано 2026-09-17, основание ADR-0009)
+
+- `developers.meta.com/horizon/documentation/unity/VK-unity-gettingstarted/` (обновлено 2024-12-19):
+  Virtual Keyboard — «deprecated in favor of the system keyboard overlay». Прямо про расширение
+  `XR_META_virtual_keyboard` страница не говорит — вывод о расширении наш.
+- `developers.meta.com/horizon/documentation/unity/unity-keyboard-overlay/` (обновлено 2026-01-20):
+  системная клавиатура появляется, когда поле ввода получает фокус; **приложение при показе теряет
+  фокус ввода**. Манифест и позиция клавиатуры не описаны.
+
+| Наше измерение (сессия 7, HorizonOS v207) | Что говорит Meta |
+|---|---|
+| показ → `session_visible` через 0.4 с, `session_focussed` только после скрытия | ожидаемо: фокус теряется |
+| рендер при открытой клавиатуре идёт: 1762 кадра за 19.6 с, 90 Гц | не описано |
+| клавиатура перекрыла шар-меню, позицию задать нельзя | не описано |
+| манифест: `oculus.software.overlay_keyboard` пишет плагин по `meta_xr_features/use_overlay_keyboard` | не описано (Unity-настройка) |
+
+Наводка уровня D (UploadVR, «Quest's New Virtual Keyboard Neatly Integrates Into Apps»): overlay
+«в фиксированном месте, поверх сцены, с системными руками» — перекрытие подтвердилось сессией 7.
+
 ## B. Документация Godot по XR
 
 `docs.godotengine.org/en/stable/tutorials/xr/` — на 2026-09-13 «stable» соответствует **4.7**,

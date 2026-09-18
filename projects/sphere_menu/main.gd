@@ -384,7 +384,7 @@ func _on_search_requested() -> void:
 
 func _on_search_text(t: String) -> void:
 	menu.set_search_query(t)
-	journal.log("поиск_запрос", menu.params(), "", "", -1, "%s → %d" % [t, maxi(0, menu.nav.items().size() - 1)])
+	journal.log("поиск_запрос", menu.params(), "", "", -1, "%s → %d" % [t, menu.found_count()])
 
 
 func _on_keyboard(state: String) -> void:

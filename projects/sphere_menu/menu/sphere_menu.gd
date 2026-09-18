@@ -561,6 +561,15 @@ func _detent(delta: float) -> void:
 func set_search_query(q: String) -> void:
 	if is_open():
 		_handle(nav.set_query(q))
+		# Счёт найденного показывает панель. Здесь, а не в main.gd: запрос приходит и от системной
+		# клавиатуры, и с панельной раскладки, и дымовой прогон ходит мимо main.gd.
+		if panel != null:
+			panel.set_found(found_count())
+
+
+## Сколько нашёл поиск: «Назад» в списке результатов найденным не считается.
+func found_count() -> int:
+	return maxi(0, nav.items().size() - 1)
 
 
 ## Подпись панели на «Дальше»/«Раньше»: какие пункты откроются.

@@ -47,6 +47,9 @@ var _editor: Control
 var _info_nodes: Array[CanvasItem] = []
 var _e_title: Label
 var _e_value: Label
+## Сколько нашёл поиск. Сессия 10: владелец набрал слово, которого в каталоге нет, и по
+## пустому шару не отличил «не нашлось» от «поиск не работает».
+var _e_found: Label
 var _e_hint: Label
 var _number_box: Control
 var _e_scroll: ScrollContainer
@@ -69,6 +72,8 @@ var keyboard_requests := 0
 var falsify_no_ime := false
 ## Фальсификатор «enterclose»: «Готово» системной клавиатуры снова закрывает поиск (как в сессии 7).
 var falsify_enter_closes := false
+## Фальсификатор «found»: строка «найдено» молчит, как до сессии 10.
+var falsify_found_mute := false
 ## Запрос показа считается, но системная клавиатура не зовётся: самопроверка сессии 7 показывала
 ## её посреди замеров.
 var keyboard_dry_run := false
@@ -191,10 +196,13 @@ func open_text(title: String, buttons: Array, mode: String = "system") -> void:
 	_editor.visible = true
 	_e_title.text = title
 	_e_value.text = "_"
+	_e_found.text = ""
+	# Сессия 10: прежняя подсказка «„Готово“ на клавиатуре — ...» прочиталась как «наберите слово
+	# Готово», владелец так и сделал дважды и ничего не нашёл. Первым словом — действие, а не кавычки.
 	if mode == "system":
-		_e_hint.text = "«Готово» на клавиатуре — спрятать её и выбрать найденное на шаре"
+		_e_hint.text = "наберите часть имени; выбрать найденное на шаре можно, спрятав клавиатуру («Готово» на ней)"
 	else:
-		_e_hint.text = "набор лучом; «Готово» — закрыть поиск"
+		_e_hint.text = "наберите часть имени лучом; кнопка «Готово» на панели закрывает поиск"
 	scroll_reset()
 	_number_box.visible = false
 	_choice_box.visible = false
@@ -204,6 +212,24 @@ func open_text(title: String, buttons: Array, mode: String = "system") -> void:
 	_dirty()
 	if mode == "system":
 		_keyboard_show()
+
+
+## Сколько нашёл поиск: показывается под набранным словом, пока ввод открыт. Пустой запрос ничего
+## не ищет, поэтому и строки нет (иначе «ничего не найдено» висело бы до первой буквы).
+func set_found(n: int) -> void:
+	if _text_mode == "" or falsify_found_mute:
+		return
+	if text == "":
+		_e_found.text = ""
+	elif n <= 0:
+		_e_found.text = "ничего не найдено"
+	else:
+		_e_found.text = "найдено: %d" % n
+	_dirty()
+
+
+func found_text() -> String:
+	return _e_found.text
 
 
 func is_text_open() -> bool:
@@ -386,6 +412,7 @@ func _build_editor() -> void:
 
 	_e_title = _elabel(30, Color.WHITE)
 	_e_value = _elabel(34, Color(1.0, 0.85, 0.35))
+	_e_found = _elabel(22, Color(0.62, 0.84, 0.66))
 	_e_hint = _elabel(19, Color(0.80, 0.84, 0.90))
 
 	_number_box = Control.new()

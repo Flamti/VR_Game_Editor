@@ -44,7 +44,7 @@ tools/bake_grids.py                    # запечь сетки шар-меню
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
     --script res://tests/run_tests.gd [-- --falsify=<имя>]    # пол 83, 28 фальсификаторов
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
-    --script res://tests/smoke_menu.gd [-- --falsify=<имя>]   # интеграция, пол 31, 7 фальсификаторов
+    --script res://tests/smoke_menu.gd [-- --falsify=<имя>]   # интеграция, пол 32, 8 фальсификаторов
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
     --script res://tests/bench_menu.gd                         # замер кадра меню: глобус и линза
 # сверки КАРТИНКОЙ — нужен дисплей, без --headless (GLSL в headless не компилируется):

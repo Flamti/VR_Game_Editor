@@ -25,7 +25,9 @@ extends SceneTree
 ##   --falsify=imekey      панель не принимает клавиши системной клавиатуры — краснеет только
 ##                         «системная клавиатура»;
 ##   --falsify=enterclose  «Готово» системной клавиатуры закрывает поиск, как в сессии 7, —
-##                         краснеет только «системная клавиатура».
+##                         краснеет только «системная клавиатура»;
+##   --falsify=found       строка «найдено» молчит, как до сессии 10, — краснеет только
+##                         «строка найденного».
 ## Пол — по числу исполненных шагов; ошибки выполнения печатаются движком, их
 ## ищет вызывающий по «SCRIPT ERROR».
 
@@ -41,7 +43,7 @@ const Wizard := preload("res://menu/wizard.gd")
 const STEPS := ["открыть", "войти коротким", "действия удержанием", "копировать", "вставить",
 		"удалить удержанием", "отменить", "линза и захват", "панель и атлас", "мастер",
 		"вращение рукой", "правка открыта", "ползунок лучом", "клавиатура лучом", "демонстрация доводки", "журнал", "назад на корне", "замок панели",
-		"поиск на панели", "системная клавиатура", "плюс", "прокрутка панели", "прокрутка правки", "раскладка панели",
+		"поиск на панели", "системная клавиатура", "строка найденного", "плюс", "прокрутка панели", "прокрутка правки", "раскладка панели",
 		"панель по делу", "страницы", "подписи большой папки", "жест возврата", "встряхивание", "раскладки", "выход удержанием"]
 
 var r: Report = Report.new()
@@ -88,6 +90,7 @@ func _initialize() -> void:
 	panel.text_changed.connect(menu.set_search_query)
 	panel.falsify_no_ime = falsify == "imekey"
 	panel.falsify_enter_closes = falsify == "enterclose"
+	panel.falsify_found_mute = falsify == "found"
 	panel.keyboard_dry_run = true       # в headless клавиатуры нет — считаем запросы
 	panel.button.connect(func(n: String):
 		_panel_buttons.append(n)
@@ -103,6 +106,7 @@ func _initialize() -> void:
 		[240, _edit_keypad], [250, _demo_start], [260, _demo_check], [265, _journal], [268, _root_back],
 		[270, _panel_lock_open], [273, _panel_lock_a], [276, _panel_lock_b],
 		[278, _search_open], [281, _search], [282, _ime_open], [283, _ime], [283, _plus],
+		[284, _found_open], [285, _found],
 		[285, _scroll_prep], [288, _scroll_read], [291, _scroll_check],
 		[293, _edit_scroll_open], [296, _edit_scroll_move], [299, _edit_scroll_check],
 		[301, _panel_layout_open], [304, _panel_layout], [307, _panel_show], [307, _pages], [307, _big_folder_labels], [306, _gesture_choice], [308, _shake_root],
@@ -638,6 +642,52 @@ func _ime() -> void:
 	else:
 		r.fail("системная клавиатура: открыт %s, раскладка скрыта %s, кнопки %s, после «Готово» открыт %s, запрос «%s», найдено %s, кнопки панели %s, повторный показ %d" % [
 				opened, grid_hidden, buttons, still_open, query, found, after_enter, again])
+
+
+## Строка «найдено: N» под словом (сессия 10): владелец набрал слово, которого в каталоге нет,
+## и по пустому шару не отличил «не нашлось» от «поиск не работает». Пустой запрос строки не
+## показывает — иначе «ничего не найдено» висело бы до первой буквы.
+##
+## Набор — раскладкой лучом, а не системной клавиатурой: счёт живёт в общем пути
+## SphereMenu.set_search_query, и шаг не должен падать заодно с «imekey».
+func _found_open() -> void:
+	menu.settings.values["search_keyboard"] = "panel"
+	_to_root_open()
+	_tap(_key_of(_slot_of("home_search")))
+
+
+func _found() -> void:
+	var p: Panel3D = menu.panel
+	var at_open := p.found_text()
+	_type_keys(p, ["М", "О", "С", "Т"])
+	var hit := p.found_text()
+	var n: int = menu.found_count()
+	_type_keys(p, ["Щ"])
+	var miss := p.found_text()
+	_type_keys(p, ["C"])
+	var cleared := p.found_text()
+	p.pointer_update(null, false)
+	menu.back()
+	if at_open == "" and n >= 1 and hit == "найдено: %d" % n and miss == "ничего не найдено" and cleared == "":
+		r.pass_("строка найденного: при открытии пусто, «мост» → «%s» (пунктов на шаре %d), «мостщ» → «%s», очистка гасит строку" % [hit, n, miss])
+	else:
+		r.fail("строка найденного: при открытии «%s», «мост» → «%s» при %d пунктах, «мостщ» → «%s», после очистки «%s»" % [
+				at_open, hit, n, miss, cleared])
+
+
+## Нажать лучом клавиши панельной раскладки по их подписям.
+func _type_keys(p: Panel3D, keys: Array) -> void:
+	for k in keys:
+		var btn: Button = null
+		for c in p._text_box.get_children():
+			if (c as Button).text == k:
+				btn = c
+		if btn == null:
+			continue
+		var px: Variant = _aim(_center_px(btn))
+		p.pointer_update(px, false)
+		p.pointer_update(px, true)
+		p.pointer_update(px, false)
 
 
 ## «+» → Сцены → Лес: объект на корне перед «+».

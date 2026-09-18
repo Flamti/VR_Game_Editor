@@ -1,0 +1,272 @@
+1789698456.395	сессия_openxr	lens	14.5	8.8	8.8	2	face					session_begun кадр 0
+1789698456.806	сессия_openxr	lens	14.5	8.8	8.8	2	face					session_visible кадр 1
+1789698456.806	сессия_openxr	lens	14.5	8.8	8.8	2	face					session_focussed кадр 1
+1789698457.114	folder	globe	20.0	1.5	3.52	13	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789698457.114	toggle	globe	20.0	1.5	3.52	13	face					{ "open": true }
+1789698461.450	folder	globe	20.0	15.0	15.07	1	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789698465.962	folder	lens	20.0	1.5	1.5	13	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789698470.473	folder	globe_hex	20.0	1.5	3.52	13	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789698475.076	folder	octa	20.0	1.5	3.65	21	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789698479.662	folder	rings	20.0	1.5	3.29	16	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789698484.282	folder	fib	20.0	1.5	3.47	27	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789698488.825	folder	fib	8.0	1.5	1.49	26	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789698488.826	настройка_значение	fib	8.0	1.5	1.49	26	face					radius_cm=8.0
+1789698488.856	folder	fib	17.5	1.5	3.04	27	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789698488.856	настройка_значение	fib	17.5	1.5	3.04	27	face					radius_cm=17.5
+1789698488.878	folder	fib	20.0	1.5	3.47	27	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789698488.964	folder	globe	20.0	1.5	3.52	13	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789698524.210	folder	globe	20.0	1.5	3.52	13	face	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789698524.210	intent	globe	20.0	1.5	3.52	13	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789698524.222	folder	globe	20.0	1.5	3.52	13	face	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789698524.222	intent	globe	20.0	1.5	3.52	13	face	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789698528.742	folder	lens	20.0	1.5	1.5	13	face	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789698528.743	folder	lens	20.0	1.5	1.5	13	face	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789698528.743	intent	lens	20.0	1.5	1.5	13	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789698528.744	folder	lens	20.0	1.5	1.5	13	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789698528.744	intent	lens	20.0	1.5	1.5	13	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789698528.745	folder	lens	20.0	1.5	1.5	13	face	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789698528.745	intent	lens	20.0	1.5	1.5	13	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789698528.755	folder	lens	20.0	1.5	1.5	13	face	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789698528.755	intent	lens	20.0	1.5	1.5	13	face	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789698533.272	folder	globe	20.0	1.5	3.52	13	face	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789698533.274	folder	globe	20.0	1.5	3.52	13	face	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789698533.274	intent	globe	20.0	1.5	3.52	13	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789698533.275	folder	globe	20.0	1.5	3.52	13	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789698533.275	intent	globe	20.0	1.5	3.52	13	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789698533.278	клавиатура	globe	20.0	1.5	3.52	13	face					show
+1789698533.297	toggle	globe	20.0	1.5	3.52	13	face					{ "open": false }
+1789698533.297	самопроверка	globe	20.0	1.5	3.52	13	face			PASS		{ "глобус уровень 13, 632 ячеек, вращение": { "gpu95": 2.09299993515015, "cpu95": 0.18199999630451, "proc95": 2.037, "over": 0 }, "глобус крупный: уровень 1, 32 ячеек, радиус 20.0 см, вращение": { "gpu95": 1.88199996948242, "cpu95": 0.17399999499321, "proc95": 3.088, "over": 0 }, "линза α=0.037, 700 ячеек, вращение": { "gpu95": 2.77500009536743, "cpu95": 0.28499999642372, "proc95": 6.919, "over": 0 } }
+1789698539.678	folder	lens	14.5	8.8	8.8	2	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789698539.678	toggle	lens	14.5	8.8	8.8	2	face					{ "open": true }
+1789698541.821	сценарий_начат	lens	14.5	8.8	8.8	2	face					4 шагов, осталось 4
+1789698541.822	intent	lens	14.5	8.8	8.8	2	face					{ "do": "tasks", "view": "browse", "folder": "" }
+1789698548.923	folder	lens	14.5	8.8	8.8	2	face	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789698548.924	intent	lens	14.5	8.8	8.8	2	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789698549.821	folder	lens	14.5	8.8	8.8	2	face	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789698549.822	intent	lens	14.5	8.8	8.8	2	face	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789698557.790	сценарий_шаг	lens	14.5	8.8	8.8	2	face	bulk	labels	да	15968	
+1789698576.648	folder	lens	14.5	8.8	8.8	2	face	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789698576.648	intent	lens	14.5	8.8	8.8	2	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789698578.792	folder	lens	14.5	8.8	8.8	2	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789698578.792	intent	lens	14.5	8.8	8.8	2	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789698580.151	folder	lens	14.5	8.8	8.8	2	face	settings				{ "folder": "settings", "view": "browse", "items": 4, "total": 4, "page": 1, "pages": 1 }
+1789698580.151	intent	lens	14.5	8.8	8.8	2	face	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789698581.395	folder	lens	14.5	8.8	8.8	2	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789698581.395	intent	lens	14.5	8.8	8.8	2	face	settings_sphere				{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789698585.017	настройка_открыта	lens	14.5	8.8	8.8	2	face	settings_sphere				cell_cm
+1789698585.017	intent	lens	14.5	8.8	8.8	2	face	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "cell_cm" }
+1789698588.072	folder	lens	14.5	4.0	4.0	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789698588.072	настройка_значение	lens	14.5	4.0	4.0	7	face	settings_sphere				cell_cm=4.0
+1789698588.869	панель_кнопка	lens	14.5	4.0	4.0	7	face	settings_sphere				done
+1789698588.870	настройка_сохранена	lens	14.5	4.0	4.0	7	face	settings_sphere				cell_cm=4.0
+1789698591.382	folder	lens	14.5	4.0	4.0	7	face	settings				{ "folder": "settings", "view": "browse", "items": 4, "total": 4, "page": 1, "pages": 1 }
+1789698591.382	intent	lens	14.5	4.0	4.0	7	face	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789698592.749	folder	lens	14.5	4.0	4.0	7	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789698592.749	intent	lens	14.5	4.0	4.0	7	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789698594.738	folder	lens	14.5	4.0	4.0	7	face	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789698594.738	intent	lens	14.5	4.0	4.0	7	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789698595.934	folder	lens	14.5	4.0	4.0	7	face	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789698595.935	intent	lens	14.5	4.0	4.0	7	face	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789698606.816	folder	lens	14.5	4.0	4.0	7	face	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789698606.816	intent	lens	14.5	4.0	4.0	7	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789698609.983	folder	lens	14.5	4.0	4.0	7	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789698609.983	intent	lens	14.5	4.0	4.0	7	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789698612.316	folder	lens	14.5	4.0	4.0	7	face	settings				{ "folder": "settings", "view": "browse", "items": 4, "total": 4, "page": 1, "pages": 1 }
+1789698612.316	intent	lens	14.5	4.0	4.0	7	face	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789698614.372	folder	lens	14.5	4.0	4.0	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789698614.376	intent	lens	14.5	4.0	4.0	7	face	settings_sphere				{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789698616.268	настройка_открыта	lens	14.5	4.0	4.0	7	face	settings_sphere				surface
+1789698616.268	intent	lens	14.5	4.0	4.0	7	face	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "surface" }
+1789698618.563	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789698618.563	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				surface=globe
+1789698619.561	панель_кнопка	globe	14.5	4.0	3.99	7	face	settings_sphere				done
+1789698619.563	настройка_сохранена	globe	14.5	4.0	3.99	7	face	settings_sphere				surface=globe
+1789698622.572	shake	globe	14.5	4.0	3.99	7	face					{ "how": "shake", "from": "settings_sphere" }
+1789698622.573	folder	globe	14.5	4.0	3.99	7	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789698622.574	intent	globe	14.5	4.0	3.99	7	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789698624.018	folder	globe	14.5	4.0	3.99	7	face	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789698624.018	intent	globe	14.5	4.0	3.99	7	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789698627.217	folder	globe	14.5	4.0	3.99	7	face	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789698627.217	intent	globe	14.5	4.0	3.99	7	face	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789698631.718	folder	globe	14.5	4.0	3.99	7	face	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789698631.718	intent	globe	14.5	4.0	3.99	7	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789698634.108	folder	globe	14.5	4.0	3.99	7	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789698634.108	intent	globe	14.5	4.0	3.99	7	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789698636.575	folder	globe	14.5	4.0	3.99	7	face	settings				{ "folder": "settings", "view": "browse", "items": 4, "total": 4, "page": 1, "pages": 1 }
+1789698636.575	intent	globe	14.5	4.0	3.99	7	face	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789698637.531	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789698637.531	intent	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789698642.366	настройка_открыта	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm
+1789698642.366	intent	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "radius_cm" }
+1789698644.709	folder	globe	10.5	4.0	4.2	4	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789698644.710	настройка_значение	globe	10.5	4.0	4.2	4	face	settings_sphere				radius_cm=10.5
+1789698644.723	folder	globe	11.0	4.0	3.84	5	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789698644.723	настройка_значение	globe	11.0	4.0	3.84	5	face	settings_sphere				radius_cm=11.0
+1789698646.998	folder	globe	9.0	4.0	4.25	3	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789698646.999	настройка_значение	globe	9.0	4.0	4.25	3	face	settings_sphere				radius_cm=9.0
+1789698647.054	folder	globe	9.5	4.0	3.8	4	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789698647.054	настройка_значение	globe	9.5	4.0	3.8	4	face	settings_sphere				radius_cm=9.5
+1789698647.068	folder	globe	9.0	4.0	4.25	3	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789698647.068	настройка_значение	globe	9.0	4.0	4.25	3	face	settings_sphere				radius_cm=9.0
+1789698647.119	folder	globe	8.5	4.0	4.02	3	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789698647.120	настройка_значение	globe	8.5	4.0	4.02	3	face	settings_sphere				radius_cm=8.5
+1789698647.142	folder	globe	8.0	4.0	4.17	2	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789698647.142	настройка_значение	globe	8.0	4.0	4.17	2	face	settings_sphere				radius_cm=8.0
+1789698647.174	folder	globe	8.5	4.0	4.02	3	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789698647.174	настройка_значение	globe	8.5	4.0	4.02	3	face	settings_sphere				radius_cm=8.5
+1789698649.710	folder	globe	9.5	4.0	3.8	4	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789698649.710	настройка_значение	globe	9.5	4.0	3.8	4	face	settings_sphere				radius_cm=9.5
+1789698654.332	folder	globe	8.0	4.0	4.17	2	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789698654.333	настройка_значение	globe	8.0	4.0	4.17	2	face	settings_sphere				radius_cm=8.0
+1789698655.974	панель_кнопка	globe	8.0	4.0	4.17	2	face	settings_sphere				done
+1789698655.975	настройка_сохранена	globe	8.0	4.0	4.17	2	face	settings_sphere				radius_cm=8.0
+1789698658.187	folder	globe	8.0	4.0	4.17	2	face	settings				{ "folder": "settings", "view": "browse", "items": 4, "total": 4, "page": 1, "pages": 1 }
+1789698658.188	intent	globe	8.0	4.0	4.17	2	face	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789698659.011	folder	globe	8.0	4.0	4.17	2	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789698659.011	intent	globe	8.0	4.0	4.17	2	face	settings_sphere				{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789698659.610	folder	globe	8.0	4.0	4.17	2	face	settings				{ "folder": "settings", "view": "browse", "items": 4, "total": 4, "page": 1, "pages": 1 }
+1789698659.610	intent	globe	8.0	4.0	4.17	2	face	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789698660.754	folder	globe	8.0	4.0	4.17	2	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789698660.755	intent	globe	8.0	4.0	4.17	2	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789698661.866	folder	globe	8.0	4.0	4.17	2	face	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789698661.866	intent	globe	8.0	4.0	4.17	2	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789698663.461	folder	globe	8.0	4.0	4.17	2	face	bulk				{ "folder": "bulk", "view": "browse", "items": 70, "total": 128, "page": 1, "pages": 2 }
+1789698663.461	intent	globe	8.0	4.0	4.17	2	face	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789698671.910	page	globe	8.0	4.0	4.17	2	face	bulk				{ "from": 71, "to": 128, "total": 128, "page": 2, "pages": 2 }
+1789698671.914	folder	globe	8.0	4.0	4.17	2	face	bulk				{ "folder": "bulk", "view": "browse", "items": 58, "total": 128, "page": 2, "pages": 2 }
+1789698671.914	intent	globe	8.0	4.0	4.17	2	face	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789698673.744	сценарий_шаг	globe	8.0	4.0	4.17	2	face	bulk	pages	да	115954	
+1789698673.744	page	globe	8.0	4.0	4.17	2	face	bulk				{ "from": 1, "to": 70, "total": 128, "page": 1, "pages": 2 }
+1789698673.749	folder	globe	8.0	4.0	4.17	2	face	bulk				{ "folder": "bulk", "view": "browse", "items": 70, "total": 128, "page": 1, "pages": 2 }
+1789698673.749	intent	globe	8.0	4.0	4.17	2	face	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789698680.578	folder	globe	8.0	4.0	4.17	2	face	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789698680.578	intent	globe	8.0	4.0	4.17	2	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789698683.734	folder	globe	8.0	4.0	4.17	2	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789698683.734	intent	globe	8.0	4.0	4.17	2	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789698686.613	folder	globe	8.0	4.0	4.17	2	face					{ "folder": "", "view": "search", "items": 1, "total": 0, "page": 1, "pages": 1 }
+1789698686.615	клавиатура	globe	8.0	4.0	4.17	2	face					show
+1789698686.615	поиск_открыт	globe	8.0	4.0	4.17	2	face					
+1789698686.615	intent	globe	8.0	4.0	4.17	2	face					{ "do": "search", "view": "search", "folder": "" }
+1789698687.048	сессия_openxr	globe	8.0	4.0	4.17	2	face					session_visible кадр 20670
+1789698688.653	folder	globe	8.0	4.0	4.17	2	face					{ "folder": "", "view": "search", "items": 8, "total": 7, "page": 1, "pages": 1 }
+1789698688.654	intent	globe	8.0	4.0	4.17	2	face					{ "do": "reload", "view": "search", "folder": "" }
+1789698688.654	поиск_запрос	globe	8.0	4.0	4.17	2	face					г → 7
+1789698689.135	folder	globe	8.0	4.0	4.17	2	face					{ "folder": "", "view": "search", "items": 3, "total": 2, "page": 1, "pages": 1 }
+1789698689.136	intent	globe	8.0	4.0	4.17	2	face					{ "do": "reload", "view": "search", "folder": "" }
+1789698689.136	поиск_запрос	globe	8.0	4.0	4.17	2	face					го → 2
+1789698689.557	folder	globe	8.0	4.0	4.17	2	face					{ "folder": "", "view": "search", "items": 1, "total": 0, "page": 1, "pages": 1 }
+1789698689.557	intent	globe	8.0	4.0	4.17	2	face					{ "do": "reload", "view": "search", "folder": "" }
+1789698689.557	поиск_запрос	globe	8.0	4.0	4.17	2	face					гот → 0
+1789698689.902	folder	globe	8.0	4.0	4.17	2	face					{ "folder": "", "view": "search", "items": 1, "total": 0, "page": 1, "pages": 1 }
+1789698689.902	intent	globe	8.0	4.0	4.17	2	face					{ "do": "reload", "view": "search", "folder": "" }
+1789698689.902	поиск_запрос	globe	8.0	4.0	4.17	2	face					гото → 0
+1789698690.491	folder	globe	8.0	4.0	4.17	2	face					{ "folder": "", "view": "search", "items": 1, "total": 0, "page": 1, "pages": 1 }
+1789698690.491	intent	globe	8.0	4.0	4.17	2	face					{ "do": "reload", "view": "search", "folder": "" }
+1789698690.492	поиск_запрос	globe	8.0	4.0	4.17	2	face					готов → 0
+1789698691.124	folder	globe	8.0	4.0	4.17	2	face					{ "folder": "", "view": "search", "items": 1, "total": 0, "page": 1, "pages": 1 }
+1789698691.125	intent	globe	8.0	4.0	4.17	2	face					{ "do": "reload", "view": "search", "folder": "" }
+1789698691.125	поиск_запрос	globe	8.0	4.0	4.17	2	face					готово → 0
+1789698692.957	клавиатура	globe	8.0	4.0	4.17	2	face					hide
+1789698692.958	клавиатура	globe	8.0	4.0	4.17	2	face					enter
+1789698693.037	сессия_openxr	globe	8.0	4.0	4.17	2	face					session_focussed кадр 21209
+1789698701.657	intent	globe	8.0	4.0	4.17	2	face					{ "do": "none", "view": "search", "folder": "" }
+1789698702.235	intent	globe	8.0	4.0	4.17	2	face					{ "do": "none", "view": "search", "folder": "" }
+1789698703.302	intent	globe	8.0	4.0	4.17	2	face					{ "do": "none", "view": "search", "folder": "" }
+1789698704.846	панель_кнопка	globe	8.0	4.0	4.17	2	face					done
+1789698704.846	клавиатура	globe	8.0	4.0	4.17	2	face					hide
+1789698704.847	folder	globe	8.0	4.0	4.17	2	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789698704.848	intent	globe	8.0	4.0	4.17	2	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789698708.218	скриншот	globe	8.0	4.0	4.17	2	face			да		screenshot_2026-09-18_07-31-48.002.png, 1920×1080, 154808 байт, всего 2664959 (листинг), 215 мс
+1789698708.218	сценарий_шаг	globe	8.0	4.0	4.17	2	face		screenshot	да	34475	
+1789698713.380	folder	globe	8.0	4.0	4.17	2	face					{ "folder": "", "view": "search", "items": 1, "total": 0, "page": 1, "pages": 1 }
+1789698713.382	клавиатура	globe	8.0	4.0	4.17	2	face					show
+1789698713.382	поиск_открыт	globe	8.0	4.0	4.17	2	face					
+1789698713.382	intent	globe	8.0	4.0	4.17	2	face					{ "do": "search", "view": "search", "folder": "" }
+1789698713.672	сессия_openxr	globe	8.0	4.0	4.17	2	face					session_visible кадр 23045
+1789698714.916	folder	globe	8.0	4.0	4.17	2	face					{ "folder": "", "view": "search", "items": 8, "total": 7, "page": 1, "pages": 1 }
+1789698714.916	intent	globe	8.0	4.0	4.17	2	face					{ "do": "reload", "view": "search", "folder": "" }
+1789698714.916	поиск_запрос	globe	8.0	4.0	4.17	2	face					г → 7
+1789698715.304	folder	globe	8.0	4.0	4.17	2	face					{ "folder": "", "view": "search", "items": 3, "total": 2, "page": 1, "pages": 1 }
+1789698715.304	intent	globe	8.0	4.0	4.17	2	face					{ "do": "reload", "view": "search", "folder": "" }
+1789698715.305	поиск_запрос	globe	8.0	4.0	4.17	2	face					го → 2
+1789698715.470	клавиатура	globe	8.0	4.0	4.17	2	face					hide
+1789698715.470	клавиатура	globe	8.0	4.0	4.17	2	face					enter
+1789698715.515	сессия_openxr	globe	8.0	4.0	4.17	2	face					session_focussed кадр 23211
+1789698715.834	intent	globe	8.0	4.0	4.17	2	face					{ "do": "none", "view": "search", "folder": "" }
+1789698721.070	intent	globe	8.0	4.0	4.17	2	face					{ "do": "none", "view": "search", "folder": "" }
+1789698721.792	панель_кнопка	globe	8.0	4.0	4.17	2	face					keyboard
+1789698721.792	клавиатура	globe	8.0	4.0	4.17	2	face					show
+1789698722.117	сессия_openxr	globe	8.0	4.0	4.17	2	face					session_visible кадр 23805
+1789698724.536	folder	globe	8.0	4.0	4.17	2	face					{ "folder": "", "view": "search", "items": 1, "total": 0, "page": 1, "pages": 1 }
+1789698724.536	intent	globe	8.0	4.0	4.17	2	face					{ "do": "reload", "view": "search", "folder": "" }
+1789698724.536	поиск_запрос	globe	8.0	4.0	4.17	2	face					гот → 0
+1789698725.059	folder	globe	8.0	4.0	4.17	2	face					{ "folder": "", "view": "search", "items": 1, "total": 0, "page": 1, "pages": 1 }
+1789698725.059	intent	globe	8.0	4.0	4.17	2	face					{ "do": "reload", "view": "search", "folder": "" }
+1789698725.059	поиск_запрос	globe	8.0	4.0	4.17	2	face					гото → 0
+1789698725.659	folder	globe	8.0	4.0	4.17	2	face					{ "folder": "", "view": "search", "items": 1, "total": 0, "page": 1, "pages": 1 }
+1789698725.660	intent	globe	8.0	4.0	4.17	2	face					{ "do": "reload", "view": "search", "folder": "" }
+1789698725.660	поиск_запрос	globe	8.0	4.0	4.17	2	face					готов → 0
+1789698726.193	folder	globe	8.0	4.0	4.17	2	face					{ "folder": "", "view": "search", "items": 1, "total": 0, "page": 1, "pages": 1 }
+1789698726.194	intent	globe	8.0	4.0	4.17	2	face					{ "do": "reload", "view": "search", "folder": "" }
+1789698726.194	поиск_запрос	globe	8.0	4.0	4.17	2	face					готово → 0
+1789698728.248	клавиатура	globe	8.0	4.0	4.17	2	face					hide
+1789698728.249	клавиатура	globe	8.0	4.0	4.17	2	face					enter
+1789698728.296	сессия_openxr	globe	8.0	4.0	4.17	2	face					session_focussed кадр 24361
+1789698728.531	скриншот	globe	8.0	4.0	4.17	2	face			да		screenshot_2026-09-18_07-32-08.317.png, 1920×1080, 91839 байт, всего 2756798 (листинг), 213 мс
+1789698730.836	панель_кнопка	globe	8.0	4.0	4.17	2	face					keyboard
+1789698730.836	клавиатура	globe	8.0	4.0	4.17	2	face					show
+1789698731.207	сессия_openxr	globe	8.0	4.0	4.17	2	face					session_visible кадр 24604
+1789698733.894	folder	globe	8.0	4.0	4.17	2	face					{ "folder": "", "view": "search", "items": 1, "total": 0, "page": 1, "pages": 1 }
+1789698733.894	intent	globe	8.0	4.0	4.17	2	face					{ "do": "reload", "view": "search", "folder": "" }
+1789698733.894	поиск_запрос	globe	8.0	4.0	4.17	2	face					готово  → 0
+1789698741.183	клавиатура	globe	8.0	4.0	4.17	2	face					hide
+1789698741.183	клавиатура	globe	8.0	4.0	4.17	2	face					enter
+1789698741.230	сессия_openxr	globe	8.0	4.0	4.17	2	face					session_focussed кадр 25506
+1789698741.483	скриншот	globe	8.0	4.0	4.17	2	face			да		screenshot_2026-09-18_07-32-21.263.png, 1920×1080, 89032 байт, всего 2845830 (листинг), 220 мс
+1789698744.982	панель_кнопка	globe	8.0	4.0	4.17	2	face					done
+1789698744.982	клавиатура	globe	8.0	4.0	4.17	2	face					hide
+1789698744.983	folder	globe	8.0	4.0	4.17	2	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789698744.983	intent	globe	8.0	4.0	4.17	2	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789698747.493	сценарий_шаг	globe	8.0	4.0	4.17	2	face		search	нет	39274	пропущен
+1789698749.805	задание	globe	8.0	4.0	4.17	2	face		img_mountains			
+1789698751.816	active	globe	8.0	4.0	4.17	2	face		img_mountains		2011	{ "key": "28", "slot": 3 }
+1789698752.727	active	globe	8.0	4.0	4.17	2	face		img_mountains		2922	{ "key": "61", "slot": 0 }
+1789698753.539	folder	globe	8.0	4.0	4.17	2	face	files	img_mountains		3734	{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789698753.539	intent	globe	8.0	4.0	4.17	2	face	files	img_mountains		3735	{ "do": "reload", "view": "browse", "folder": "files" }
+1789698753.549	active	globe	8.0	4.0	4.17	2	face	files	img_mountains		3744	{ "key": "30", "slot": -1 }
+1789698754.538	active	globe	8.0	4.0	4.17	2	face	files	img_mountains		4733	{ "key": "61", "slot": 0 }
+1789698755.416	active	globe	8.0	4.0	4.17	2	face	files	img_mountains		5611	{ "key": "5", "slot": 4 }
+1789698755.895	folder	globe	8.0	4.0	4.17	2	face	scenes	img_mountains		6090	{ "folder": "scenes", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789698755.895	intent	globe	8.0	4.0	4.17	2	face	scenes	img_mountains		6090	{ "do": "reload", "view": "browse", "folder": "scenes" }
+1789698755.905	active	globe	8.0	4.0	4.17	2	face	scenes	img_mountains		6100	{ "key": "5", "slot": 0 }
+1789698758.372	active	globe	8.0	4.0	4.17	2	face	scenes	img_mountains		8567	{ "key": "28", "slot": 1 }
+1789698758.916	active	globe	8.0	4.0	4.17	2	face	scenes	img_mountains		9111	{ "key": "5", "slot": 0 }
+1789698759.838	folder	globe	8.0	4.0	4.17	2	face	drafts	img_mountains		10033	{ "folder": "drafts", "view": "browse", "items": 2, "total": 2, "page": 1, "pages": 1 }
+1789698759.839	intent	globe	8.0	4.0	4.17	2	face	drafts	img_mountains		10034	{ "do": "reload", "view": "browse", "folder": "drafts" }
+1789698759.849	active	globe	8.0	4.0	4.17	2	face	drafts	img_mountains		10044	{ "key": "5", "slot": 0 }
+1789698760.616	active	globe	8.0	4.0	4.17	2	face	drafts	img_mountains		10811	{ "key": "19", "slot": -1 }
+1789698761.917	folder	globe	8.0	4.0	4.17	2	face	scenes	img_mountains		12112	{ "folder": "scenes", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789698761.918	intent	globe	8.0	4.0	4.17	2	face	scenes	img_mountains		12113	{ "do": "reload", "view": "browse", "folder": "scenes" }
+1789698761.928	active	globe	8.0	4.0	4.17	2	face	scenes	img_mountains		12122	{ "key": "5", "slot": 0 }
+1789698762.683	active	globe	8.0	4.0	4.17	2	face	scenes	img_mountains		12878	{ "key": "19", "slot": -1 }
+1789698763.162	folder	globe	8.0	4.0	4.17	2	face	files	img_mountains		13357	{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789698763.162	intent	globe	8.0	4.0	4.17	2	face	files	img_mountains		13357	{ "do": "reload", "view": "browse", "folder": "files" }
+1789698763.172	active	globe	8.0	4.0	4.17	2	face	files	img_mountains		13367	{ "key": "5", "slot": 4 }
+1789698763.905	active	globe	8.0	4.0	4.17	2	face	files	img_mountains		14100	{ "key": "28", "slot": 3 }
+1789698764.583	active	globe	8.0	4.0	4.17	2	face	files	img_mountains		14778	{ "key": "27", "slot": 2 }
+1789698765.739	active	globe	8.0	4.0	4.17	2	face	files	img_mountains		15934	{ "key": "62", "slot": 1 }
+1789698766.262	folder	globe	8.0	4.0	4.17	2	face	images	img_mountains		16457	{ "folder": "images", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789698766.262	intent	globe	8.0	4.0	4.17	2	face	images	img_mountains		16457	{ "do": "reload", "view": "browse", "folder": "images" }
+1789698766.272	active	globe	8.0	4.0	4.17	2	face	images	img_mountains		16467	{ "key": "62", "slot": 0 }
+1789698769.539	select	globe	8.0	4.0	4.17	2	face	images	img_mountains	да	19734	{ "do": "default", "view": "browse", "folder": "images", "item": "img_mountains", "title": "Горы" }
+1789698772.362	folder	globe	8.0	4.0	4.17	2	face	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789698772.363	intent	globe	8.0	4.0	4.17	2	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789698773.463	folder	globe	8.0	4.0	4.17	2	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789698773.463	intent	globe	8.0	4.0	4.17	2	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789698775.030	folder	globe	8.0	4.0	4.17	2	face	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789698775.030	intent	globe	8.0	4.0	4.17	2	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789698775.873	shake	globe	8.0	4.0	4.17	2	face					{ "how": "shake", "from": "files" }
+1789698775.874	folder	globe	8.0	4.0	4.17	2	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789698775.875	intent	globe	8.0	4.0	4.17	2	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789698779.807	intent	globe	8.0	4.0	4.17	2	face					{ "do": "exit", "view": "browse", "folder": "" }
+1789698779.809	выход	globe	8.0	4.0	4.17	2	face					выгрузка в /storage/emulated/0/Download/VRGE/2026-09-18_07-32-59

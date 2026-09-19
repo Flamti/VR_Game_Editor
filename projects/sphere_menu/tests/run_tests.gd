@@ -99,6 +99,18 @@ const HandFeaturesRes := preload("res://probe_hand_features.gd")
 const SynthHand := preload("res://tests/synth_hand.gd")
 const InputSettingsRes := preload("res://profile/input_settings.gd")
 const WizardRes := preload("res://menu/wizard.gd")
+const PinRes := preload("res://profile/pin.gd")
+const UserProfileRes := preload("res://profile/user_profile.gd")
+const ProfileStoreRes := preload("res://profile/profile_store.gd")
+## Этап C (ADR-0010): профили пользователей.
+const PROFILE_CHECKS := ["PIN", "хранилище профилей", "перенос в профиль", "выгрузка без секретов", "места",
+		"проекты"]
+const SecretBoxRes := preload("res://accounts/secret_box.gd")
+const ApiKeyRes := preload("res://accounts/api_key.gd")
+const DeviceFlowRes := preload("res://accounts/device_flow.gd")
+## Этап D (ADR-0011): аккаунты.
+const ACCOUNT_CHECKS := ["секреты", "ключи API", "поток кода устройства"]
+const ProjectsRes := preload("res://profile/projects.gd")
 const ScenarioRes := preload("res://session/scenario.gd")
 
 ## Уровни икосаэдра под проверками поверхностей: там O(n²) поиски, крупные ничего не добавляют.
@@ -158,6 +170,9 @@ func _init() -> void:
 	_model()
 	_hands()
 	_input_settings_check()
+	_profile_checks()
+	_projects_check()
+	_account_checks()
 
 	var total := r.executed()
 	r.note("")
@@ -180,7 +195,9 @@ func _expected() -> int:
 		+ 1 \
 		+ extra_expected() \
 		+ MODEL_CHECKS.size() \
-		+ HAND_CHECKS.size()
+		+ HAND_CHECKS.size() \
+		+ PROFILE_CHECKS.size() \
+		+ ACCOUNT_CHECKS.size()
 
 
 const SURFACE_CHECKS := ["ячейка под направлением", "шаг вращения", "раздача глобуса",
@@ -2353,7 +2370,7 @@ func _rm_dir(dir: String) -> void:
 
 ## Руки при первом переключении — копия контроллеров; дальше у каждого своё, в своём файле, и
 ## после перезапуска руки читаются из файла, а не копируются заново. Общая настройка переходит
-## при смене ввода. Стик и вибро рук не касаются. Файл до профилей переносится в контроллеры.
+## при смене ввода. Стик и вибро рук не касаются. Перенос файлов до профилей — «перенос в профиль».
 func _input_settings_check() -> void:
 	var dir := "user://test_input_settings"
 	_rm_dir(dir)
@@ -2406,23 +2423,345 @@ func _input_settings_check() -> void:
 	var wz = WizardRes.new(st2)
 	if st2.applies("stick_speed") or st2.applies("haptics") or "stick_speed" in wz.steps() or "haptics" in wz.steps():
 		bad.append("у рук видны стик или вибро: шаги мастера %s" % [wz.steps()])
-	# Файл до профилей становится набором контроллеров и переименовывается.
-	var dir3 := "user://test_input_settings_legacy"
-	_rm_dir(dir3)
-	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(dir3))
-	var legacy := dir3.path_join("sphere_settings.cfg")
-	var lc := ConfigFile.new()
-	lc.set_value("sphere", "radius_cm", 12.0)
-	lc.save(legacy)
-	var st3 := SettingsRes.new()
-	var ins3 := InputSettingsRes.new(st3, dir3)
-	var moved := ins3.migrate_legacy(legacy)
-	if not moved or _cfg_value(ins3.path_for("controllers"), "radius_cm") != 12.0 \
-			or FileAccess.file_exists(legacy) or not FileAccess.file_exists(legacy + ".migrated"):
-		bad.append("перенос файла до профилей: %s, контроллеры %s" % [moved, _cfg_value(ins3.path_for("controllers"), "radius_cm")])
 	_rm_dir(dir)
-	_rm_dir(dir3)
 	if bad.is_empty():
-		r.pass_("настройки по вводу: руки начались копией контроллеров и разошлись (10 / 15), каждый в своём файле и после перезапуска, общая настройка переходит, у рук нет стика и вибро, файл до профилей перенесён")
+		r.pass_("настройки по вводу: руки начались копией контроллеров и разошлись (10 / 15), каждый в своём файле и после перезапуска, общая настройка переходит, у рук нет стика и вибро")
 	else:
 		r.fail("настройки по вводу: %s" % "; ".join(bad))
+
+
+# --- профили пользователей (этап C, ADR-0010) ----------------------------------------
+
+func _rm_tree(dir: String) -> void:
+	var abs := ProjectSettings.globalize_path(dir)
+	var d := DirAccess.open(abs)
+	if d == null:
+		return
+	for sub in d.get_directories():
+		_rm_tree(dir.path_join(sub))
+	for f in d.get_files():
+		d.remove(f)
+	DirAccess.remove_absolute(abs)
+
+
+func _write(path: String, text: String) -> void:
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(path.get_base_dir()))
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	f.store_string(text)
+	f.close()
+
+
+func _profile_checks() -> void:
+	PinRes.falsify_any = falsify == "pinany"
+	# 1. PIN: PBKDF2 сверен с эталоном (hashlib.pbkdf2_hmac Python; RFC 7914 §11 — passwd/salt), верный
+	# PIN проходит, неверный нет; после FREE_FAILS ошибок — задержка, и она переживает перезапуск.
+	var pin_bad: Array[String] = []
+	var vectors := [["password", "salt".to_utf8_buffer(), 1, "120fb6cffcf8b32c43e7225256c4f837a86548c92ccc35480805987cb70be17b"],
+			["password", "salt".to_utf8_buffer(), 4096, "c5e478d59288c841aa530db6845c4c8d962893a001ce4e11a4963873aa98134a"],
+			["passwd", "salt".to_utf8_buffer(), 1, "55ac046e56e3089fec1691c22544b605f94185216dde0465e68b9d57c20dacbc"]]
+	var salt16 := PackedByteArray()
+	for i in 16:
+		salt16.append(i)
+	vectors.append(["1234", salt16, PinRes.ITERATIONS, "91ea059bae0333a2969fc8ccd7c77851dda43f5adb96baeea246a624cdf489ec"])
+	var t_pin := 0
+	for v in vectors:
+		var t0 := Time.get_ticks_usec()
+		var got := PinRes.derive((v[0] as String).to_utf8_buffer(), v[1], v[2]).hex_encode()
+		if v[2] == PinRes.ITERATIONS:
+			t_pin = Time.get_ticks_usec() - t0
+		if got != v[3]:
+			pin_bad.append("PBKDF2(%s, %d) = %s…" % [v[0], v[2], got.substr(0, 12)])
+	if not PinRes.valid("0000") or PinRes.valid("123") or PinRes.valid("123456789") or PinRes.valid("12a4"):
+		pin_bad.append("проверка вида PIN")
+	var up := UserProfileRes.new()
+	up.set_pin("2468", 1000)
+	var now := 1_000_000_000
+	var seq := []
+	for pin in ["1111", "2222", "3333", "2468"]:
+		seq.append(up.check_pin(pin, now))
+	var wait_ms := up.pin_wait_ms(now)
+	var after := up.check_pin("2468", now + wait_ms)
+	var dir := "user://test_profile_pin"
+	_rm_tree(dir)
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(dir))
+	up.check_pin("1111", now + wait_ms + 1)
+	up.check_pin("1111", now + wait_ms + 2)
+	up.check_pin("1111", now + wait_ms + 3)
+	up.save(dir)
+	var up2 := UserProfileRes.new()
+	up2.load_from(dir)
+	var after_restart := up2.check_pin("2468", now + wait_ms + 4)
+	_rm_tree(dir)
+	if seq != ["wrong", "wrong", "wrong", "wait"] or wait_ms != PinRes.DELAY_MS or after != "ok" or after_restart != "wait":
+		pin_bad.append("попытки %s, ждать %d мс, после ожидания «%s», после перезапуска «%s»" % [seq, wait_ms, after, after_restart])
+	PinRes.falsify_any = false
+	if pin_bad.is_empty():
+		r.pass_("PIN: PBKDF2-HMAC-SHA256 совпал с эталоном (4 вектора, %d итераций — %.0f мс на столе), три ошибки — задержка %d мс, она переживает перезапуск" % [
+				PinRes.ITERATIONS, t_pin / 1000.0, PinRes.DELAY_MS])
+	else:
+		r.fail("PIN: %s" % "; ".join(pin_bad))
+
+	# 2. Хранилище: создать два профиля, переименовать, перезапуск читает список и последний активный;
+	# удалить активный — активным становится оставшийся; последний не удаляется.
+	var root := "user://test_profiles_root"
+	_rm_tree(root)
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(root))
+	var st_bad: Array[String] = []
+	var ps := ProfileStoreRes.new(root)
+	ps.load_index()
+	var a := ps.create("Аня")
+	var b := ps.create("Борис")
+	var pa = ps.get_profile(a)
+	pa.name = "Анна"
+	pa.set_pin("1357", 100)
+	ps.save_profile(pa)
+	ps.set_active(b)
+	var ps2 := ProfileStoreRes.new(root)
+	ps2.falsify_remove_last = falsify == "removelast"
+	ps2.load_index()
+	if ps2.order != [a, b] or ps2.index[a]["name"] != "Анна" or not ps2.index[a]["has_pin"] or ps2.startup_id() != b:
+		st_bad.append("после перезапуска: порядок %s, %s, запуск %s" % [ps2.order, ps2.index, ps2.startup_id()])
+	var removed := ps2.remove(b)
+	var last_kept := not ps2.remove(a)
+	if not removed or DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(ps2.dir_of(b))) \
+			or ps2.startup_id() != a or not last_kept:
+		st_bad.append("удаление: %s, каталог остался %s, запуск %s, последний удалился %s" % [removed,
+				DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(ps2.dir_of(b))), ps2.startup_id(), not last_kept])
+	if st_bad.is_empty():
+		r.pass_("хранилище профилей: два профиля, переименование и PIN видны в списке после перезапуска, удаление активного переводит на оставшийся, последний не удаляется")
+	else:
+		r.fail("хранилище профилей: %s" % "; ".join(st_bad))
+
+	# 3. Перенос: файлы до профилей (наборы по вводу после сессии 12, избранное) уходят в «Основной»,
+	# старые — в *.migrated; только sphere_settings.cfg — становится набором контроллеров.
+	var mg_bad: Array[String] = []
+	var root2 := "user://test_profiles_migrate"
+	_rm_tree(root2)
+	_write(root2.path_join("settings_controllers.cfg"), "[sphere]\nradius_cm=12.0\n")
+	_write(root2.path_join("settings_hands.cfg"), "[sphere]\nradius_cm=16.0\n")
+	_write(root2.path_join("favorites.cfg"), "[favorites]\nids=[\"files\"]\n")
+	var pm := ProfileStoreRes.new(root2)
+	pm.falsify_no_migrate = falsify == "nomigrate"
+	var res := pm.ensure_default()
+	var pdir: String = pm.dir_of(res["created"])
+	for f in ["settings_controllers.cfg", "settings_hands.cfg", "favorites.cfg"]:
+		if not FileAccess.file_exists(pdir.path_join(f)) or not FileAccess.file_exists(root2.path_join(f + ".migrated")):
+			mg_bad.append("%s не перенесён" % f)
+	var again := pm.ensure_default()
+	if again["created"] != "":
+		mg_bad.append("второй запуск создал ещё профиль")
+	var root3 := "user://test_profiles_migrate_old"
+	_rm_tree(root3)
+	_write(root3.path_join("sphere_settings.cfg"), "[sphere]\nradius_cm=9.0\n")
+	var po := ProfileStoreRes.new(root3)
+	po.falsify_no_migrate = pm.falsify_no_migrate
+	var res3 := po.ensure_default()
+	if _cfg_value(po.dir_of(res3["created"]).path_join("settings_controllers.cfg"), "radius_cm") != 9.0:
+		mg_bad.append("sphere_settings.cfg не стал набором контроллеров")
+	_rm_tree(root2)
+	_rm_tree(root3)
+	if mg_bad.is_empty():
+		r.pass_("перенос в профиль: наборы по вводу и избранное ушли в «Основной», старые файлы — *.migrated; файл до наборов стал набором контроллеров; второй запуск ничего не создал")
+	else:
+		r.fail("перенос в профиль: %s" % "; ".join(mg_bad))
+
+	# 4. Выгрузка: дерево профилей уходит, секреты — нет (ни secrets.enc, ни секрет устройства).
+	ExportRes.falsify_all = falsify == "exportsecret"
+	var ex_src := "user://test_export_src"
+	var ex_dst := "user://test_export_dst"
+	_rm_tree(ex_src)
+	_rm_tree(ex_dst)
+	_write(ex_src.path_join("profiles/p1/profile.cfg"), "[profile]\n")
+	_write(ex_src.path_join("profiles/p1/secrets.enc"), "SECRET")
+	_write(ex_src.path_join("profiles/index.cfg"), "[index]\n")
+	_write(ex_src.path_join("device.cfg"), "[device]\n")
+	var ex_out := {"ok": [], "failed": []}
+	ExportRes._copy_tree(ex_src, ex_dst, "profiles", ex_out)
+	ExportRes.falsify_all = false
+	var copied_profile := FileAccess.file_exists(ex_dst.path_join("profiles/p1/profile.cfg"))
+	var leaked := FileAccess.file_exists(ex_dst.path_join("profiles/p1/secrets.enc")) \
+			or FileAccess.file_exists(ex_dst.path_join("device.cfg"))
+	_rm_tree(ex_src)
+	_rm_tree(ex_dst)
+	if copied_profile and not leaked and ex_out["failed"].is_empty():
+		r.pass_("выгрузка без секретов: профили выгружены (%d файла), secrets.enc и device.cfg — нет" % ex_out["ok"].size())
+	else:
+		r.fail("выгрузка без секретов: профиль %s, секрет утёк %s, выгружено %s" % [copied_profile, leaked, ex_out["ok"]])
+
+	# 5. Места: та же игровая зона с дрожью вершин 2 см узнаётся, другая — нет, пустая — ни с чем;
+	# повторное «запомнить» обновляет место и не теряет якоря.
+	var pl_bad: Array[String] = []
+	UserProfileRes.falsify_place_any = falsify == "placeany"
+	var upl := UserProfileRes.new()
+	var room := PackedVector3Array([Vector3(-1, 0, -1), Vector3(1, 0, -1), Vector3(1, 0, 1.5), Vector3(-1, 0, 1.5)])
+	upl.remember_place("Кабинет", room, Transform3D(Basis(), Vector3(0, 0, -0.5)), 0.74)
+	upl.places[0]["anchors"] = ["uuid-1"]
+	var jitter := PackedVector3Array()
+	for p in room:
+		jitter.append(p + Vector3(0.02, 0, -0.015))
+	var other := PackedVector3Array([Vector3(-2, 0, -2), Vector3(2, 0, -2), Vector3(2, 0, 2), Vector3(-2, 0, 2)])
+	if upl.find_place(jitter) != 0 or upl.find_place(other) != -1 or upl.find_place(PackedVector3Array()) != -1:
+		pl_bad.append("узнавание: та же %d, другая %d, пустая %d" % [upl.find_place(jitter), upl.find_place(other),
+				upl.find_place(PackedVector3Array())])
+	upl.remember_place("Кабинет у окна", jitter, Transform3D(), 0.72)
+	if upl.places.size() != 1 or upl.places[0]["anchors"] != ["uuid-1"] or upl.places[0]["name"] != "Кабинет у окна":
+		pl_bad.append("повтор: мест %d, %s" % [upl.places.size(), upl.places[0]])
+	UserProfileRes.falsify_place_any = false
+	if pl_bad.is_empty():
+		r.pass_("места: зона с дрожью вершин 2 см узнана (допуск %.2f м), другая и пустая — нет, повтор обновил место с якорями" % UserProfileRes.PLACE_TOLERANCE_M)
+	else:
+		r.fail("места: %s" % "; ".join(pl_bad))
+
+
+# --- аккаунты (этап D, ADR-0011) -----------------------------------------------------
+
+func _account_checks() -> void:
+	# 1. Секреты: запечатанное открывается тем же корнем; чужой корень и подменённый байт — null;
+	# корень от PIN не совпадает с хранимым хешем PIN (иначе profile.cfg раскрыл бы ключ);
+	# у профилей без PIN корни разные.
+	SecretBoxRes.falsify_no_mac = falsify == "nomac"
+	var sb_bad: Array[String] = []
+	var up := UserProfileRes.new()
+	up.set_pin("2468", 100)
+	var root := up.unlocked_root
+	var data := {"claude": {"key": "sk-ant-TEST"}, "google": {"refresh_token": "1//r"}}
+	var blob := SecretBoxRes.seal(root, data)
+	var back: Variant = SecretBoxRes.open(root, blob)
+	if back != data:
+		sb_bad.append("свой корень не открыл: %s" % [back])
+	var other := up.unlocked_root.duplicate()
+	other[0] = other[0] ^ 1
+	if SecretBoxRes.open(other, blob) != null:
+		sb_bad.append("чужой корень открыл")
+	# Подмена бита в IV — атака на CBC без MAC: меняет ровно этот бит первого блока открытого текста,
+	# и JSON остаётся разбираемым («claude» → «blaude»). Подмена в шифротексте дала бы мусор, который
+	# отверг бы разбор JSON и без MAC — проверка была бы слепой (первая версия: nomac остался зелёным).
+	var tampered := blob.duplicate()
+	tampered[5 + 2] = tampered[5 + 2] ^ 0x01
+	var forged: Variant = SecretBoxRes.open(root, tampered)
+	if forged != null:
+		sb_bad.append("подменённый бит IV открылся: %s" % [forged])
+	if root == up.pin_hash or blob.get_string_from_ascii().contains("sk-ant-TEST"):
+		sb_bad.append("ключ совпал с хешем PIN или секрет виден в файле")
+	var dev := PackedByteArray()
+	for i in 32:
+		dev.append(i)
+	if SecretBoxRes.root_without_pin(dev, "pA") == SecretBoxRes.root_without_pin(dev, "pB"):
+		sb_bad.append("у профилей без PIN один корень")
+	var up2 := UserProfileRes.new()
+	up2.pin_salt = up.pin_salt
+	up2.pin_hash = up.pin_hash
+	up2.pin_iterations = up.pin_iterations
+	up2.check_pin("2468", 0)
+	if up2.unlocked_root != root:
+		sb_bad.append("верный PIN дал другой корень")
+	SecretBoxRes.falsify_no_mac = false
+	if sb_bad.is_empty():
+		r.pass_("секреты: AES-256-CBC + HMAC — свой корень открыл, чужой и подменённый бит IV (подделка «blaude») — нет; корень не равен хешу PIN, у профилей без PIN — разный, верный PIN восстанавливает корень")
+	else:
+		r.fail("секреты: %s" % "; ".join(sb_bad))
+
+	# 2. Ключи API: форма запроса проверки (эндпоинт, заголовки — по документации) и разбор ответа.
+	ApiKeyRes.falsify_wrong_header = falsify == "wrongheader"
+	var ak_bad: Array[String] = []
+	var rc := ApiKeyRes.check_request("claude", "sk-ant-X")
+	var ro := ApiKeyRes.check_request("openai", "sk-X")
+	if rc["url"] != "https://api.anthropic.com/v1/models" or rc["method"] != HTTPClient.METHOD_GET \
+			or not "x-api-key: sk-ant-X" in rc["headers"] or not "anthropic-version: 2023-06-01" in rc["headers"] \
+			or rc["headers"].size() != 2:
+		ak_bad.append("Claude: %s" % [rc])
+	if ro["url"] != "https://api.openai.com/v1/models" or not "Authorization: Bearer sk-X" in ro["headers"]:
+		ak_bad.append("OpenAI: %s" % [ro])
+	var st := [ApiKeyRes.interpret(200, '{"data":[{"id":"a"},{"id":"b"}]}')["status"],
+			ApiKeyRes.interpret(401, "")["status"], ApiKeyRes.interpret(403, "")["status"],
+			ApiKeyRes.interpret(529, "")["status"], ApiKeyRes.interpret(0, "", HTTPRequest.RESULT_CANT_CONNECT)["status"]]
+	if st != ["connected", "bad_key", "forbidden", "unavailable", "offline"]:
+		ak_bad.append("разбор ответов: %s" % [st])
+	if ApiKeyRes.masked("sk-ant-api03-abcdefghijklmnop").contains("abcdefghij"):
+		ak_bad.append("ключ на экране целиком")
+	ApiKeyRes.falsify_wrong_header = false
+	if ak_bad.is_empty():
+		r.pass_("ключи API: Claude — GET /v1/models с x-api-key и anthropic-version, OpenAI — Bearer; 200/401/403/529/нет сети → подключён/неверный ключ/запрещено/недоступен/нет сети; ключ на экране замаскирован")
+	else:
+		r.fail("ключи API: %s" % "; ".join(ak_bad))
+
+	# 3. Поток кода устройства на готовых ответах Google: ожидание (428), slow_down (+5 с к
+	# интервалу), успех; отказ человека; истечение кода по времени без запроса.
+	var df_bad: Array[String] = []
+	var no_slow := falsify == "noslowdown"
+	var df := DeviceFlowRes.new("cid", "csec")
+	df.falsify_no_slowdown = no_slow
+	var creq := df.code_request()
+	if creq["url"] != DeviceFlowRes.CODE_URL or not (creq["body"] as String).contains("scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive.file"):
+		df_bad.append("запрос кода: %s" % [creq])
+	df.on_code(200, '{"device_code":"DC","user_code":"ABCD-EFGH","verification_url":"https://www.google.com/device","expires_in":1800,"interval":5}', 0)
+	var early := df.due(4000)
+	var at5 := df.due(5000)
+	df.on_poll(428, '{"error":"authorization_pending"}', 5000)
+	df.on_poll(403, '{"error":"slow_down"}', 10000)
+	var next_after_slow := df.next_poll_ms
+	var preq := df.poll_request()
+	if not (preq["body"] as String).contains("grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Adevice_code") \
+			or not (preq["body"] as String).contains("client_secret=csec"):
+		df_bad.append("запрос опроса: %s" % preq["body"])
+	df.on_poll(200, '{"access_token":"AT","refresh_token":"RT","expires_in":3599,"token_type":"Bearer"}', 20000)
+	if early or not at5 or df.user_code != "ABCD-EFGH" or df.url != "https://www.google.com/device" \
+			or next_after_slow != 10000 + 10 * 1000 or df.state != "done" or df.refresh_token != "RT":
+		df_bad.append("основной путь: рано %s, в 5 с %s, код %s, после slow_down следующий в %d, итог %s" % [early, at5,
+				df.user_code, next_after_slow, df.state])
+	var dd := DeviceFlowRes.new("cid", "csec")
+	dd.code_request()
+	dd.on_code(200, '{"device_code":"DC","user_code":"U","verification_url":"u","expires_in":600,"interval":5}', 0)
+	dd.on_poll(403, '{"error":"access_denied"}', 5000)
+	var de := DeviceFlowRes.new("cid", "csec")
+	de.code_request()
+	de.on_code(200, '{"device_code":"DC","user_code":"U","verification_url":"u","expires_in":60,"interval":5}', 0)
+	var polled_after_expiry := de.due(61000)
+	if dd.state != "failed" or not dd.failure.contains("отклонён") or de.state != "failed" or polled_after_expiry:
+		df_bad.append("отказ: %s «%s»; истечение: %s, опрос после %s" % [dd.state, dd.failure, de.state, polled_after_expiry])
+	if DeviceFlowRes.email_from_about(200, '{"user":{"emailAddress":"a@b.c","displayName":"A"}}') != "a@b.c":
+		df_bad.append("адрес из about.get")
+	if df_bad.is_empty():
+		r.pass_("поток кода устройства: код и адрес показаны, опрос не раньше интервала, 428 — ждём, slow_down — интервал 5 → 10 с, успех даёт токен обновления; отказ и истечение кода (без запроса) — провал; адрес — из about.get")
+	else:
+		r.fail("поток кода устройства: %s" % "; ".join(df_bad))
+
+
+
+## Ссылки на проекты: путь только внутри общего каталога проектов; тот же путь — та же ссылка;
+## открытие поднимает проект в недавние и хранит состояние пользователя; всё переживает перезапуск.
+func _projects_check() -> void:
+	ProjectsRes.falsify_any_path = falsify == "projectpath"
+	var bad: Array[String] = []
+	var list: Array = []
+	var a := ProjectsRes.add(list, "Замок", "castle", 100)
+	var b := ProjectsRes.add(list, "Лес", "worlds/forest", 200)
+	var again := ProjectsRes.add(list, "Замок (копия)", "castle", 300)
+	var rejected := []
+	for p in ["../etc", "/sdcard/x", "a//b", "user://x", "", "worlds/../../x"]:
+		if ProjectsRes.add(list, "плохой", p, 0) != "":
+			rejected.append(p)
+	if a == "" or b == "" or again != a or list.size() != 2 or not rejected.is_empty():
+		bad.append("добавление: %d ссылок, повтор той же %s, пропущены плохие пути %s" % [list.size(), again == a, rejected])
+	ProjectsRes.touch(list, a, 500, {"open": ["башня.tscn"]})
+	var order := ProjectsRes.recent(list).map(func(x): return x["title"])
+	var up := UserProfileRes.new()
+	up.projects = list
+	var dir := "user://test_projects"
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(dir))
+	up.save(dir)
+	var up2 := UserProfileRes.new()
+	up2.load_from(dir)
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(dir.path_join("profile.cfg")))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(dir))
+	var st: Dictionary = up2.projects[ProjectsRes.find(up2.projects, a)]["state"] if ProjectsRes.find(up2.projects, a) >= 0 else {}
+	if order != ["Замок", "Лес"] or st.get("open", []) != ["башня.tscn"] or up2.projects.size() != 2:
+		bad.append("недавние %s, состояние после перезапуска %s, ссылок %d" % [order, st, up2.projects.size()])
+	ProjectsRes.remove(up2.projects, b)
+	if up2.projects.size() != 1:
+		bad.append("удаление ссылки")
+	ProjectsRes.falsify_any_path = false
+	if bad.is_empty():
+		r.pass_("проекты: ссылка только внутри каталога проектов (6 плохих путей отвергнуты), тот же путь — та же ссылка, открытие — в недавние со своим состоянием, всё пережило перезапуск")
+	else:
+		r.fail("проекты: %s" % "; ".join(bad))

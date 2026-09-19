@@ -27,11 +27,16 @@ const SettingEdit := preload("res://menu/setting_edit.gd")
 const Settings := preload("res://menu/settings.gd")
 
 const BUTTON_TITLES := {"back": "Назад", "default": "Умолч.", "demo": "Демо", "next": "Далее",
-		"done": "Готово", "save": "Сохранить", "keyboard": "Клавиатура"}
+		"done": "Готово", "save": "Сохранить", "keyboard": "Клавиатура", "cancel": "Отмена", "unpin": "Снять PIN",
+		"other": "Другой", "check": "Проверить", "disconnect": "Отключить", "import": "Из файла"}
 ## Раскладка поиска на панели — одно из двух значений настройки «Клавиатура поиска» (второе —
 ## системная клавиатура Quest, ADR-0009). Обе сразу мешали (сессия 7).
 const TEXT_KEYS := ["Й", "Ц", "У", "К", "Е", "Н", "Г", "Ш", "Щ", "З", "Х", "Ъ", "Ф", "Ы", "В", "А", "П", "Р",
 		"О", "Л", "Д", "Ж", "Э", "Я", "Ч", "С", "М", "И", "Т", "Ь", "Б", "Ю", "Ё", "␣", "⌫", "C"]
+## Цифры — для PIN и чисел профиля (рост); всегда на панели, не системной клавиатурой: вид системной
+## клавиатуры с маской на Quest не проверен, а PIN виден тому, кто стоит рядом со шлемом, только
+## звёздочками.
+const DIGIT_KEYS := ["1", "2", "3", "4", "5", "6", "7", "8", "9", "⌫", "0", "C"]
 ## Кончик у панели: расстояние до плоскости квада, м.
 const TIP_GAP := 0.02
 ## Полоса содержимого правки: окно прокрутки 480 минус полоса прокрутки, px.
@@ -62,6 +67,15 @@ var _marks_box: Control
 var _choice_box: VBoxContainer
 var _buttons_box: HBoxContainer
 var _text_box: GridContainer
+var _digit_box: GridContainer
+## Ввод текста: звёздочки вместо символов, предел длины, цифры вместо букв (open_text, opts).
+var _masked := false
+var _max_len := 40
+var _digits := false
+## Регистр набранного сохраняется (ключи API); иначе — нижний, как в поиске.
+var _keep_case := false
+## Фальсификатор «keylower»: регистр не сохраняется — ключ API с заглавными ломается при вводе.
+var falsify_lower_always := false
 ## Набранный текст поиска.
 var text := ""
 ## Длина запроса поиска — одна на обе клавиатуры.
@@ -148,6 +162,7 @@ func open_editor(p_edit: SettingEdit, title: String, buttons: Array, p_note: Cal
 	_number_box.visible = is_num
 	_choice_box.visible = not is_num
 	_text_box.visible = false
+	_digit_box.visible = false
 	if is_num:
 		_syncing = true
 		_slider.min_value = float(spec["min"])
@@ -181,32 +196,45 @@ func open_summary(title: String, lines: PackedStringArray, buttons: Array) -> vo
 	_number_box.visible = false
 	_choice_box.visible = false
 	_text_box.visible = false
+	_digit_box.visible = false
 	_set_buttons(buttons)
 	_last_key = ""
 	_dirty()
 
 
-## Ввод текста поиска. mode «system» — системная клавиатура Quest, на панели только поле и
+## Ввод текста. mode «system» — системная клавиатура Quest, на панели только поле и
 ## кнопки «Клавиатура» (показать снова) и «Готово»; «panel» — русская раскладка лучом.
-func open_text(title: String, buttons: Array, mode: String = "system") -> void:
+## opts — для полей, кроме поиска: hint (подсказка), digits (цифровая клавиатура, всегда на панели),
+## masked (звёздочки), max (предел длины), text (начальное значение), keep_case (не приводить к нижнему
+## регистру — ключи API). Без opts — поиск, как был.
+func open_text(title: String, buttons: Array, mode: String = "system", opts: Dictionary = {}) -> void:
 	edit = null
-	text = ""
+	_digits = opts.get("digits", false)
+	_masked = opts.get("masked", false)
+	_max_len = int(opts.get("max", TEXT_MAX))
+	_keep_case = opts.get("keep_case", false) and not falsify_lower_always
+	if _digits:
+		mode = "panel"
+	text = str(opts.get("text", ""))
 	_text_mode = mode
 	_set_info_visible(false)
 	_editor.visible = true
 	_e_title.text = title
-	_e_value.text = "_"
+	_e_value.text = _shown() + "_"
 	_e_found.text = ""
 	# Сессия 10: прежняя подсказка «„Готово“ на клавиатуре — ...» прочиталась как «наберите слово
 	# Готово», владелец так и сделал дважды и ничего не нашёл. Первым словом — действие, а не кавычки.
-	if mode == "system":
+	if opts.has("hint"):
+		_e_hint.text = opts["hint"]
+	elif mode == "system":
 		_e_hint.text = "наберите часть имени; выбрать найденное на шаре можно, спрятав клавиатуру («Готово» на ней)"
 	else:
 		_e_hint.text = "наберите часть имени лучом; кнопка «Готово» на панели закрывает поиск"
 	scroll_reset()
 	_number_box.visible = false
 	_choice_box.visible = false
-	_text_box.visible = mode == "panel"
+	_text_box.visible = mode == "panel" and not _digits
+	_digit_box.visible = _digits
 	_set_buttons((["keyboard"] + buttons) if mode == "system" else buttons)
 	_last_key = ""
 	_dirty()
@@ -226,6 +254,22 @@ func set_found(n: int) -> void:
 	else:
 		_e_found.text = "найдено: %d" % n
 	_dirty()
+
+
+## Подсказка под полем ввода — сообщения профиля («неверный PIN», «подождите»).
+func set_hint(t: String) -> void:
+	_e_hint.text = t
+	_dirty()
+
+
+func hint_text() -> String:
+	return _e_hint.text
+
+
+## Очистить набранное (после неверного PIN).
+func clear_text() -> void:
+	text = ""
+	_text_changed()
 
 
 func found_text() -> String:
@@ -474,6 +518,16 @@ func _build_editor() -> void:
 		tb.pressed.connect(_on_text_key.bind(k))
 		_text_box.add_child(tb)
 	_e_box.add_child(_text_box)
+	_digit_box = GridContainer.new()
+	_digit_box.columns = 3
+	_digit_box.add_theme_constant_override("h_separation", 8)
+	_digit_box.add_theme_constant_override("v_separation", 8)
+	_digit_box.visible = false
+	for k in DIGIT_KEYS:
+		var db := _button(k, Vector2(110, 64), 32)
+		db.pressed.connect(_on_text_key.bind(k))
+		_digit_box.add_child(db)
+	_e_box.add_child(_digit_box)
 
 	_choice_box = VBoxContainer.new()
 	_choice_box.custom_minimum_size = Vector2(EDIT_WIDTH, 0)
@@ -605,13 +659,18 @@ func _on_text_key(k: String) -> void:
 		"␣":
 			text += " "
 		_:
-			if text.length() < TEXT_MAX:
-				text += k.to_lower()
+			if text.length() < _max_len:
+				text += k if _keep_case else k.to_lower()
 	_text_changed()
 
 
+## Что видно в поле: набранное или звёздочки.
+func _shown() -> String:
+	return "•".repeat(text.length()) if _masked else text
+
+
 func _text_changed() -> void:
-	_e_value.text = text + "_"
+	_e_value.text = _shown() + "_"
 	_last_key = ""
 	_dirty()
 	text_changed.emit(text)
@@ -676,8 +735,9 @@ func _input(event: InputEvent) -> void:
 			keyboard.emit("enter")
 			return
 		_:
-			if k.unicode < 32 or text.length() >= TEXT_MAX:
+			if k.unicode < 32 or text.length() >= _max_len:
 				return
-			text += String.chr(k.unicode).to_lower()
+			var ch := String.chr(k.unicode)
+			text += ch if _keep_case else ch.to_lower()
 	get_viewport().set_input_as_handled()
 	_text_changed()

@@ -16,6 +16,7 @@ extends "res://menu/source.gd"
 
 const Item := preload("res://menu/item.gd")
 const Settings := preload("res://menu/settings.gd")
+const Projects := preload("res://profile/projects.gd")
 const K := Item.Kind
 const P := Item.Policy
 
@@ -113,6 +114,80 @@ func _init() -> void:
 		_add("settings", so)
 
 
+## Папка «Профиль: <имя>» в настройках (ADR-0010) — собирается заново при каждом изменении профиля:
+## в подписях видны имя, рост, высота глаз, число мест. Пункты — действия «profile_<что>», их исполняет
+## profile/profile_ui.gd. Аккаунты и проекты появятся здесь с этапами D и E: пункт, который ничего не
+## делает, хуже отсутствующего (ловушка 17). accounts — [{service, title}] с готовой подписью статуса;
+## пусто — папки аккаунтов нет.
+var _profile_ids: Array = []
+
+
+func apply_profile(names: Array, active_id: String, p: RefCounted, accounts: Array = []) -> void:
+	for id in _profile_ids:
+		items.erase(id)
+		parent_of.erase(id)
+		children_of.erase(id)
+	_profile_ids = []
+	(children_of["settings"] as Array).erase("profile")
+	var folder: Item = Item.make("profile", "Профиль: %s" % p.name, K.FOLDER, P.STAY, "Профиль")
+	folder.type_label = "папка"
+	items["profile"] = folder
+	parent_of["profile"] = "settings"
+	children_of["profile"] = []
+	(children_of["settings"] as Array).insert(0, "profile")
+	_profile_ids.append("profile")
+	_profile_folder("profile", "profile_switch", "Сменить профиль", "Сменить")
+	for row in names:
+		var mark := " (сейчас)" if row["id"] == active_id else (" · PIN" if row["has_pin"] else "")
+		_profile_action("profile_switch", "pf_open_" + row["id"], "%s%s" % [row["name"], mark],
+				"profile_open:" + row["id"])
+	_profile_action("profile_switch", "pf_new", "Новый профиль", "profile_new", "Новый")
+	_profile_action("profile", "pf_name", "Имя: %s" % p.name, "profile_name", "Имя")
+	_profile_action("profile", "pf_height", "Рост: %s" % ("%d см" % int(p.height_cm) if p.height_cm > 0.0 else "не задан"),
+			"profile_height", "Рост")
+	_profile_action("profile", "pf_eye", ("Высота глаз: %s м — измерить заново" % String.num(p.eye_m, 2).replace(".", ","))
+			if p.eye_m > 0.0 else "Измерить высоту глаз (встаньте прямо)", "profile_eye", "Глаза")
+	_profile_action("profile", "pf_place", "Запомнить это место (мест: %d)" % p.places.size(), "profile_place", "Место")
+	_profile_action("profile", "pf_pin", "PIN: сменить или снять" if p.has_pin() else "PIN: задать", "profile_pin", "PIN")
+	# Проекты: только ссылки (profile/projects.gd). Формата проекта нет, открыть их нечем — поэтому
+	# пункты без действия, а пустая папка говорит почему, а не молчит.
+	_profile_folder("profile", "profile_projects", "Проекты (%d)" % p.projects.size(), "Проекты")
+	if p.projects.is_empty():
+		_profile_info("profile_projects", "pf_projects_none", "Проектов нет: формат проекта ещё не принят (ADR)")
+	for ref in Projects.recent(p.projects):
+		_profile_info("profile_projects", "pf_project_" + ref["id"], ref["title"],
+				"проект, открыт %s" % Time.get_date_string_from_unix_time(int(ref["opened_unix"])))
+	if not accounts.is_empty():
+		_profile_folder("profile", "profile_accounts", "Аккаунты", "Аккаунты")
+		for a in accounts:
+			_profile_action("profile_accounts", "pf_acc_" + a["service"], a["title"],
+					"profile_account:" + a["service"], a["short"])
+	if names.size() > 1:
+		var del := _profile_action("profile", "pf_delete", "Удалить профиль «%s»" % p.name, "profile_delete", "Удалить")
+		del.danger = true
+
+
+func _profile_info(parent: String, id: String, title: String, type_label: String = "справка") -> void:
+	var it: Item = Item.make(id, title, K.OPTION, P.STAY)
+	it.type_label = type_label
+	_add(parent, it)
+	_profile_ids.append(id)
+
+
+func _profile_folder(parent: String, id: String, title: String, short: String) -> void:
+	_folder(parent, id, title, short)
+	_profile_ids.append(id)
+
+
+func _profile_action(parent: String, id: String, title: String, action: String, short: String = "") -> Item:
+	var it: Item = Item.make(id, title, K.ACTION, P.STAY, short)
+	it.action = action
+	it.type_label = "профиль"
+	_add(parent, it)
+	_profile_ids.append(id)
+	return it
+
+
 ## Папка настроек — по способу ввода этих значений (profile/input_settings.gd): в заголовке видно,
 ## чей набор правится, а настройки, к вводу не относящиеся (у рук — стик и вибро), скрыты.
 ## Пункты остаются в items — при возврате ввода они встают на прежние места.
@@ -208,12 +283,13 @@ func save_favorites(path: String = FAVORITES_PATH) -> Error:
 	return cf.save(path)
 
 
-## Загрузка избранного; исчезнувшие объекты отбрасываются.
+## Загрузка избранного; исчезнувшие объекты отбрасываются. Файла нет — избранное пусто: при смене
+## пользователя чужое не должно остаться.
 func load_favorites(path: String = FAVORITES_PATH) -> void:
+	favorites = []
 	var cf := ConfigFile.new()
 	if cf.load(path) != OK:
 		return
-	favorites = []
 	for id in cf.get_value("menu", "favorites", []):
 		if items.has(str(id)) and not is_home_entry(str(id)):
 			favorites.append(str(id))

@@ -70,7 +70,7 @@ func setup(origin: Node3D, p_left: XRController3D, p_right: XRController3D, p_me
 	controller_view.setup(origin)
 	arbiter.changed.connect(_on_source)
 	menu.input_source = arbiter.current
-	_show(arbiter.current, 0)
+	_show(arbiter.current, Time.get_ticks_msec())
 
 
 func current() -> String:

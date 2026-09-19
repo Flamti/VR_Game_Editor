@@ -48,6 +48,15 @@ func exists_any() -> bool:
 	return false
 
 
+## Перейти в каталог другого профиля пользователя: кэш наборов прежнего профиля сбрасывается,
+## набор активного ввода читается из нового. Возвращает отвергнутые ключи.
+func rebind(p_dir: String, input: String) -> Array[String]:
+	dir = p_dir
+	sets = {}
+	current = input
+	return load_current()
+
+
 ## Загрузить набор активного ввода в settings. Возвращает отвергнутые ключи.
 func load_current() -> Array[String]:
 	_bind(current)
@@ -88,19 +97,6 @@ func switch(input: String) -> bool:
 	# Новый набор — сразу на диск: копия контроллеров становится профилем рук, а не памятью сессии.
 	settings.save()
 	return true
-
-
-## Файл настроек до профилей (user://sphere_settings.cfg) становится набором контроллеров — если
-## наборов ещё нет. Сам файл переименовывается в *.migrated, не удаляется. true — перенесено.
-func migrate_legacy(legacy_path: String) -> bool:
-	if exists_any() or not FileAccess.file_exists(legacy_path):
-		return false
-	current = "controllers"
-	_bind(current)
-	settings.reset()
-	settings.load_from(legacy_path)
-	settings.save()
-	return DirAccess.rename_absolute(legacy_path, legacy_path + ".migrated") == OK
 
 
 func _bind(input: String) -> void:

@@ -10,8 +10,15 @@ extends RefCounted
 ## шлеме: результат каждого файла пишется в журнал. Отвергнуто: MANAGE_EXTERNAL_STORAGE —
 ## широкое разрешение ради трёх файлов; сеть — владелец выбрал папку.
 
-const FILES := ["sphere_session.tsv", "settings_controllers.cfg", "settings_hands.cfg", "settings_common.cfg",
-		"favorites.cfg"]
+const FILES := ["sphere_session.tsv"]
+## Профили — деревом (ADR-0010), но секреты не покидают приложение (ADR-0011 п. 4): ни ключи
+## аккаунтов, ни секрет устройства, от которого выводится ключ профилей без PIN. device.cfg лежит в
+## корне, вне дерева, и в FILES его нет — он не выгружается вовсе.
+const PROFILES := "profiles"
+const NEVER_EXPORT := ["secrets.enc", "device.cfg"]
+
+## Фальсификатор «exportsecret»: выгружается всё дерево профилей, секреты тоже.
+static var falsify_all := false
 
 
 ## Скопировать файлы user:// и текст самопроверки в каталог. dst — корень выгрузки (на столе
@@ -35,6 +42,7 @@ static func run(dst_root: String, selfcheck_lines: Array, stamp: String) -> Dict
 		f.store_buffer(data)
 		f.close()
 		out["ok"].append(name)
+	_copy_tree("user://", dir, PROFILES, out)
 	if not selfcheck_lines.is_empty():
 		var s := FileAccess.open(dir.path_join("selfcheck.txt"), FileAccess.WRITE)
 		if s == null:
@@ -44,6 +52,27 @@ static func run(dst_root: String, selfcheck_lines: Array, stamp: String) -> Dict
 			s.close()
 			out["ok"].append("selfcheck.txt")
 	return out
+
+
+## Скопировать каталог rel из src_root в dst_root, кроме NEVER_EXPORT. rel — путь от корня выгрузки.
+static func _copy_tree(src_root: String, dst_root: String, rel: String, out: Dictionary) -> void:
+	var d := DirAccess.open(src_root.path_join(rel))
+	if d == null:
+		return
+	DirAccess.make_dir_recursive_absolute(dst_root.path_join(rel))
+	for sub in d.get_directories():
+		_copy_tree(src_root, dst_root, rel.path_join(sub), out)
+	for name in d.get_files():
+		if name in NEVER_EXPORT and not falsify_all:
+			continue
+		var data := FileAccess.get_file_as_bytes(src_root.path_join(rel).path_join(name))
+		var f := FileAccess.open(dst_root.path_join(rel).path_join(name), FileAccess.WRITE)
+		if f == null:
+			out["failed"].append("%s: %s" % [rel.path_join(name), error_string(FileAccess.get_open_error())])
+			continue
+		f.store_buffer(data)
+		f.close()
+		out["ok"].append(rel.path_join(name))
 
 
 static func stamp_now() -> String:

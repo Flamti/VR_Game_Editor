@@ -22,8 +22,8 @@ extends SceneTree
 ##                         краснеет только «раскладка панели»;
 ##   --falsify=gestureboth настройка «Жест возврата» не слушается, живут оба детектора, —
 ##                         краснеет только «жест возврата»;
-##   --falsify=imekey      панель не принимает клавиши системной клавиатуры — краснеет только
-##                         «системная клавиатура»;
+##   --falsify=imekey      панель не принимает клавиши системной клавиатуры — краснеют «системная
+##                         клавиатура» и «аккаунт: ключ Claude» (ключ API набирается той же клавиатурой);
 ##   --falsify=enterclose  «Готово» системной клавиатуры закрывает поиск, как в сессии 7, —
 ##                         краснеет только «системная клавиатура»;
 ##   --falsify=found       строка «найдено» молчит, как до сессии 10, — краснеет только
@@ -37,8 +37,26 @@ extends SceneTree
 ##                         только «ввод после самопроверки»;
 ##   --falsify=meshstays   силуэт рук не прячется при взятых контроллерах, как в сессии 11, —
 ##                         краснеет только «видно того, кто ведёт»;
+##   --falsify=fallbacknow запасная модель контроллеров — без ожидания, как в сессии 12, — краснеет
+##                         только «видно того, кто ведёт»;
+##   --falsify=fallbackstays пришедшая модель рантайма не прячет запасную — краснеет только «видно
+##                         того, кто ведёт»;
+##   --falsify=jointsstay  точки суставов поверх готовой сетки рук — краснеет только «видно того, кто
+##                         ведёт»;
 ##   --falsify=noswitch    смена источника не меняет набор настроек — краснеет только «настройки
 ##                         того, кто ведёт»;
+##   --falsify=staleprofile при смене пользователя остаются настройки и избранное прежнего —
+##                         краснеет только «смена пользователя»;
+##   --falsify=nolock      пока спрашивают PIN при запуске, шар не заперт — краснеет только «профиль:
+##                         PIN при запуске»;
+##   --falsify=eyeworld    высота глаз от нуля мира, а не от пола XR-пространства — краснеет только
+##                         «профиль: рост, глаза, место»;
+##   --falsify=keylower    ключ API приводится к нижнему регистру, как текст поиска, — краснеет только
+##                         «аккаунт: ключ Claude»;
+##   --falsify=plainsecret ключ пишется и в profile.cfg открытым текстом — краснеет только «аккаунт:
+##                         ключ Claude»;
+##   --falsify=noreseal    при смене и снятии PIN секреты не перешифровываются — краснеет только
+##                         «аккаунт: PIN перешифровывает»;
 ##   --falsify=handoff     отдача управления не бросает начатое касание — краснеет только
 ##                         «руки: отдача управления» (контроллер отпускает курок — выбор).
 ## Пол — по числу исполненных шагов; ошибки выполнения печатаются движком, их
@@ -56,6 +74,11 @@ const Hands := preload("res://input/hand_source.gd")
 const Router := preload("res://input/input_router.gd")
 const Arbiter := preload("res://input/input_arbiter.gd")
 const InputSettings := preload("res://profile/input_settings.gd")
+const ProfileStore := preload("res://profile/profile_store.gd")
+const ProfileSession := preload("res://profile/profile_session.gd")
+const ProfileUI := preload("res://profile/profile_ui.gd")
+const AccountService := preload("res://accounts/account_service.gd")
+const SecretBox := preload("res://accounts/secret_box.gd")
 const SynthHand := preload("res://tests/synth_hand.gd")
 
 const STEPS := ["открыть", "войти коротким", "действия удержанием", "копировать", "вставить",
@@ -64,7 +87,9 @@ const STEPS := ["открыть", "войти коротким", "действи
 		"поиск на панели", "системная клавиатура", "строка найденного", "плюс", "прокрутка панели", "прокрутка правки", "раскладка панели",
 		"панель по делу", "страницы", "подписи большой папки", "жест возврата", "встряхивание",
 		"руки: кулак и касание", "руки: протяжка и перенос", "руки: отдача управления",
-		"ввод после самопроверки", "видно того, кто ведёт", "настройки того, кто ведёт", "раскладки", "выход удержанием"]
+		"ввод после самопроверки", "видно того, кто ведёт", "настройки того, кто ведёт", "смена пользователя",
+		"профиль: новый с именем", "профиль: PIN при запуске", "профиль: рост, глаза, место",
+		"аккаунт: ключ Claude", "аккаунт: Google по коду", "аккаунт: PIN перешифровывает", "раскладки", "выход удержанием"]
 
 var r: Report = Report.new()
 ## Фальсификатор дымового прогона: --falsify=scroll снимает ограничение хода прокрутки.
@@ -131,7 +156,7 @@ func _initialize() -> void:
 		[293, _edit_scroll_open], [296, _edit_scroll_move], [299, _edit_scroll_check],
 		[301, _panel_layout_open], [304, _panel_layout], [307, _panel_show], [307, _pages], [307, _big_folder_labels], [306, _gesture_choice], [308, _shake_root],
 		[309, _hands_fist_touch], [309, _hands_drag], [309, _hands_handoff],
-		[309, _router_ready], [309, _router_visuals], [309, _router_settings], [309, _router_done],
+		[309, _router_ready], [309, _router_visuals], [309, _router_settings], [309, _router_done], [309, _profile_switch], [309, _pui_new], [309, _pui_pin], [309, _pui_body], [309, _acc_key], [309, _acc_google], [309, _acc_pin], [309, _pui_done],
 		[310, _layouts], [314, _exit_hold], [320, _finish],
 	]
 
@@ -1289,28 +1314,49 @@ func _router_ready() -> void:
 		r.fail("ввод после самопроверки: до готовности [источник, руки, контроллеры, руки видны] = %s, после [руки, контроллеры, шар на якоре] = %s" % [before, after])
 
 
-## Взяли контроллеры — суставы и силуэт рук пропадают, модели контроллеров появляются; модель
-## рантайма не пришла за FALLBACK_MS — запасная. Положили — наоборот.
+## Взяли контроллеры — суставы и силуэт рук пропадают, даже когда движок сам показывает узел руки
+## при смене трекинга; модели контроллеров появляются. Модель рантайма не пришла за FALLBACK_MS от
+## взятия контроллеров — запасная, но не раньше; пришла позже — запасная прячется. Положили
+## контроллеры — руки: при готовой сетке рук точек суставов нет.
 func _router_visuals() -> void:
 	_router_make()
+	var cv := router.controller_view
+	var hv := router.hand_view
+	cv.falsify_since_zero = falsify == "fallbacknow"
+	cv.falsify_fallback_stays = falsify == "fallbackstays"
+	hv.falsify_joints_stay = falsify == "jointsstay"
 	var bad: Array[String] = []
 	_router_feed(_witness("/interaction_profiles/oculus/touch_controller", true, false), 22)
+	var t0 := Time.get_ticks_msec()
 	if router.current() != Arbiter.CONTROLLERS:
 		bad.append("источник %s" % router.current())
-	if router.hand_view.anything_visible():
-		bad.append("при контроллерах видно руки (силуэтов %d)" % router.hand_view.meshes.size())
-	if router.controller_view.manager != null and not router.controller_view.manager.visible:
-		bad.append("менеджер моделей скрыт")
-	var kind := router.controller_view.update(Time.get_ticks_msec() + router.controller_view.FALLBACK_MS + 1)
-	if kind != "запасные" or not router.controller_view.anything_visible():
-		bad.append("без модели рантайма: «%s», видно %s" % [kind, router.controller_view.anything_visible()])
+	# Движок показывает узел руки с show_when_tracked при смене трекинга (xr_nodes.cpp:466).
+	for holder in hv.meshes:
+		(holder.get_parent() as Node3D).visible = true
+	if hv.anything_visible():
+		bad.append("при контроллерах видно руки (силуэтов %d)" % hv.meshes.size())
+	if cv.fb_models.is_empty() or not cv.anything_visible():
+		bad.append("моделей контроллеров нет: FB %d, видно %s" % [cv.fb_models.size(), cv.anything_visible()])
+	var early := cv.update(t0 + cv.FALLBACK_MS - 100)
+	if early != "" or cv.fallback_visible():
+		bad.append("запасная раньше срока: «%s» за %d мс" % [early, cv.FALLBACK_MS - 100])
+	var late := cv.update(t0 + cv.FALLBACK_MS + 1)
+	if late != "запасные" or not cv.fallback_visible():
+		bad.append("без модели рантайма через %d мс: «%s», запасная видна %s" % [cv.FALLBACK_MS, late, cv.fallback_visible()])
+	cv.on_runtime_loaded("FB")
+	var upgrade := cv.update(t0 + cv.FALLBACK_MS + 50)
+	if upgrade != "запасные → FB" or cv.fallback_visible():
+		bad.append("модель рантайма пришла позже: «%s», запасная видна %s" % [upgrade, cv.fallback_visible()])
+	for key in ["L", "R"]:
+		hv.on_mesh_ready(key)
 	_router_feed(_witness(Arbiter.HAND_PROFILE, true, true), 600)
-	if router.controller_view.anything_visible() or not router.hand_view.anything_visible():
-		bad.append("руки снова: контроллеры видны %s, руки видны %s" % [router.controller_view.anything_visible(),
-				router.hand_view.anything_visible()])
+	var joints_seen := hv.joints.any(func(m: MultiMeshInstance3D): return m.visible)
+	if cv.anything_visible() or not hv.anything_visible() or joints_seen:
+		bad.append("руки снова: контроллеры видны %s, руки видны %s, точки суставов %s" % [cv.anything_visible(),
+				hv.anything_visible(), joints_seen])
 	if bad.is_empty():
-		r.pass_("видно того, кто ведёт: контроллеры — руки спрятаны (силуэтов %d), модель запасная через %d мс; руки — наоборот" % [
-				router.hand_view.meshes.size(), router.controller_view.FALLBACK_MS])
+		r.pass_("видно того, кто ведёт: контроллеры — руки спрятаны и при показе движком (силуэтов %d), модели Meta %d, запасная ровно через %d мс и уходит, когда пришла модель рантайма; руки — сетка без точек" % [
+				hv.meshes.size(), cv.fb_models.size(), cv.FALLBACK_MS])
 	else:
 		r.fail("видно того, кто ведёт: %s" % "; ".join(bad))
 
@@ -1363,6 +1409,337 @@ func _router_done() -> void:
 	router.controllers.release()
 	router.set_process(false)
 	menu.hand = null
+
+
+## Смена пользователя меняет всё пользовательское в живом меню: радиус шара (набор настроек
+## активного ввода) и избранное; второй профиль без избранного не наследует чужое. Хранилище — во
+## временном каталоге; настройки и избранное прогона потом возвращаются.
+func _profile_switch() -> void:
+	var root := "user://smoke_profiles"
+	var saved := [menu.settings.values.duplicate(), menu.settings.path, menu.settings.common_path,
+			menu.settings.input, menu.catalog.favorites.duplicate(), menu.profile_id]
+	var store := ProfileStore.new(root)
+	store.load_index()
+	var a := store.create("Аня")
+	var b := store.create("Борис")
+	# «Лес» — обычный объект: пункты корня («Файлы») избранным не бывают (catalog.load_favorites).
+	for pair in [[a, 9.0, ["scene_forest"]], [b, 16.0, []]]:
+		var cf := ConfigFile.new()
+		cf.set_value("sphere", "radius_cm", pair[1])
+		cf.save(store.dir_of(pair[0]).path_join("settings_controllers.cfg"))
+		if not (pair[2] as Array).is_empty():
+			var fav := ConfigFile.new()
+			fav.set_value("menu", "favorites", pair[2])
+			fav.save(store.dir_of(pair[0]).path_join("favorites.cfg"))
+	var ps := ProfileSession.new(store, menu)
+	ps.falsify_stale = falsify == "staleprofile"
+	var got := {}
+	for id in [a, b]:
+		ps.open(id, "controllers")
+		got[store.index[id]["name"]] = [snappedf(menu.radius() * 100.0, 0.1), menu.catalog.favorites.duplicate(),
+				menu.profile_id == id]
+	# Вернуть прогону его настройки и избранное; хранилище — убрать.
+	menu.settings.values = saved[0]
+	menu.settings.path = saved[1]
+	menu.settings.common_path = saved[2]
+	menu.settings.input = saved[3]
+	menu.catalog.favorites = saved[4]
+	menu.profile_id = saved[5]
+	menu.apply_settings()
+	_rm_tree(root)
+	var want := {"Аня": [9.0, ["scene_forest"], true], "Борис": [16.0, [], true]}
+	if got == want:
+		r.pass_("смена пользователя: Аня — шар 9 см и «Лес» в избранном, Борис — 16 см и пустое избранное, id профиля в журнале сменился")
+	else:
+		r.fail("смена пользователя: %s, ожидалось %s" % [got, want])
+
+
+# --- интерфейс профиля (profile/profile_ui.gd) ---------------------------------------
+#
+# Настоящее меню и панель; хранилище — во временном каталоге. XR-пространство поднято над миром
+# на 0.5 м: высота глаз обязана считаться от его пола.
+
+var pui: ProfileUI
+var _pui_saved: Array = []
+var _pui_root := "user://smoke_profiles_ui"
+
+
+func _pui_make() -> void:
+	if pui != null:
+		return
+	_pui_saved = [menu.settings.values.duplicate(), menu.settings.path, menu.settings.common_path,
+			menu.settings.input, menu.catalog.favorites.duplicate(), menu.profile_id]
+	_rm_tree(_pui_root)
+	var store := ProfileStore.new(_pui_root)
+	store.ensure_default()
+	var ps := ProfileSession.new(store, menu)
+	ps.open(store.startup_id(), "controllers")
+	menu.settings.values["search_keyboard"] = "panel"
+	pui = ProfileUI.new(ps, menu, menu.panel)
+	var root3d := head.get_parent()
+	var xr_origin := Node3D.new()
+	xr_origin.position = Vector3(0, 0.5, 0)
+	root3d.add_child(xr_origin)
+	var xr_head := Node3D.new()
+	xr_head.position = Vector3(0.1, 1.62, 0.2)
+	xr_origin.add_child(xr_head)
+	pui.origin = xr_origin
+	pui.head = xr_head
+	pui.play_area = func() -> PackedVector3Array:
+		return PackedVector3Array([Vector3(-1, 0, -1), Vector3(1, 0, -1), Vector3(1, 0, 1), Vector3(-1, 0, 1)])
+	pui.falsify_no_lock = falsify == "nolock"
+	pui.falsify_eye_world = falsify == "eyeworld"
+	menu.profile_action.connect(pui.on_action)
+	pui.rebuild()
+
+
+## Набрать на панели и нажать «Готово» — как лучом по кнопкам раскладки.
+func _pui_type(t: String) -> void:
+	for c in t:
+		menu.panel._on_text_key(c)
+	pui.on_button("done")
+
+
+## «Новый профиль» — касанием пункта в папке профиля (путь навигатор → сигнал меню → действие),
+## имя набрано на панели; новый профиль стал активным, и папка называется его именем.
+func _pui_new() -> void:
+	_pui_make()
+	_to_root_open()
+	_tap(_key_of(_slot_of("settings")))
+	_tap(_key_of(_slot_of("profile")))
+	_tap(_key_of(_slot_of("profile_switch")))
+	_tap(_key_of(_slot_of("pf_new")))
+	var asked := pui.purpose
+	_pui_type("МИР")
+	var st := pui.profiles.store
+	var folder = menu.catalog.items.get("profile", null)
+	var title: String = folder.title if folder != null else ""
+	if asked == "new" and st.order.size() == 2 and pui.profiles.profile.name == "Мир" and title == "Профиль: Мир" \
+			and st.startup_id() == pui.profiles.profile.id:
+		r.pass_("профиль: новый с именем — касанием «Новый профиль», набрано «МИР», стал активным «Мир», папка «Профиль: Мир»")
+	else:
+		r.fail("профиль: новый с именем: спрошено «%s», профилей %d, активный «%s», папка «%s»" % [asked, st.order.size(),
+				pui.profiles.profile.name, title])
+
+
+## PIN при запуске: ввод включён сразу (иначе PIN не набрать), шар заперт — не закрывается и не
+## нажимается; неверный PIN не пускает и очищает поле, верный — отпирает.
+func _pui_pin() -> void:
+	_pui_make()
+	var p = pui.profiles.profile
+	p.set_pin("2468", 100)
+	pui.profiles.store.save_profile(p)
+	menu.close()
+	var ready_called := [false]
+	pui.start(func(): ready_called[0] = true)
+	var locked_open := [menu.is_open(), menu.locked, pui.purpose]
+	menu.toggle()
+	var still_open := menu.is_open()
+	var folder_before := menu.nav.state.folder()
+	_tap(_key_of(_slot_of("files")))
+	var pressed_through := menu.nav.state.folder() != folder_before
+	_pui_type("1111")
+	var after_wrong := [menu.locked, menu.panel.hint_text(), menu.panel.text]
+	_pui_type("2468")
+	var after_right := [menu.locked, pui.purpose]
+	if ready_called[0] and locked_open == [true, true, "pin_check"] and still_open and not pressed_through \
+			and after_wrong == [true, "Неверный PIN", ""] and after_right == [false, ""]:
+		r.pass_("профиль: PIN при запуске — ввод включён, шар заперт (не закрылся, «Файлы» не открылись), неверный PIN не пустил, верный отпер")
+	else:
+		r.fail("профиль: PIN при запуске: готов %s, [открыт, заперт, ввод] %s, после попытки закрыть %s, нажатие прошло %s, после неверного %s, после верного %s" % [
+				ready_called[0], locked_open, still_open, pressed_through, after_wrong, after_right])
+
+
+## Рост цифрами, высота глаз — от пола XR-пространства (поднятого над миром на 0.5 м), место — по
+## игровой зоне, повторно — то же место; удаление профиля возвращает к оставшемуся.
+func _pui_body() -> void:
+	_pui_make()
+	pui.on_action("profile_height", "")
+	_pui_type("180")
+	pui.on_action("profile_eye", "")
+	pui.on_action("profile_place", "")
+	pui.on_action("profile_place", "")
+	var p = pui.profiles.profile
+	var got := [p.height_cm, p.eye_m, p.places.size(), menu.catalog.items["pf_height"].title,
+			menu.catalog.items["pf_place"].title]
+	# Папка проектов: пустая — одна строка «почему пусто»; со ссылкой — ссылка, без выдуманных пунктов.
+	var empty_kids: Array = (menu.catalog.children_of.get("profile_projects", []) as Array).duplicate()
+	p.projects = [{"id": "jtest", "title": "Замок", "path": "castle", "opened_unix": 0, "state": {}}]
+	pui.rebuild()
+	var one_kids: Array = (menu.catalog.children_of.get("profile_projects", []) as Array).duplicate()
+	var proj_title: String = menu.catalog.items["profile_projects"].title
+	p.projects = []
+	pui.rebuild()
+	got.append_array([empty_kids, one_kids, proj_title])
+	var deleted_name: String = p.name
+	pui.on_action("profile_delete", "")
+	var left := [pui.profiles.store.order.size(), pui.profiles.profile.name]
+	var want := [180.0, 1.62, 1, "Рост: 180 см", "Запомнить это место (мест: 1)", ["pf_projects_none"],
+			["pf_project_jtest"], "Проекты (1)"]
+	if got == want and left == [1, "Основной"]:
+		r.pass_("профиль: рост, глаза, место — 180 см, глаза 1,62 м от пола XR-пространства, место одно после двух «запомнить», папка проектов честная; удалён «%s», активен «Основной»" % deleted_name)
+	else:
+		r.fail("профиль: рост, глаза, место: %s, ожидалось %s; после удаления %s" % [got, want, left])
+
+
+# --- аккаунты (accounts/account_service.gd) — сеть подменена готовыми ответами --------
+
+const GOOD_KEY := "sk-ant-Api03-GoodKEY-xyz"
+var acc: AccountService
+var _requests: Array = []
+var _token_polls := 0
+var _fake_ms := 0
+
+
+## Готовые ответы вместо сети: Anthropic признаёт только GOOD_KEY в x-api-key; Google — код, одно
+## «ждём», затем токены; about — адрес.
+func _fake_transport(req: Dictionary) -> Dictionary:
+	_requests.append(req)
+	var url: String = req["url"]
+	var headers: PackedStringArray = req["headers"]
+	if url == "https://api.anthropic.com/v1/models":
+		if ("x-api-key: " + GOOD_KEY) in headers:
+			return {"code": 200, "body": '{"data":[{"id":"a"},{"id":"b"},{"id":"c"}]}', "error": OK}
+		return {"code": 401, "body": '{"type":"error"}', "error": OK}
+	if url == "https://oauth2.googleapis.com/device/code":
+		return {"code": 200, "error": OK, "body": '{"device_code":"DC","user_code":"WXYZ-1234","verification_url":"https://www.google.com/device","expires_in":1800,"interval":5}'}
+	if url == "https://oauth2.googleapis.com/token":
+		var body: String = req["body"]
+		if body.contains("grant_type=refresh_token"):
+			return {"code": 200, "error": OK, "body": '{"access_token":"AT2","expires_in":3599}'}
+		_token_polls += 1
+		if _token_polls == 1:
+			return {"code": 428, "error": OK, "body": '{"error":"authorization_pending"}'}
+		return {"code": 200, "error": OK, "body": '{"access_token":"AT","refresh_token":"1//RT","expires_in":3599}'}
+	if url.begins_with("https://www.googleapis.com/drive/v3/about"):
+		return {"code": 200, "error": OK, "body": '{"user":{"emailAddress":"owner@example.com"}}'}
+	return {"code": 404, "body": "", "error": OK}
+
+
+func _acc_make() -> void:
+	if acc != null:
+		return
+	_pui_make()
+	acc = AccountService.new(pui.profiles, _fake_transport)
+	acc.now_ms = func() -> int: return _fake_ms
+	acc.oauth = {"google": {"client_id": "cid", "client_secret": "csec"}}
+	acc.falsify_plain = falsify == "plainsecret"
+	acc.changed.connect(pui.on_accounts_changed)
+	pui.accounts = acc
+	pui.falsify_no_reseal = falsify == "noreseal"
+	menu.panel.falsify_lower_always = falsify == "keylower"
+	pui.rebuild()
+
+
+## Ключ Claude набран системной клавиатурой (события IME, как на шлеме), регистр сохранён; проверка
+## прошла; ключ лежит только в secrets.enc — не в profile.cfg и не в журнале.
+func _acc_key() -> void:
+	_acc_make()
+	menu.settings.values["search_keyboard"] = "system"
+	var logs: Array = []
+	acc.logged.connect(func(ev: String, d: String): logs.append(d))
+	pui.on_action("profile_account", "claude")
+	for c in GOOD_KEY:
+		var ev := InputEventKey.new()
+		ev.pressed = true
+		ev.unicode = c.unicode_at(0)
+		menu.panel._input(ev)
+	var typed_ok: bool = menu.panel.text == GOOD_KEY
+	pui.on_button("done")
+	var st: String = acc.status_text("claude")
+	var cfg := FileAccess.get_file_as_string(pui.profiles.dir().path_join("profile.cfg"))
+	var sealed: Variant = SecretBox.load_from(pui.profiles.dir(), pui.profiles.secret_root())
+	var in_box: bool = sealed is Dictionary and (sealed as Dictionary).get("claude", {}).get("key", "") == GOOD_KEY
+	var leaked := cfg.contains(GOOD_KEY) or logs.any(func(d: String): return d.contains(GOOD_KEY))
+	var title: String = menu.catalog.items["pf_acc_claude"].title
+	menu.settings.values["search_keyboard"] = "panel"
+	if typed_ok and st.begins_with("подключён") and in_box and not leaked and title.contains("подключён"):
+		r.pass_("аккаунт: ключ Claude — набран IME с заглавными, «%s», в secrets.enc — да, в profile.cfg и журнале — нет" % st)
+	else:
+		r.fail("аккаунт: ключ Claude: набрано верно %s («%s»), статус «%s», в secrets.enc %s, утёк %s, пункт «%s»" % [
+				typed_ok, menu.panel.text, st, in_box, leaked, title])
+
+
+## Google: код и адрес на панели, опрос не раньше интервала, «ждём» — ждём, затем вход; токен
+## обновления — в секретах, адрес — из Drive.
+func _acc_google() -> void:
+	_acc_make()
+	_fake_ms = 0
+	pui.on_action("profile_account", "google")
+	var shown: Array = [acc.flow != null and acc.flow.state == "waiting", acc.flow.user_code if acc.flow != null else ""]
+	var polls_before := _token_polls
+	_fake_ms = 2000
+	acc.tick()
+	var early_polls := _token_polls - polls_before
+	_fake_ms = 5000
+	acc.tick()
+	_fake_ms = 10000
+	acc.tick()
+	var st: String = acc.status_text("google")
+	var has_rt: bool = pui.profiles.secrets.get("google", {}).get("refresh_token", "") == "1//RT"
+	if shown == [true, "WXYZ-1234"] and early_polls == 0 and _token_polls - polls_before == 2 and has_rt \
+			and st == "подключён — owner@example.com" and acc.flow == null:
+		r.pass_("аккаунт: Google по коду — код WXYZ-1234 на панели, опрос не раньше 5 с, «ждём» и вход, токен обновления в секретах, «%s»" % st)
+	else:
+		r.fail("аккаунт: Google по коду: показано %s, опросов раньше срока %d, всего %d, токен %s, статус «%s»" % [
+				shown, early_polls, _token_polls - polls_before, has_rt, st])
+	pui.on_button("cancel")
+
+
+## Задать PIN — секреты перешифрованы ключом от PIN (ключ устройства их больше не открывает); снять —
+## снова ключом устройства. Аккаунты при этом не теряются.
+func _acc_pin() -> void:
+	_acc_make()
+	var ps := pui.profiles
+	# Секреты — свои, не от предыдущих шагов: иначе поломка ввода ключа (imekey) каскадом валила бы и
+	# этот шаг (PRACTICES §2.2).
+	ps.secrets["claude"] = {"key": GOOD_KEY}
+	ps.secrets["google"] = {"refresh_token": "1//RT"}
+	ps.save_secrets()
+	var dev_root := SecretBox.root_without_pin(ps.store.device_secret(), ps.profile.id)
+	pui.on_action("profile_pin", "")
+	_pui_type("1357")
+	var with_pin: Variant = SecretBox.load_from(ps.dir(), ps.secret_root())
+	var dev_opens: Variant = SecretBox.load_from(ps.dir(), dev_root)
+	pui.on_action("profile_pin", "")
+	_pui_type("1357")
+	pui.on_button("unpin")
+	var after_unpin: Variant = SecretBox.load_from(ps.dir(), dev_root)
+	var ok_pin: bool = with_pin is Dictionary and (with_pin as Dictionary).has("claude") and dev_opens == null
+	var ok_unpin: bool = after_unpin is Dictionary and (after_unpin as Dictionary).has("google") and not ps.profile.has_pin()
+	if ok_pin and ok_unpin:
+		r.pass_("аккаунт: PIN перешифровывает — с PIN секреты открывает только ключ от PIN, после снятия — снова ключ устройства; Claude и Google на месте")
+	else:
+		r.fail("аккаунт: PIN перешифровывает: с PIN %s (ключ устройства открыл %s), после снятия %s, PIN остался %s" % [
+				with_pin, dev_opens != null, after_unpin, ps.profile.has_pin()])
+
+
+## Вернуть прогону его настройки и избранное; папку профиля — убрать из настроек, хранилище — стереть.
+func _pui_done() -> void:
+	menu.profile_action.disconnect(pui.on_action)
+	menu.panel.falsify_lower_always = false
+	menu.locked = false
+	menu.settings.values = _pui_saved[0]
+	menu.settings.path = _pui_saved[1]
+	menu.settings.common_path = _pui_saved[2]
+	menu.settings.input = _pui_saved[3]
+	menu.catalog.favorites = _pui_saved[4]
+	menu.profile_id = _pui_saved[5]
+	(menu.catalog.children_of["settings"] as Array).erase("profile")
+	menu.apply_settings()
+	_rm_tree(_pui_root)
+
+
+func _rm_tree(dir: String) -> void:
+	var abs := ProjectSettings.globalize_path(dir)
+	var d := DirAccess.open(abs)
+	if d == null:
+		return
+	for sub in d.get_directories():
+		_rm_tree(dir.path_join(sub))
+	for f in d.get_files():
+		d.remove(f)
+	DirAccess.remove_absolute(abs)
 
 
 ## «Выход»: короткое не выходит, удержание до конца кольца — сигнал выхода.

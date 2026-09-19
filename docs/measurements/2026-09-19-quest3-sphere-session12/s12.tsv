@@ -1,0 +1,496 @@
+# unix_время	событие	поверхность	радиус_см	ячейка_см	ячейка_факт_см	уровень_глобуса	вращение_рукой	ввод	профиль	папка	задание	попадание	мс_от_задания	подробности
+# сессия 2026-09-19T19:18:52
+1789827532.205	настройки_загружены	globe	14.5	8.4	7.57	2	ball	controllers						перенесены из user://sphere_settings.cfg; отвергнуто []
+1789827532.251	сессия_openxr	globe	14.5	8.4	7.57	2	ball	controllers						session_begun кадр 0
+1789827532.838	сессия_openxr	globe	14.5	8.4	7.57	2	ball	controllers						session_visible кадр 1
+1789827532.838	сессия_openxr	globe	14.5	8.4	7.57	2	ball	controllers						session_focussed кадр 1
+1789827533.000	модели_контроллеров	globe	14.5	8.4	7.57	2	ball	controllers						запасные
+1789827533.893	folder	globe	20.0	1.5	3.52	13	ball	controllers						{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827533.893	toggle	globe	20.0	1.5	3.52	13	ball	controllers						{ "open": true }
+1789827538.263	folder	globe	20.0	15.0	15.07	1	ball	controllers						{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827542.775	folder	lens	20.0	1.5	1.5	13	ball	controllers						{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827547.297	folder	globe_hex	20.0	1.5	3.52	13	ball	controllers						{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827551.904	folder	octa	20.0	1.5	3.65	21	ball	controllers						{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827556.486	folder	rings	20.0	1.5	3.29	16	ball	controllers						{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827561.110	folder	fib	20.0	1.5	3.47	27	ball	controllers						{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827565.668	folder	fib	8.0	1.5	1.49	26	ball	controllers						{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827565.668	настройка_значение	fib	8.0	1.5	1.49	26	ball	controllers						radius_cm=8.0
+1789827565.688	folder	fib	17.5	1.5	3.04	27	ball	controllers						{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827565.689	настройка_значение	fib	17.5	1.5	3.04	27	ball	controllers						radius_cm=17.5
+1789827565.706	folder	fib	20.0	1.5	3.47	27	ball	controllers						{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827565.777	folder	globe	20.0	1.5	3.52	13	ball	controllers						{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827601.066	folder	globe	20.0	1.5	3.52	13	ball	controllers		files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789827601.066	intent	globe	20.0	1.5	3.52	13	ball	controllers		files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789827601.078	folder	globe	20.0	1.5	3.52	13	ball	controllers		bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789827601.079	intent	globe	20.0	1.5	3.52	13	ball	controllers		bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789827605.599	folder	lens	20.0	1.5	1.5	13	ball	controllers		bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789827605.600	folder	lens	20.0	1.5	1.5	13	ball	controllers		files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789827605.600	intent	lens	20.0	1.5	1.5	13	ball	controllers		files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789827605.601	folder	lens	20.0	1.5	1.5	13	ball	controllers						{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827605.601	intent	lens	20.0	1.5	1.5	13	ball	controllers						{ "do": "reload", "view": "browse", "folder": "" }
+1789827605.602	folder	lens	20.0	1.5	1.5	13	ball	controllers		files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789827605.602	intent	lens	20.0	1.5	1.5	13	ball	controllers		files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789827605.611	folder	lens	20.0	1.5	1.5	13	ball	controllers		bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789827605.612	intent	lens	20.0	1.5	1.5	13	ball	controllers		bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789827610.153	folder	globe	20.0	1.5	3.52	13	ball	controllers		bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789827610.155	folder	globe	20.0	1.5	3.52	13	ball	controllers		files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789827610.155	intent	globe	20.0	1.5	3.52	13	ball	controllers		files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789827610.156	folder	globe	20.0	1.5	3.52	13	ball	controllers						{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827610.156	intent	globe	20.0	1.5	3.52	13	ball	controllers						{ "do": "reload", "view": "browse", "folder": "" }
+1789827610.158	клавиатура	globe	20.0	1.5	3.52	13	ball	controllers						show
+1789827610.178	toggle	globe	20.0	1.5	3.52	13	ball	controllers						{ "open": false }
+1789827610.178	самопроверка	globe	20.0	1.5	3.52	13	ball	controllers				PASS		{ "глобус уровень 13, 632 ячеек, вращение": { "gpu95": 2.13599991798401, "cpu95": 0.19400000572205, "proc95": 2.114, "over": 0 }, "глобус крупный: уровень 1, 32 ячеек, радиус 20.0 см, вращение": { "gpu95": 2.33699989318848, "cpu95": 0.18099999427795, "proc95": 2.39, "over": 0 }, "линза α=0.037, 700 ячеек, вращение": { "gpu95": 3.00799989700317, "cpu95": 0.195999994874, "proc95": 6.005, "over": 0 } }
+1789827610.179	ввод_готов	globe	14.5	8.4	7.57	2	ball	controllers						controllers
+1789827618.891	folder	globe	14.5	8.4	7.57	2	ball	controllers						{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827618.891	toggle	globe	14.5	8.4	7.57	2	ball	controllers						{ "open": true }
+1789827621.472	folder	globe	14.5	8.4	7.57	2	ball	controllers		settings				{ "folder": "settings", "view": "browse", "items": 4, "total": 4, "page": 1, "pages": 1 }
+1789827621.472	intent	globe	14.5	8.4	7.57	2	ball	controllers		settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789827623.150	folder	globe	14.5	8.4	7.57	2	ball	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827623.150	intent	globe	14.5	8.4	7.57	2	ball	controllers		settings_sphere				{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789827628.719	настройка_открыта	globe	14.5	8.4	7.57	2	ball	controllers		settings_sphere				surface
+1789827628.720	intent	globe	14.5	8.4	7.57	2	ball	controllers		settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "surface" }
+1789827629.837	folder	lens	14.5	8.4	8.4	2	ball	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827629.837	настройка_значение	lens	14.5	8.4	8.4	2	ball	controllers		settings_sphere				surface=lens
+1789827633.406	настройка_открыта	lens	14.5	8.4	8.4	2	ball	controllers		settings_sphere				hand_rotation
+1789827633.406	intent	lens	14.5	8.4	8.4	2	ball	controllers		settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "hand_rotation" }
+1789827634.891	настройка_значение	lens	14.5	8.4	8.4	2	stand	controllers		settings_sphere				hand_rotation=stand
+1789827640.369	настройка_значение	lens	14.5	8.4	8.4	2	face	controllers		settings_sphere				hand_rotation=face
+1789827646.783	настройка_открыта	lens	14.5	8.4	8.4	2	face	controllers		settings_sphere				cell_cm
+1789827646.784	intent	lens	14.5	8.4	8.4	2	face	controllers		settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "cell_cm" }
+1789827647.982	folder	lens	14.5	5.8	5.8	4	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827647.982	настройка_значение	lens	14.5	5.8	5.8	4	face	controllers		settings_sphere				cell_cm=5.8
+1789827647.995	folder	lens	14.5	5.7	5.7	4	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827647.995	настройка_значение	lens	14.5	5.7	5.7	4	face	controllers		settings_sphere				cell_cm=5.7
+1789827648.006	folder	lens	14.5	5.5	5.5	4	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827648.006	настройка_значение	lens	14.5	5.5	5.5	4	face	controllers		settings_sphere				cell_cm=5.5
+1789827648.016	folder	lens	14.5	5.4	5.4	5	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827648.016	настройка_значение	lens	14.5	5.4	5.4	5	face	controllers		settings_sphere				cell_cm=5.4
+1789827648.042	folder	lens	14.5	5.3	5.3	5	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827648.043	настройка_значение	lens	14.5	5.3	5.3	5	face	controllers		settings_sphere				cell_cm=5.3
+1789827648.075	folder	lens	14.5	5.2	5.2	5	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827648.075	настройка_значение	lens	14.5	5.2	5.2	5	face	controllers		settings_sphere				cell_cm=5.2
+1789827648.118	folder	lens	14.5	5.3	5.3	5	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827648.118	настройка_значение	lens	14.5	5.3	5.3	5	face	controllers		settings_sphere				cell_cm=5.3
+1789827648.134	folder	lens	14.5	5.4	5.4	5	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827648.135	настройка_значение	lens	14.5	5.4	5.4	5	face	controllers		settings_sphere				cell_cm=5.4
+1789827648.143	folder	lens	14.5	5.5	5.5	4	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827648.143	настройка_значение	lens	14.5	5.5	5.5	4	face	controllers		settings_sphere				cell_cm=5.5
+1789827649.569	панель_кнопка	lens	14.5	5.5	5.5	4	face	controllers		settings_sphere				done
+1789827649.570	настройка_сохранена	lens	14.5	5.5	5.5	4	face	controllers		settings_sphere				cell_cm=5.5
+1789827651.115	folder	lens	14.5	5.5	5.5	4	face	controllers		settings				{ "folder": "settings", "view": "browse", "items": 4, "total": 4, "page": 1, "pages": 1 }
+1789827651.115	intent	lens	14.5	5.5	5.5	4	face	controllers		settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789827652.560	folder	lens	14.5	5.5	5.5	4	face	controllers						{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827652.560	intent	lens	14.5	5.5	5.5	4	face	controllers						{ "do": "reload", "view": "browse", "folder": "" }
+1789827653.482	folder	lens	14.5	5.5	5.5	4	face	controllers		files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789827653.482	intent	lens	14.5	5.5	5.5	4	face	controllers		files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789827654.182	folder	lens	14.5	5.5	5.5	4	face	controllers						{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827654.182	intent	lens	14.5	5.5	5.5	4	face	controllers						{ "do": "reload", "view": "browse", "folder": "" }
+1789827654.848	folder	lens	14.5	5.5	5.5	4	face	controllers		settings				{ "folder": "settings", "view": "browse", "items": 4, "total": 4, "page": 1, "pages": 1 }
+1789827654.849	intent	lens	14.5	5.5	5.5	4	face	controllers		settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789827656.237	intent	lens	14.5	5.5	5.5	4	face	controllers		settings				{ "do": "redraw", "view": "browse", "folder": "settings" }
+1789827656.948	intent	lens	14.5	5.5	5.5	4	face	controllers		settings				{ "do": "redraw", "view": "browse", "folder": "settings" }
+1789827657.471	intent	lens	14.5	5.5	5.5	4	face	controllers		settings				{ "do": "redraw", "view": "browse", "folder": "settings" }
+1789827657.992	intent	lens	14.5	5.5	5.5	4	face	controllers		settings				{ "do": "redraw", "view": "browse", "folder": "settings" }
+1789827659.437	intent	lens	14.5	5.5	5.5	4	face	controllers		settings				{ "do": "redraw", "view": "browse", "folder": "settings" }
+1789827659.937	intent	lens	14.5	5.5	5.5	4	face	controllers		settings				{ "do": "redraw", "view": "browse", "folder": "settings" }
+1789827660.715	intent	lens	14.5	5.5	5.5	4	face	controllers		settings				{ "do": "redraw", "view": "browse", "folder": "settings" }
+1789827661.482	intent	lens	14.5	5.5	5.5	4	face	controllers		settings				{ "do": "redraw", "view": "browse", "folder": "settings" }
+1789827662.360	intent	lens	14.5	5.5	5.5	4	face	controllers		settings				{ "do": "redraw", "view": "browse", "folder": "settings" }
+1789827664.916	intent	lens	14.5	5.5	5.5	4	face	controllers		settings				{ "do": "redraw", "view": "browse", "folder": "settings" }
+1789827665.694	intent	lens	14.5	5.5	5.5	4	face	controllers		settings				{ "do": "redraw", "view": "browse", "folder": "settings" }
+1789827666.383	intent	lens	14.5	5.5	5.5	4	face	controllers		settings				{ "do": "redraw", "view": "browse", "folder": "settings" }
+1789827666.683	intent	lens	14.5	5.5	5.5	4	face	controllers		settings				{ "do": "redraw", "view": "browse", "folder": "settings" }
+1789827667.328	folder	lens	14.5	5.5	5.5	4	face	controllers						{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827667.328	intent	lens	14.5	5.5	5.5	4	face	controllers						{ "do": "reload", "view": "browse", "folder": "" }
+1789827669.195	folder	lens	14.5	5.5	5.5	4	face	controllers						{ "folder": "", "view": "search", "items": 1, "total": 0, "page": 1, "pages": 1 }
+1789827669.197	клавиатура	lens	14.5	5.5	5.5	4	face	controllers						show
+1789827669.198	поиск_открыт	lens	14.5	5.5	5.5	4	face	controllers						
+1789827669.198	intent	lens	14.5	5.5	5.5	4	face	controllers						{ "do": "search", "view": "search", "folder": "" }
+1789827669.642	сессия_openxr	lens	14.5	5.5	5.5	4	face	controllers						session_visible кадр 12191
+1789827672.187	folder	lens	14.5	5.5	5.5	4	face	controllers						{ "folder": "", "view": "search", "items": 61, "total": 60, "page": 1, "pages": 1 }
+1789827672.187	intent	lens	14.5	5.5	5.5	4	face	controllers						{ "do": "reload", "view": "search", "folder": "" }
+1789827672.187	поиск_запрос	lens	14.5	5.5	5.5	4	face	controllers						л → 60
+1789827673.018	folder	lens	14.5	5.5	5.5	4	face	controllers						{ "folder": "", "view": "search", "items": 3, "total": 2, "page": 1, "pages": 1 }
+1789827673.019	intent	lens	14.5	5.5	5.5	4	face	controllers						{ "do": "reload", "view": "search", "folder": "" }
+1789827673.019	поиск_запрос	lens	14.5	5.5	5.5	4	face	controllers						ле → 2
+1789827673.707	folder	lens	14.5	5.5	5.5	4	face	controllers						{ "folder": "", "view": "search", "items": 2, "total": 1, "page": 1, "pages": 1 }
+1789827673.708	intent	lens	14.5	5.5	5.5	4	face	controllers						{ "do": "reload", "view": "search", "folder": "" }
+1789827673.708	поиск_запрос	lens	14.5	5.5	5.5	4	face	controllers						лес → 1
+1789827674.818	клавиатура	lens	14.5	5.5	5.5	4	face	controllers						hide
+1789827674.818	клавиатура	lens	14.5	5.5	5.5	4	face	controllers						enter
+1789827674.876	сессия_openxr	lens	14.5	5.5	5.5	4	face	controllers						session_focussed кадр 12661
+1789827677.662	клавиатура	lens	14.5	5.5	5.5	4	face	controllers		scenes				hide
+1789827677.663	folder	lens	14.5	5.5	5.5	4	face	controllers		scenes				{ "folder": "scenes", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789827677.663	select	lens	14.5	5.5	5.5	4	face	controllers		scenes				{ "do": "default", "view": "browse", "folder": "scenes", "item": "scene_forest", "title": "Лес" }
+1789827677.663	toggle	lens	14.5	5.5	5.5	4	face	controllers		scenes				{ "open": false }
+1789827678.863	folder	lens	14.5	5.5	5.5	4	face	controllers		scenes				{ "folder": "scenes", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789827678.863	toggle	lens	14.5	5.5	5.5	4	face	controllers		scenes				{ "open": true }
+1789827681.540	folder	lens	14.5	5.5	5.5	4	face	controllers		files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789827681.540	intent	lens	14.5	5.5	5.5	4	face	controllers		files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789827681.995	folder	lens	14.5	5.5	5.5	4	face	controllers						{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827681.996	intent	lens	14.5	5.5	5.5	4	face	controllers						{ "do": "reload", "view": "browse", "folder": "" }
+1789827684.062	сценарий_начат	lens	14.5	5.5	5.5	4	face	controllers						4 шагов, осталось 4
+1789827684.062	intent	lens	14.5	5.5	5.5	4	face	controllers						{ "do": "tasks", "view": "browse", "folder": "" }
+1789827692.641	folder	lens	14.5	5.5	5.5	4	face	controllers		files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789827692.641	intent	lens	14.5	5.5	5.5	4	face	controllers		files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789827693.617	folder	lens	14.5	5.5	5.5	4	face	controllers		bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789827693.617	intent	lens	14.5	5.5	5.5	4	face	controllers		bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789827696.051	сценарий_шаг	lens	14.5	5.5	5.5	4	face	controllers		bulk	labels	да	11990	
+1789827705.486	folder	lens	14.5	5.5	5.5	4	face	controllers		files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789827705.487	intent	lens	14.5	5.5	5.5	4	face	controllers		files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789827706.853	folder	lens	14.5	5.5	5.5	4	face	controllers						{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827706.853	intent	lens	14.5	5.5	5.5	4	face	controllers						{ "do": "reload", "view": "browse", "folder": "" }
+1789827707.942	folder	lens	14.5	5.5	5.5	4	face	controllers		settings				{ "folder": "settings", "view": "browse", "items": 4, "total": 4, "page": 1, "pages": 1 }
+1789827707.942	intent	lens	14.5	5.5	5.5	4	face	controllers		settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789827709.621	folder	lens	14.5	5.5	5.5	4	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827709.621	intent	lens	14.5	5.5	5.5	4	face	controllers		settings_sphere				{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789827713.478	настройка_открыта	lens	14.5	5.5	5.5	4	face	controllers		settings_sphere				cell_cm
+1789827713.478	intent	lens	14.5	5.5	5.5	4	face	controllers		settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "cell_cm" }
+1789827716.330	панель_кнопка	lens	14.5	5.5	5.5	4	face	controllers		settings_sphere				done
+1789827716.331	настройка_сохранена	lens	14.5	5.5	5.5	4	face	controllers		settings_sphere				cell_cm=5.5
+1789827719.390	настройка_открыта	lens	14.5	5.5	5.5	4	face	controllers		settings_sphere				hand_rotation
+1789827719.390	intent	lens	14.5	5.5	5.5	4	face	controllers		settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "hand_rotation" }
+1789827721.498	панель_кнопка	lens	14.5	5.5	5.5	4	face	controllers		settings_sphere				default
+1789827724.665	настройка_значение	lens	14.5	5.5	5.5	4	face	controllers		settings_sphere				hand_rotation=face
+1789827726.398	панель_кнопка	lens	14.5	5.5	5.5	4	face	controllers		settings_sphere				done
+1789827726.399	настройка_сохранена	lens	14.5	5.5	5.5	4	face	controllers		settings_sphere				hand_rotation=face
+1789827728.323	настройка_открыта	lens	14.5	5.5	5.5	4	face	controllers		settings_sphere				cell_cm
+1789827728.324	intent	lens	14.5	5.5	5.5	4	face	controllers		settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "cell_cm" }
+1789827732.878	folder	lens	14.5	9.7	9.7	1	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827732.878	настройка_значение	lens	14.5	9.7	9.7	1	face	controllers		settings_sphere				cell_cm=9.7
+1789827732.911	folder	lens	14.5	9.8	9.8	1	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827732.911	настройка_значение	lens	14.5	9.8	9.8	1	face	controllers		settings_sphere				cell_cm=9.8
+1789827732.933	folder	lens	14.5	9.9	9.9	1	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827732.933	настройка_значение	lens	14.5	9.9	9.9	1	face	controllers		settings_sphere				cell_cm=9.9
+1789827732.945	folder	lens	14.5	10.0	10.0	1	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827732.945	настройка_значение	lens	14.5	10.0	10.0	1	face	controllers		settings_sphere				cell_cm=10.0
+1789827732.977	folder	lens	14.5	10.1	10.1	1	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827732.977	настройка_значение	lens	14.5	10.1	10.1	1	face	controllers		settings_sphere				cell_cm=10.1
+1789827732.989	folder	lens	14.5	10.0	10.0	1	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827732.989	настройка_значение	lens	14.5	10.0	10.0	1	face	controllers		settings_sphere				cell_cm=10.0
+1789827733.044	folder	lens	14.5	9.9	9.9	1	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827733.044	настройка_значение	lens	14.5	9.9	9.9	1	face	controllers		settings_sphere				cell_cm=9.9
+1789827733.064	folder	lens	14.5	10.0	10.0	1	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827733.064	настройка_значение	lens	14.5	10.0	10.0	1	face	controllers		settings_sphere				cell_cm=10.0
+1789827733.077	folder	lens	14.5	10.1	10.1	1	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827733.077	настройка_значение	lens	14.5	10.1	10.1	1	face	controllers		settings_sphere				cell_cm=10.1
+1789827733.088	folder	lens	14.5	10.2	10.2	1	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827733.088	настройка_значение	lens	14.5	10.2	10.2	1	face	controllers		settings_sphere				cell_cm=10.2
+1789827733.855	folder	lens	14.5	10.1	10.1	1	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827733.856	настройка_значение	lens	14.5	10.1	10.1	1	face	controllers		settings_sphere				cell_cm=10.1
+1789827733.868	folder	lens	14.5	10.0	10.0	1	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827733.868	настройка_значение	lens	14.5	10.0	10.0	1	face	controllers		settings_sphere				cell_cm=10.0
+1789827733.879	folder	lens	14.5	9.9	9.9	1	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827733.879	настройка_значение	lens	14.5	9.9	9.9	1	face	controllers		settings_sphere				cell_cm=9.9
+1789827733.888	folder	lens	14.5	9.8	9.8	1	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827733.888	настройка_значение	lens	14.5	9.8	9.8	1	face	controllers		settings_sphere				cell_cm=9.8
+1789827733.899	folder	lens	14.5	9.7	9.7	1	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827733.899	настройка_значение	lens	14.5	9.7	9.7	1	face	controllers		settings_sphere				cell_cm=9.7
+1789827733.908	folder	lens	14.5	9.6	9.6	1	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827733.908	настройка_значение	lens	14.5	9.6	9.6	1	face	controllers		settings_sphere				cell_cm=9.6
+1789827733.918	folder	lens	14.5	9.5	9.5	1	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827733.918	настройка_значение	lens	14.5	9.5	9.5	1	face	controllers		settings_sphere				cell_cm=9.5
+1789827733.976	folder	lens	14.5	9.6	9.6	1	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827733.976	настройка_значение	lens	14.5	9.6	9.6	1	face	controllers		settings_sphere				cell_cm=9.6
+1789827733.988	folder	lens	14.5	9.7	9.7	1	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827733.989	настройка_значение	lens	14.5	9.7	9.7	1	face	controllers		settings_sphere				cell_cm=9.7
+1789827734.006	folder	lens	14.5	9.8	9.8	1	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827734.006	настройка_значение	lens	14.5	9.8	9.8	1	face	controllers		settings_sphere				cell_cm=9.8
+1789827734.020	folder	lens	14.5	9.9	9.9	1	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827734.020	настройка_значение	lens	14.5	9.9	9.9	1	face	controllers		settings_sphere				cell_cm=9.9
+1789827734.087	folder	lens	14.5	9.8	9.8	1	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827734.088	настройка_значение	lens	14.5	9.8	9.8	1	face	controllers		settings_sphere				cell_cm=9.8
+1789827735.334	folder	lens	14.5	9.8	9.8	1	face	controllers		settings				{ "folder": "settings", "view": "browse", "items": 4, "total": 4, "page": 1, "pages": 1 }
+1789827735.334	intent	lens	14.5	9.8	9.8	1	face	controllers		settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789827736.255	folder	lens	14.5	9.8	9.8	1	face	controllers						{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827736.255	intent	lens	14.5	9.8	9.8	1	face	controllers						{ "do": "reload", "view": "browse", "folder": "" }
+1789827737.300	folder	lens	14.5	9.8	9.8	1	face	controllers		files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789827737.300	intent	lens	14.5	9.8	9.8	1	face	controllers		files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789827738.109	folder	lens	14.5	9.8	9.8	1	face	controllers		bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789827738.109	intent	lens	14.5	9.8	9.8	1	face	controllers		bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789827744.456	folder	lens	14.5	9.8	9.8	1	face	controllers		files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789827744.456	intent	lens	14.5	9.8	9.8	1	face	controllers		files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789827746.189	folder	lens	14.5	9.8	9.8	1	face	controllers						{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827746.190	intent	lens	14.5	9.8	9.8	1	face	controllers						{ "do": "reload", "view": "browse", "folder": "" }
+1789827747.712	folder	lens	14.5	9.8	9.8	1	face	controllers		settings				{ "folder": "settings", "view": "browse", "items": 4, "total": 4, "page": 1, "pages": 1 }
+1789827747.712	intent	lens	14.5	9.8	9.8	1	face	controllers		settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789827748.524	folder	lens	14.5	9.8	9.8	1	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827748.524	intent	lens	14.5	9.8	9.8	1	face	controllers		settings_sphere				{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789827753.106	настройка_открыта	lens	14.5	9.8	9.8	1	face	controllers		settings_sphere				surface
+1789827753.106	intent	lens	14.5	9.8	9.8	1	face	controllers		settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "surface" }
+1789827754.902	folder	globe	14.5	9.8	10.92	1	face	controllers		settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827754.903	настройка_значение	globe	14.5	9.8	10.92	1	face	controllers		settings_sphere				surface=globe
+1789827756.122	панель_кнопка	globe	14.5	9.8	10.92	1	face	controllers		settings_sphere				done
+1789827756.123	настройка_сохранена	globe	14.5	9.8	10.92	1	face	controllers		settings_sphere				surface=globe
+1789827757.902	folder	globe	14.5	9.8	10.92	1	face	controllers		settings				{ "folder": "settings", "view": "browse", "items": 4, "total": 4, "page": 1, "pages": 1 }
+1789827757.902	intent	globe	14.5	9.8	10.92	1	face	controllers		settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789827761.646	folder	globe	14.5	9.8	10.92	1	face	controllers						{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827761.646	intent	globe	14.5	9.8	10.92	1	face	controllers						{ "do": "reload", "view": "browse", "folder": "" }
+1789827762.535	folder	globe	14.5	9.8	10.92	1	face	controllers		files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789827762.536	intent	globe	14.5	9.8	10.92	1	face	controllers		files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789827764.760	folder	globe	14.5	9.8	10.92	1	face	controllers		bulk				{ "folder": "bulk", "view": "browse", "items": 30, "total": 128, "page": 1, "pages": 5 }
+1789827764.761	intent	globe	14.5	9.8	10.92	1	face	controllers		bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789827766.779	page	globe	14.5	9.8	10.92	1	face	controllers		bulk				{ "from": 31, "to": 59, "total": 128, "page": 2, "pages": 5 }
+1789827766.781	folder	globe	14.5	9.8	10.92	1	face	controllers		bulk				{ "folder": "bulk", "view": "browse", "items": 29, "total": 128, "page": 2, "pages": 5 }
+1789827766.782	intent	globe	14.5	9.8	10.92	1	face	controllers		bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789827768.657	сценарий_шаг	globe	14.5	9.8	10.92	1	face	controllers		bulk	pages	да	72606	
+1789827768.657	page	globe	14.5	9.8	10.92	1	face	controllers		bulk				{ "from": 1, "to": 30, "total": 128, "page": 1, "pages": 5 }
+1789827768.660	folder	globe	14.5	9.8	10.92	1	face	controllers		bulk				{ "folder": "bulk", "view": "browse", "items": 30, "total": 128, "page": 1, "pages": 5 }
+1789827768.660	intent	globe	14.5	9.8	10.92	1	face	controllers		bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789827776.948	folder	globe	14.5	9.8	10.92	1	face	controllers		files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789827776.948	intent	globe	14.5	9.8	10.92	1	face	controllers		files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789827778.937	folder	globe	14.5	9.8	10.92	1	face	controllers						{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827778.937	intent	globe	14.5	9.8	10.92	1	face	controllers						{ "do": "reload", "view": "browse", "folder": "" }
+1789827780.237	folder	globe	14.5	9.8	10.92	1	face	controllers						{ "folder": "", "view": "search", "items": 1, "total": 0, "page": 1, "pages": 1 }
+1789827780.239	клавиатура	globe	14.5	9.8	10.92	1	face	controllers						show
+1789827780.239	поиск_открыт	globe	14.5	9.8	10.92	1	face	controllers						
+1789827780.239	intent	globe	14.5	9.8	10.92	1	face	controllers						{ "do": "search", "view": "search", "folder": "" }
+1789827780.568	сессия_openxr	globe	14.5	9.8	10.92	1	face	controllers						session_visible кадр 22172
+1789827782.718	folder	globe	14.5	9.8	10.92	1	face	controllers						{ "folder": "", "view": "search", "items": 16, "total": 15, "page": 1, "pages": 1 }
+1789827782.718	intent	globe	14.5	9.8	10.92	1	face	controllers						{ "do": "reload", "view": "search", "folder": "" }
+1789827782.719	поиск_запрос	globe	14.5	9.8	10.92	1	face	controllers						м → 15
+1789827783.238	folder	globe	14.5	9.8	10.92	1	face	controllers						{ "folder": "", "view": "search", "items": 4, "total": 3, "page": 1, "pages": 1 }
+1789827783.238	intent	globe	14.5	9.8	10.92	1	face	controllers						{ "do": "reload", "view": "search", "folder": "" }
+1789827783.238	поиск_запрос	globe	14.5	9.8	10.92	1	face	controllers						мо → 3
+1789827785.970	клавиатура	globe	14.5	9.8	10.92	1	face	controllers						hide
+1789827785.970	клавиатура	globe	14.5	9.8	10.92	1	face	controllers						enter
+1789827786.030	сессия_openxr	globe	14.5	9.8	10.92	1	face	controllers						session_focussed кадр 22664
+1789827787.586	скриншот	globe	14.5	9.8	10.92	1	face	controllers				да		screenshot_2026-09-19_19-23-07.337.png, 1920×1080, 120837 байт, всего 2966667 (листинг), 249 мс
+1789827787.586	сценарий_шаг	globe	14.5	9.8	10.92	1	face	controllers			screenshot	да	18929	
+1789827789.259	клавиатура	globe	14.5	9.8	10.92	1	face	controllers		assets				hide
+1789827789.260	сценарий_шаг	globe	14.5	9.8	10.92	1	face	controllers		assets	search	да	1674	
+1789827789.261	folder	globe	14.5	9.8	10.92	1	face	controllers		assets				{ "folder": "assets", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789827789.261	select	globe	14.5	9.8	10.92	1	face	controllers		assets				{ "do": "default", "view": "browse", "folder": "assets", "item": "asset_bridge", "title": "Мост" }
+1789827789.261	toggle	globe	14.5	9.8	10.92	1	face	controllers		assets				{ "open": false }
+1789827792.215	задание	globe	14.5	9.8	10.92	1	face	controllers		assets	img_ocean			
+1789827794.049	folder	globe	14.5	9.8	10.92	1	face	controllers		assets	img_ocean		1834	{ "folder": "assets", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789827794.050	toggle	globe	14.5	9.8	10.92	1	face	controllers		assets	img_ocean		1835	{ "open": true }
+1789827794.060	active	globe	14.5	9.8	10.92	1	face	controllers		assets	img_ocean		1844	{ "key": "10", "slot": 0 }
+1789827795.225	active	globe	14.5	9.8	10.92	1	face	controllers		assets	img_ocean		3010	{ "key": "8", "slot": -1 }
+1789827796.182	folder	globe	14.5	9.8	10.92	1	face	controllers		files	img_ocean		3967	{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789827796.182	intent	globe	14.5	9.8	10.92	1	face	controllers		files	img_ocean		3967	{ "do": "reload", "view": "browse", "folder": "files" }
+1789827796.192	active	globe	14.5	9.8	10.92	1	face	controllers		files	img_ocean		3977	{ "key": "8", "slot": 0 }
+1789827797.215	active	globe	14.5	9.8	10.92	1	face	controllers		files	img_ocean		5000	{ "key": "18", "slot": -1 }
+1789827797.560	folder	globe	14.5	9.8	10.92	1	face	controllers			img_ocean		5345	{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827797.560	intent	globe	14.5	9.8	10.92	1	face	controllers			img_ocean		5345	{ "do": "reload", "view": "browse", "folder": "" }
+1789827797.570	active	globe	14.5	9.8	10.92	1	face	controllers			img_ocean		5355	{ "key": "18", "slot": 0 }
+1789827798.626	active	globe	14.5	9.8	10.92	1	face	controllers			img_ocean		6411	{ "key": "17", "slot": -2 }
+1789827798.815	active	globe	14.5	9.8	10.92	1	face	controllers			img_ocean		6600	{ "key": "18", "slot": 0 }
+1789827799.282	active	globe	14.5	9.8	10.92	1	face	controllers			img_ocean		7067	{ "key": "29", "slot": 1 }
+1789827799.705	folder	globe	14.5	9.8	10.92	1	face	controllers		settings	img_ocean		7490	{ "folder": "settings", "view": "browse", "items": 4, "total": 4, "page": 1, "pages": 1 }
+1789827799.705	intent	globe	14.5	9.8	10.92	1	face	controllers		settings	img_ocean		7490	{ "do": "reload", "view": "browse", "folder": "settings" }
+1789827799.715	active	globe	14.5	9.8	10.92	1	face	controllers		settings	img_ocean		7500	{ "key": "10", "slot": -1 }
+1789827800.604	active	globe	14.5	9.8	10.92	1	face	controllers		settings	img_ocean		8389	{ "key": "2", "slot": 2 }
+1789827800.993	active	globe	14.5	9.8	10.92	1	face	controllers		settings	img_ocean		8778	{ "key": "3", "slot": 0 }
+1789827801.695	folder	globe	14.5	9.8	10.92	1	face	controllers		settings_sphere	img_ocean		9480	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827801.695	intent	globe	14.5	9.8	10.92	1	face	controllers		settings_sphere	img_ocean		9480	{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789827801.704	active	globe	14.5	9.8	10.92	1	face	controllers		settings_sphere	img_ocean		9489	{ "key": "3", "slot": -1 }
+1789827802.526	active	globe	14.5	9.8	10.92	1	face	controllers		settings_sphere	img_ocean		10311	{ "key": "14", "slot": 0 }
+1789827802.738	active	globe	14.5	9.8	10.92	1	face	controllers		settings_sphere	img_ocean		10522	{ "key": "0", "slot": 2 }
+1789827803.426	active	globe	14.5	9.8	10.92	1	face	controllers		settings_sphere	img_ocean		11211	{ "key": "12", "slot": 8 }
+1789827803.952	настройка_открыта	globe	14.5	9.8	10.92	1	face	controllers		settings_sphere				cell_cm
+1789827803.952	intent	globe	14.5	9.8	10.92	1	face	controllers		settings_sphere	img_ocean		11737	{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "cell_cm" }
+1789827804.884	folder	globe	14.5	5.7	5.8	4	face	controllers		settings_sphere	img_ocean		12669	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827804.884	настройка_значение	globe	14.5	5.7	5.8	4	face	controllers		settings_sphere				cell_cm=5.7
+1789827804.892	active	globe	14.5	5.7	5.8	4	face	controllers		settings_sphere	img_ocean		12677	{ "key": "44", "slot": 0 }
+1789827804.906	folder	globe	14.5	5.6	5.8	4	face	controllers		settings_sphere	img_ocean		12691	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827804.906	настройка_значение	globe	14.5	5.6	5.8	4	face	controllers		settings_sphere				cell_cm=5.6
+1789827804.914	active	globe	14.5	5.6	5.8	4	face	controllers		settings_sphere	img_ocean		12699	{ "key": "44", "slot": 0 }
+1789827804.919	folder	globe	14.5	5.5	5.8	4	face	controllers		settings_sphere	img_ocean		12704	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827804.919	настройка_значение	globe	14.5	5.5	5.8	4	face	controllers		settings_sphere				cell_cm=5.5
+1789827804.923	active	globe	14.5	5.5	5.8	4	face	controllers		settings_sphere	img_ocean		12708	{ "key": "44", "slot": 0 }
+1789827805.039	folder	globe	14.5	5.4	5.06	5	face	controllers		settings_sphere	img_ocean		12824	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827805.039	настройка_значение	globe	14.5	5.4	5.06	5	face	controllers		settings_sphere				cell_cm=5.4
+1789827805.046	active	globe	14.5	5.4	5.06	5	face	controllers		settings_sphere	img_ocean		12831	{ "key": "62", "slot": 0 }
+1789827805.053	folder	globe	14.5	5.3	5.06	5	face	controllers		settings_sphere	img_ocean		12838	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827805.053	настройка_значение	globe	14.5	5.3	5.06	5	face	controllers		settings_sphere				cell_cm=5.3
+1789827805.057	active	globe	14.5	5.3	5.06	5	face	controllers		settings_sphere	img_ocean		12842	{ "key": "62", "slot": 0 }
+1789827805.064	folder	globe	14.5	5.2	5.06	5	face	controllers		settings_sphere	img_ocean		12848	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827805.064	настройка_значение	globe	14.5	5.2	5.06	5	face	controllers		settings_sphere				cell_cm=5.2
+1789827805.068	active	globe	14.5	5.2	5.06	5	face	controllers		settings_sphere	img_ocean		12852	{ "key": "62", "slot": 0 }
+1789827805.884	folder	globe	14.5	7.7	7.57	2	face	controllers		settings_sphere	img_ocean		13669	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827805.884	настройка_значение	globe	14.5	7.7	7.57	2	face	controllers		settings_sphere				cell_cm=7.7
+1789827805.892	active	globe	14.5	7.7	7.57	2	face	controllers		settings_sphere	img_ocean		13677	{ "key": "26", "slot": 0 }
+1789827805.896	folder	globe	14.5	7.6	7.57	2	face	controllers		settings_sphere	img_ocean		13681	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827805.896	настройка_значение	globe	14.5	7.6	7.57	2	face	controllers		settings_sphere				cell_cm=7.6
+1789827805.903	active	globe	14.5	7.6	7.57	2	face	controllers		settings_sphere	img_ocean		13688	{ "key": "57", "slot": 5 }
+1789827805.912	folder	globe	14.5	7.5	7.57	2	face	controllers		settings_sphere	img_ocean		13697	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827805.913	настройка_значение	globe	14.5	7.5	7.57	2	face	controllers		settings_sphere				cell_cm=7.5
+1789827805.921	active	globe	14.5	7.5	7.57	2	face	controllers		settings_sphere	img_ocean		13706	{ "key": "57", "slot": 0 }
+1789827805.937	folder	globe	14.5	7.4	7.57	2	face	controllers		settings_sphere	img_ocean		13722	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827805.937	настройка_значение	globe	14.5	7.4	7.57	2	face	controllers		settings_sphere				cell_cm=7.4
+1789827805.945	active	globe	14.5	7.4	7.57	2	face	controllers		settings_sphere	img_ocean		13730	{ "key": "57", "slot": 0 }
+1789827805.959	folder	globe	14.5	7.3	7.57	2	face	controllers		settings_sphere	img_ocean		13744	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827805.959	настройка_значение	globe	14.5	7.3	7.57	2	face	controllers		settings_sphere				cell_cm=7.3
+1789827805.967	active	globe	14.5	7.3	7.57	2	face	controllers		settings_sphere	img_ocean		13752	{ "key": "26", "slot": 0 }
+1789827806.016	folder	globe	14.5	7.4	7.57	2	face	controllers		settings_sphere	img_ocean		13801	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827806.016	настройка_значение	globe	14.5	7.4	7.57	2	face	controllers		settings_sphere				cell_cm=7.4
+1789827806.025	active	globe	14.5	7.4	7.57	2	face	controllers		settings_sphere	img_ocean		13810	{ "key": "26", "slot": 0 }
+1789827806.071	folder	globe	14.5	7.3	7.57	2	face	controllers		settings_sphere	img_ocean		13856	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827806.071	настройка_значение	globe	14.5	7.3	7.57	2	face	controllers		settings_sphere				cell_cm=7.3
+1789827806.080	active	globe	14.5	7.3	7.57	2	face	controllers		settings_sphere	img_ocean		13865	{ "key": "57", "slot": 0 }
+1789827806.084	folder	globe	14.5	7.2	6.85	3	face	controllers		settings_sphere	img_ocean		13869	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827806.085	настройка_значение	globe	14.5	7.2	6.85	3	face	controllers		settings_sphere				cell_cm=7.2
+1789827806.091	active	globe	14.5	7.2	6.85	3	face	controllers		settings_sphere	img_ocean		13876	{ "key": "38", "slot": 4 }
+1789827806.906	folder	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere	img_ocean		14691	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827806.906	настройка_значение	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere				cell_cm=6.7
+1789827806.915	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere	img_ocean		14699	{ "key": "38", "slot": 4 }
+1789827806.919	folder	globe	14.5	6.6	6.85	3	face	controllers		settings_sphere	img_ocean		14704	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827806.919	настройка_значение	globe	14.5	6.6	6.85	3	face	controllers		settings_sphere				cell_cm=6.6
+1789827806.926	active	globe	14.5	6.6	6.85	3	face	controllers		settings_sphere	img_ocean		14711	{ "key": "38", "slot": 0 }
+1789827806.930	folder	globe	14.5	6.5	6.85	3	face	controllers		settings_sphere	img_ocean		14715	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827806.930	настройка_значение	globe	14.5	6.5	6.85	3	face	controllers		settings_sphere				cell_cm=6.5
+1789827806.935	active	globe	14.5	6.5	6.85	3	face	controllers		settings_sphere	img_ocean		14719	{ "key": "38", "slot": 0 }
+1789827807.014	folder	globe	14.5	6.6	6.85	3	face	controllers		settings_sphere	img_ocean		14799	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827807.014	настройка_значение	globe	14.5	6.6	6.85	3	face	controllers		settings_sphere				cell_cm=6.6
+1789827807.022	active	globe	14.5	6.6	6.85	3	face	controllers		settings_sphere	img_ocean		14807	{ "key": "38", "slot": 0 }
+1789827807.045	folder	globe	14.5	6.5	6.85	3	face	controllers		settings_sphere	img_ocean		14829	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827807.045	настройка_значение	globe	14.5	6.5	6.85	3	face	controllers		settings_sphere				cell_cm=6.5
+1789827807.055	active	globe	14.5	6.5	6.85	3	face	controllers		settings_sphere	img_ocean		14840	{ "key": "38", "slot": 0 }
+1789827807.060	folder	globe	14.5	6.4	6.85	3	face	controllers		settings_sphere	img_ocean		14845	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827807.060	настройка_значение	globe	14.5	6.4	6.85	3	face	controllers		settings_sphere				cell_cm=6.4
+1789827807.065	active	globe	14.5	6.4	6.85	3	face	controllers		settings_sphere	img_ocean		14850	{ "key": "38", "slot": 0 }
+1789827807.070	folder	globe	14.5	6.3	5.8	4	face	controllers		settings_sphere	img_ocean		14855	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827807.070	настройка_значение	globe	14.5	6.3	5.8	4	face	controllers		settings_sphere				cell_cm=6.3
+1789827807.075	active	globe	14.5	6.3	5.8	4	face	controllers		settings_sphere	img_ocean		14860	{ "key": "44", "slot": 0 }
+1789827807.086	folder	globe	14.5	6.2	5.8	4	face	controllers		settings_sphere	img_ocean		14871	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827807.086	настройка_значение	globe	14.5	6.2	5.8	4	face	controllers		settings_sphere				cell_cm=6.2
+1789827807.096	active	globe	14.5	6.2	5.8	4	face	controllers		settings_sphere	img_ocean		14881	{ "key": "44", "slot": 0 }
+1789827808.128	folder	globe	14.5	7.6	7.57	2	face	controllers		settings_sphere	img_ocean		15913	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827808.128	настройка_значение	globe	14.5	7.6	7.57	2	face	controllers		settings_sphere				cell_cm=7.6
+1789827808.137	active	globe	14.5	7.6	7.57	2	face	controllers		settings_sphere	img_ocean		15922	{ "key": "57", "slot": 0 }
+1789827808.141	folder	globe	14.5	7.5	7.57	2	face	controllers		settings_sphere	img_ocean		15926	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827808.141	настройка_значение	globe	14.5	7.5	7.57	2	face	controllers		settings_sphere				cell_cm=7.5
+1789827808.149	active	globe	14.5	7.5	7.57	2	face	controllers		settings_sphere	img_ocean		15934	{ "key": "57", "slot": 0 }
+1789827808.153	folder	globe	14.5	7.4	7.57	2	face	controllers		settings_sphere	img_ocean		15938	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827808.153	настройка_значение	globe	14.5	7.4	7.57	2	face	controllers		settings_sphere				cell_cm=7.4
+1789827808.157	active	globe	14.5	7.4	7.57	2	face	controllers		settings_sphere	img_ocean		15942	{ "key": "57", "slot": 0 }
+1789827808.165	folder	globe	14.5	7.3	7.57	2	face	controllers		settings_sphere	img_ocean		15950	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827808.165	настройка_значение	globe	14.5	7.3	7.57	2	face	controllers		settings_sphere				cell_cm=7.3
+1789827808.172	active	globe	14.5	7.3	7.57	2	face	controllers		settings_sphere	img_ocean		15957	{ "key": "57", "slot": 0 }
+1789827808.191	folder	globe	14.5	7.2	6.85	3	face	controllers		settings_sphere	img_ocean		15976	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827808.191	настройка_значение	globe	14.5	7.2	6.85	3	face	controllers		settings_sphere				cell_cm=7.2
+1789827808.198	active	globe	14.5	7.2	6.85	3	face	controllers		settings_sphere	img_ocean		15982	{ "key": "38", "slot": 0 }
+1789827808.257	folder	globe	14.5	7.1	6.85	3	face	controllers		settings_sphere	img_ocean		16042	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827808.258	настройка_значение	globe	14.5	7.1	6.85	3	face	controllers		settings_sphere				cell_cm=7.1
+1789827808.266	active	globe	14.5	7.1	6.85	3	face	controllers		settings_sphere	img_ocean		16051	{ "key": "38", "slot": 0 }
+1789827808.271	folder	globe	14.5	7.0	6.85	3	face	controllers		settings_sphere	img_ocean		16056	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827808.271	настройка_значение	globe	14.5	7.0	6.85	3	face	controllers		settings_sphere				cell_cm=7.0
+1789827808.276	active	globe	14.5	7.0	6.85	3	face	controllers		settings_sphere	img_ocean		16060	{ "key": "38", "slot": 0 }
+1789827808.288	folder	globe	14.5	6.9	6.85	3	face	controllers		settings_sphere	img_ocean		16073	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827808.289	настройка_значение	globe	14.5	6.9	6.85	3	face	controllers		settings_sphere				cell_cm=6.9
+1789827808.296	active	globe	14.5	6.9	6.85	3	face	controllers		settings_sphere	img_ocean		16081	{ "key": "38", "slot": 0 }
+1789827808.302	folder	globe	14.5	6.8	6.85	3	face	controllers		settings_sphere	img_ocean		16087	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827808.302	настройка_значение	globe	14.5	6.8	6.85	3	face	controllers		settings_sphere				cell_cm=6.8
+1789827808.307	active	globe	14.5	6.8	6.85	3	face	controllers		settings_sphere	img_ocean		16092	{ "key": "38", "slot": 0 }
+1789827808.312	folder	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere	img_ocean		16097	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827808.312	настройка_значение	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere				cell_cm=6.7
+1789827808.317	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere	img_ocean		16101	{ "key": "38", "slot": 0 }
+1789827809.715	панель_кнопка	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere				done
+1789827809.716	настройка_сохранена	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere				cell_cm=6.7
+1789827811.093	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere	img_ocean		18878	{ "key": "37", "slot": 1 }
+1789827811.649	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere	img_ocean		19434	{ "key": "6", "slot": 8 }
+1789827812.427	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere	img_ocean		20211	{ "key": "37", "slot": 1 }
+1789827812.605	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere	img_ocean		20390	{ "key": "87", "slot": 5 }
+1789827812.738	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere	img_ocean		20523	{ "key": "66", "slot": 4 }
+1789827812.838	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere	img_ocean		20623	{ "key": "39", "slot": 3 }
+1789827814.016	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere	img_ocean		21801	{ "key": "38", "slot": 0 }
+1789827814.183	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere	img_ocean		21968	{ "key": "37", "slot": 1 }
+1789827814.605	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere	img_ocean		22390	{ "key": "38", "slot": 0 }
+1789827814.761	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere	img_ocean		22545	{ "key": "41", "slot": 2 }
+1789827815.327	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere	img_ocean		23112	{ "key": "40", "slot": -1 }
+1789827815.762	folder	globe	14.5	6.7	6.85	3	face	controllers		settings	img_ocean		23546	{ "folder": "settings", "view": "browse", "items": 4, "total": 4, "page": 1, "pages": 1 }
+1789827815.762	intent	globe	14.5	6.7	6.85	3	face	controllers		settings	img_ocean		23547	{ "do": "reload", "view": "browse", "folder": "settings" }
+1789827815.772	active	globe	14.5	6.7	6.85	3	face	controllers		settings	img_ocean		23557	{ "key": "40", "slot": 0 }
+1789827816.505	active	globe	14.5	6.7	6.85	3	face	controllers		settings	img_ocean		24290	{ "key": "8", "slot": -1 }
+1789827817.384	folder	globe	14.5	6.7	6.85	3	face	controllers			img_ocean		25169	{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827817.384	intent	globe	14.5	6.7	6.85	3	face	controllers			img_ocean		25169	{ "do": "reload", "view": "browse", "folder": "" }
+1789827817.394	active	globe	14.5	6.7	6.85	3	face	controllers			img_ocean		25179	{ "key": "8", "slot": 0 }
+1789827820.561	active	globe	14.5	6.7	6.85	3	face	controllers			img_ocean		28346	{ "key": "42", "slot": 1 }
+1789827821.129	folder	globe	14.5	6.7	6.85	3	face	controllers		settings	img_ocean		28914	{ "folder": "settings", "view": "browse", "items": 4, "total": 4, "page": 1, "pages": 1 }
+1789827821.129	intent	globe	14.5	6.7	6.85	3	face	controllers		settings	img_ocean		28914	{ "do": "reload", "view": "browse", "folder": "settings" }
+1789827821.139	active	globe	14.5	6.7	6.85	3	face	controllers		settings	img_ocean		28924	{ "key": "8", "slot": -1 }
+1789827822.039	active	globe	14.5	6.7	6.85	3	face	controllers		settings	img_ocean		29824	{ "key": "6", "slot": 2 }
+1789827822.650	active	globe	14.5	6.7	6.85	3	face	controllers		settings	img_ocean		30435	{ "key": "40", "slot": 0 }
+1789827823.750	active	globe	14.5	6.7	6.85	3	face	controllers		settings	img_ocean		31535	{ "key": "8", "slot": -1 }
+1789827824.550	active	globe	14.5	6.7	6.85	3	face	controllers		settings	img_ocean		32335	{ "key": "40", "slot": 0 }
+1789827825.086	folder	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere	img_ocean		32870	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827825.086	intent	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere	img_ocean		32871	{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789827825.095	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere	img_ocean		32880	{ "key": "40", "slot": -1 }
+1789827825.861	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere	img_ocean		33646	{ "key": "38", "slot": 0 }
+1789827826.985	folder	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere_adv	img_ocean		34770	{ "folder": "settings_sphere_adv", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789827826.985	intent	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere_adv	img_ocean		34770	{ "do": "reload", "view": "browse", "folder": "settings_sphere_adv" }
+1789827826.995	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere_adv	img_ocean		34780	{ "key": "38", "slot": 0 }
+1789827829.850	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere_adv	img_ocean		37635	{ "key": "41", "slot": 2 }
+1789827830.343	настройка_открыта	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere_adv				input_source
+1789827830.344	intent	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere_adv	img_ocean		38129	{ "do": "edit", "view": "browse", "folder": "settings_sphere_adv", "setting": "input_source" }
+1789827831.762	настройка_значение	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere_adv				input_source=auto
+1789827832.785	настройка_значение	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere_adv				input_source=controllers
+1789827833.373	настройка_значение	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere_adv				input_source=hands
+1789827833.386	folder	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		41171	{ "folder": "settings_sphere_adv", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789827833.387	настройки_ввода	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv				hands
+1789827833.387	источник	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv				hands: ручной выбор | { "profile": { "left": "/interaction_profiles/oculus/touch_controller", "right": "/interaction_profiles/oculus/touch_controller" }, "ctrl_pose": { "left": true, "right": true }, "ctrl_in": { "left": false, "right": false }, "hand_ok": { "left": false, "right": false }, "hand_src": { "left": 0, "right": 0 }, "conflicts": 0, "mode": "hands" }
+1789827833.395	active	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		41180	{ "key": "41", "slot": 0 }
+1789827840.396	active	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		48181	{ "key": "40", "slot": 4 }
+1789827840.418	active	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		48203	{ "key": "41", "slot": 0 }
+1789827840.439	active	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		48224	{ "key": "13", "slot": -2 }
+1789827840.450	active	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		48235	{ "key": "12", "slot": -2 }
+1789827840.462	active	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		48247	{ "key": "5", "slot": -2 }
+1789827840.473	active	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		48258	{ "key": "3", "slot": -2 }
+1789827840.528	active	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		48313	{ "key": "2", "slot": -2 }
+1789827840.550	active	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		48335	{ "key": "1", "slot": -2 }
+1789827840.562	active	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		48346	{ "key": "2", "slot": -2 }
+1789827841.028	active	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		48813	{ "key": "5", "slot": -2 }
+1789827841.073	active	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		48858	{ "key": "6", "slot": -2 }
+1789827841.096	рука_drag	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv				{ "key": "42", "travel_cm": 36.8, "ms": 698 }
+1789827841.217	active	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		49002	{ "key": "8", "slot": -2 }
+1789827841.317	active	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		49102	{ "key": "40", "slot": 4 }
+1789827851.351	active	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		59136	{ "key": "41", "slot": 0 }
+1789827851.374	active	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		59158	{ "key": "73", "slot": 1 }
+1789827851.474	active	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		59259	{ "key": "72", "slot": 6 }
+1789827851.496	active	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		59281	{ "key": "71", "slot": -2 }
+1789827851.596	active	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		59381	{ "key": "73", "slot": 1 }
+1789827851.663	рука_drag	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv				{ "key": "70", "travel_cm": 15.71, "ms": 356 }
+1789827851.952	active	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		59736	{ "key": "39", "slot": 2 }
+1789827853.508	active	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		61292	{ "key": "38", "slot": 3 }
+1789827853.641	active	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		61426	{ "key": "39", "slot": 2 }
+1789827854.208	рука_drag	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv				{ "key": "61", "travel_cm": 6.12, "ms": 789 }
+1789827864.475	active	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		72260	{ "key": "63", "slot": -2 }
+1789827864.664	active	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		72449	{ "key": "66", "slot": -2 }
+1789827864.853	рука_drag	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv				{ "key": "84", "travel_cm": 10.86, "ms": 1211 }
+1789827865.008	active	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv	img_ocean		72793	{ "key": "39", "slot": 2 }
+1789827866.242	рука_pinch	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv				{  }
+1789827866.453	настройка_значение	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv				input_source=auto
+1789827867.753	рука_pinch	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv				{  }
+1789827868.009	панель_кнопка	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv				done
+1789827868.010	настройка_сохранена	globe	14.5	6.7	6.85	3	face	hands		settings_sphere_adv				input_source=auto
+1789827869.111	folder	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere_adv	img_ocean		76896	{ "folder": "settings_sphere_adv", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789827869.111	настройки_ввода	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere_adv				controllers
+1789827869.112	источник	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere_adv				controllers: профиль правой | { "profile": { "left": "/interaction_profiles/oculus/touch_controller", "right": "/interaction_profiles/oculus/touch_controller" }, "ctrl_pose": { "left": false, "right": false }, "ctrl_in": { "left": false, "right": true }, "hand_ok": { "left": false, "right": false }, "hand_src": { "left": 0, "right": 0 }, "conflicts": 0, "mode": "auto" }
+1789827869.120	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere_adv	img_ocean		76905	{ "key": "73", "slot": 3 }
+1789827869.153	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere_adv	img_ocean		76938	{ "key": "39", "slot": 0 }
+1789827869.365	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere_adv	img_ocean		77150	{ "key": "87", "slot": 6 }
+1789827869.376	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere_adv	img_ocean		77161	{ "key": "66", "slot": 1 }
+1789827869.397	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere_adv	img_ocean		77182	{ "key": "39", "slot": 0 }
+1789827874.532	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere_adv	img_ocean		82317	{ "key": "66", "slot": 1 }
+1789827874.832	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere_adv	img_ocean		82617	{ "key": "87", "slot": 6 }
+1789827875.654	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere_adv	img_ocean		83439	{ "key": "37", "slot": -2 }
+1789827876.143	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere_adv	img_ocean		83928	{ "key": "38", "slot": 2 }
+1789827876.543	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere_adv	img_ocean		84328	{ "key": "41", "slot": -1 }
+1789827877.023	folder	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere	img_ocean		84808	{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789827877.023	intent	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere	img_ocean		84808	{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789827877.032	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere	img_ocean		84817	{ "key": "38", "slot": 0 }
+1789827879.554	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere	img_ocean		87339	{ "key": "39", "slot": 3 }
+1789827880.254	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere	img_ocean		88039	{ "key": "41", "slot": 2 }
+1789827881.410	active	globe	14.5	6.7	6.85	3	face	controllers		settings_sphere	img_ocean		89195	{ "key": "40", "slot": -1 }
+1789827882.878	folder	globe	14.5	6.7	6.85	3	face	controllers		settings	img_ocean		90663	{ "folder": "settings", "view": "browse", "items": 4, "total": 4, "page": 1, "pages": 1 }
+1789827882.878	intent	globe	14.5	6.7	6.85	3	face	controllers		settings	img_ocean		90663	{ "do": "reload", "view": "browse", "folder": "settings" }
+1789827882.888	active	globe	14.5	6.7	6.85	3	face	controllers		settings	img_ocean		90673	{ "key": "40", "slot": 0 }
+1789827884.366	active	globe	14.5	6.7	6.85	3	face	controllers		settings	img_ocean		92151	{ "key": "8", "slot": -1 }
+1789827884.845	folder	globe	14.5	6.7	6.85	3	face	controllers			img_ocean		92630	{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789827884.845	intent	globe	14.5	6.7	6.85	3	face	controllers			img_ocean		92630	{ "do": "reload", "view": "browse", "folder": "" }
+1789827884.855	active	globe	14.5	6.7	6.85	3	face	controllers			img_ocean		92640	{ "key": "42", "slot": 1 }
+1789827885.955	active	globe	14.5	6.7	6.85	3	face	controllers			img_ocean		93740	{ "key": "8", "slot": 0 }
+1789827887.099	active	globe	14.5	6.7	6.85	3	face	controllers			img_ocean		94884	{ "key": "7", "slot": 5 }
+1789827889.678	intent	globe	14.5	6.7	6.85	3	face	controllers			img_ocean		97462	{ "do": "exit", "view": "browse", "folder": "" }
+1789827889.680	выход	globe	14.5	6.7	6.85	3	face	controllers						выгрузка в /storage/emulated/0/Download/VRGE/2026-09-19_19-24-49

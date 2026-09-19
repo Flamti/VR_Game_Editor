@@ -9,7 +9,11 @@ const ProbeBudget := preload("res://probe_budget.gd")
 const Menu := preload("res://menu/sphere_menu.gd")
 const Router := preload("res://input/input_router.gd")
 const Arbiter := preload("res://input/input_arbiter.gd")
-const InputSettings := preload("res://profile/input_settings.gd")
+const ProfileStore := preload("res://profile/profile_store.gd")
+const ProfileSession := preload("res://profile/profile_session.gd")
+const ProfileUI := preload("res://profile/profile_ui.gd")
+const AccountService := preload("res://accounts/account_service.gd")
+const HttpTransport := preload("res://accounts/http_transport.gd")
 const Screenshot := preload("res://session/screenshot.gd")
 const Scenario := preload("res://session/scenario.gd")
 ## Сколько висит сообщение о скриншоте, мс.
@@ -45,8 +49,12 @@ var editing: SettingEdit = null
 var selfcheck_lines: Array = []
 ## Ввод: арбитр, контроллеры, руки и их видимость (input/input_router.gd).
 var router: Router
-## Наборы настроек меню по способу ввода (ADR-0010).
-var input_settings: InputSettings
+## Активный профиль пользователя: настройки по способу ввода, избранное, личное (ADR-0010).
+var profiles: ProfileSession
+## Действия папки «Профиль»: имя, рост, глаза, место, PIN, смена и удаление профиля.
+var profile_ui: ProfileUI
+## Подключаемые аккаунты открытого профиля (ADR-0011).
+var accounts: AccountService
 var journal: Journal = Journal.new()
 var task_label: Label3D
 ## Сообщение о скриншоте перед лицом — видно и при закрытом шаре (тост панели — только при открытом).
@@ -78,13 +86,15 @@ func _ready() -> void:
 	menu.head = camera
 	menu.hand = left
 	menu.hand_offset = BALL_OFFSET
-	input_settings = InputSettings.new(menu.settings, "user://")
-	var migrated := input_settings.migrate_legacy(Settings.PATH)
-	var had_settings := input_settings.exists_any()
-	var rejected := input_settings.load_current()
-	menu.catalog.apply_input(menu.settings)
+	profiles = ProfileSession.new(ProfileStore.new("user://"), menu)
+	# Первый запуск с профилями: файлы до профилей переезжают в «Основной» (ADR-0010 п. 7).
+	var boot := profiles.store.ensure_default()
 	# Не ребёнок контроллера: ориентацию задаёт следование за рукой (menu/hand_follow.gd).
 	add_child(menu)
+	# После add_child: открытие применяет настройки к готовому меню. Ввод до конца самопроверки — у
+	# контроллеров (роутер ещё не готов), им и набор.
+	var rejected := profiles.open(profiles.store.startup_id(), Arbiter.CONTROLLERS)
+	var had_settings := profiles.input_settings.exists_any()
 	panel = UiPanel.new()
 	add_child(panel)
 	panel.visible = false
@@ -103,7 +113,6 @@ func _ready() -> void:
 		# при этом рендер и доходит ли ввод контроллеров — не измерено: журнал это и покажет.
 		for sig in ["session_begun", "session_visible", "session_focussed", "session_stopping"]:
 			iface.connect(sig, _on_xr_session.bind(sig))
-	menu.catalog.load_favorites()
 	panel.edit_changed.connect(_on_edit_changed)
 	panel.button.connect(_on_panel_button)
 
@@ -115,7 +124,22 @@ func _ready() -> void:
 	router.source_changed.connect(_on_source)
 	router.gesture.connect(_on_hand_gesture)
 	router.controller_models.connect(_on_controller_models)
-	router.input_settings = input_settings
+	router.input_settings = profiles.input_settings
+	profile_ui = ProfileUI.new(profiles, menu, panel)
+	profile_ui.head = camera
+	profile_ui.origin = origin
+	profile_ui.current_input = router.current
+	profile_ui.logged.connect(func(ev: String, detail: String): journal.log(ev, menu.params(), "", "", -1, detail))
+	menu.profile_action.connect(profile_ui.on_action)
+	var http := HttpTransport.new()
+	add_child(http)
+	accounts = AccountService.new(profiles, http.request)
+	add_child(accounts)
+	var has_oauth := accounts.load_oauth()
+	accounts.changed.connect(profile_ui.on_accounts_changed)
+	accounts.logged.connect(func(ev: String, detail: String): journal.log(ev, menu.params(), "", "", -1, detail))
+	profile_ui.accounts = accounts
+	print("аккаунты: OAuth-клиент Google %s" % ("есть" if has_oauth else "НЕТ (secrets/oauth_clients.cfg)"))
 	router.settings_switched.connect(func(input: String):
 		journal.log("настройки_ввода", menu.params(), "", "", -1, input))
 
@@ -138,9 +162,9 @@ func _ready() -> void:
 	_place_task_label()
 
 	journal.open()
-	if migrated or not rejected.is_empty():
-		journal.log("настройки_загружены", menu.params(), "", "", -1,
-				"перенесены из %s; отвергнуто %s" % [Settings.PATH, rejected] if migrated else "отвергнуто %s" % [rejected])
+	journal.log("профиль_открыт", menu.params(), "", "", -1, "%s%s%s" % [profiles.profile.name,
+			("; создан, перенесено %s" % [boot["migrated"]]) if boot["created"] != "" else "",
+			("; отвергнуто %s" % [rejected]) if not rejected.is_empty() else ""])
 	_prepare_tasks()
 
 	await _warm_in_xr()
@@ -157,8 +181,10 @@ func _ready() -> void:
 	menu.settings.values = saved
 	menu.apply_settings()
 	# Ввод — только теперь: в сессии 11 кулак закрыл шар посреди самопроверки.
-	router.set_ready()
-	journal.log("ввод_готов", menu.params(), "", "", -1, router.current())
+	# Ввод включается здесь; если у профиля PIN — шар заперт до верного ввода (profile/profile_ui.gd).
+	profile_ui.start(router.set_ready)
+	journal.log("ввод_готов", menu.params(), "", "", -1, "%s%s" % [router.current(),
+			", ждёт PIN" if profile_ui.active() else ""])
 	if had_settings:
 		_show_help()
 	else:
@@ -362,6 +388,9 @@ func _on_edit_changed() -> void:
 
 
 func _on_panel_button(name: String) -> void:
+	if profile_ui.on_button(name):
+		journal.log("панель_кнопка", menu.params(), "", "", -1, "профиль: " + name)
+		return
 	journal.log("панель_кнопка", menu.params(), "", "", -1, name)
 	if panel.is_text_open():
 		if name == "done":
@@ -428,6 +457,9 @@ func _on_search_requested() -> void:
 
 
 func _on_search_text(t: String) -> void:
+	# Набор имени или PIN профиля — не поиск; PIN в журнал не пишется никогда.
+	if profile_ui.active():
+		return
 	menu.set_search_query(t)
 	journal.log("поиск_запрос", menu.params(), "", "", -1, "%s → %d" % [t, menu.found_count()])
 
@@ -451,8 +483,7 @@ func _on_search_closed() -> void:
 ## «Выход» (удержанием): сохранить настройки и избранное, записать выход в журнал, выгрузить
 ## файлы в общую папку и выйти. Итог выгрузки — в журнал до копирования его самого, и в лог.
 func _exit_app() -> void:
-	menu.settings.save()
-	menu.catalog.save_favorites()
+	profiles.save()
 	var dst := OS.get_system_dir(OS.SYSTEM_DIR_DOWNLOADS)
 	var stamp := Export.stamp_now()
 	journal.log("выход", menu.params(), "", "", -1, "выгрузка в %s" % dst.path_join("VRGE").path_join(stamp))

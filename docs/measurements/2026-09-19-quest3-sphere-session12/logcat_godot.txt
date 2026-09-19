@@ -1,0 +1,3 @@
+--------- beginning of main
+09-19 19:24:29.111 23191 23232 I godot   : источник ввода: controllers (профиль правой)
+09-19 19:24:49.769 23191 23232 I godot   : выход: выгрузка /storage/emulated/0/Download/VRGE/2026-09-19_19-24-49 — записано ["sphere_session.tsv", "settings_controllers.cfg", "settings_hands.cfg", "settings_common.cfg", "favorites.cfg", "selfcheck.txt"], отказ []

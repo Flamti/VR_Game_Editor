@@ -62,3 +62,8 @@ tools/local.env
 .vscode/
 .idea/
 *.swp
+
+# ─── Секреты ───
+# OAuth-клиент Google для входа по коду устройства (ADR-0011 п. 5): попадает в APK
+# (include_filter пресета), но не в репозиторий.
+projects/sphere_menu/secrets/

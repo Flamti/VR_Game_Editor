@@ -24,6 +24,8 @@ signal search_requested
 signal search_closed
 ## «Выход» подтверждён удержанием — сессия сохраняет, выгружает журнал и выходит.
 signal exit_requested
+## Действие профиля пользователя: action — «profile_<что>», arg — после двоеточия (id профиля).
+signal profile_action(action: String, arg: String)
 
 const Item := preload("res://menu/item.gd")
 const State := preload("res://menu/state.gd")
@@ -99,6 +101,9 @@ var _pressed_hand := ""
 var input_source := ""
 ## Id активного профиля пользователя (ADR-0010) — в журнал через params(), по той же причине.
 var profile_id := ""
+## Шар заперт: ячейки не нажимаются, шар не закрывается и не листается — пока вводят PIN профиля.
+## Панель при этом работает (profile/profile_ui.gd).
+var locked := false
 var _last_item_ms := -100000
 ## Фальсификатор «panelshow» дымового прогона: пустая ячейка считается содержимым —
 ## панель висит всегда, как до шага 1е.
@@ -188,6 +193,8 @@ func _scroll() -> Dictionary:
 # --- намерения ------------------------------------------------------------------
 
 func toggle() -> void:
+	if locked:
+		return
 	nav.state.toggle()
 	if is_open():
 		nav.open_root()
@@ -241,7 +248,7 @@ func rotate_local(q: Quaternion) -> void:
 
 
 func back() -> void:
-	if is_open():
+	if is_open() and not locked:
 		_handle(nav.back(_scroll()))
 
 
@@ -279,7 +286,7 @@ func press_abort(hand: String) -> void:
 ## Цель нажатия фиксируется в момент нажатия: пока держат курок, шар может
 ## провернуться, но удерживается та ячейка, на которой начали.
 func _press(p: Press, hand: String, key: Variant, pressed: bool, now_ms: int) -> void:
-	if not is_open():
+	if not is_open() or locked:
 		p.update(false, now_ms)
 		return
 	if pressed and not p.is_down():
@@ -341,7 +348,7 @@ func grab_update(tip: Vector3, grip: bool, delta: float) -> void:
 ## захватом или пока панель занята мастером и правкой: там рука двигается по делу, и
 ## прыжок на корень был бы потерей места.
 func gesture_update(hand_pos: Vector3, head_xf: Transform3D, delta: float) -> void:
-	if not is_open() or panel_locked or grab.active or grab.coasting() or demo.running():
+	if not is_open() or locked or panel_locked or grab.active or grab.coasting() or demo.running():
 		shake.reset()
 		swipe.reset()
 		return
@@ -654,6 +661,10 @@ func _handle(res: Dictionary) -> void:
 			event.emit("intent", data)
 			exit_requested.emit()
 			return
+		"profile":
+			var parts: PackedStringArray = str(res["action"]).split(":", true, 1)
+			data["action"] = res["action"]
+			profile_action.emit(parts[0], parts[1] if parts.size() > 1 else "")
 		"edit":
 			if res.has("scroll"):
 				_load_list(res["scroll"])

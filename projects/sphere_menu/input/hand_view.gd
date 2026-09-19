@@ -7,9 +7,11 @@ extends RefCounted
 ## копии прибора узлы силуэта никто не держит, спрятать их снаружи нечем, а править прибор ради
 ## меню нельзя — копия побайтовая (SHARED_COPIES настольных проверок).
 ##
-## Два слоя: суставы — 26 шариков на руку из XRHandTracker (серые — сустав не отслежен, признаки по
-## нему недостоверны); силуэт — модель руки от рантайма Meta (OpenXRFbHandTrackingMesh плагина +
-## XRHandModifier3D Godot), если класс есть.
+## Руки — от шлема: сетка и скелет рук рантайма Meta (`XR_FB_hand_tracking_mesh`,
+## OpenXRFbHandTrackingMesh плагина + XRHandModifier3D Godot). Quest в иммерсивном приложении руки
+## сам не рисует, но модель отдаёт — её и показываем. Точки суставов (26 шариков на руку, серые — сустав
+## не отслежен) — диагностика прибора; видны, только пока сетки этой руки нет (не пришла, рантайм
+## отказал, класса нет). Отзыв владельца 2026-09-19: руки — системные.
 
 const HAND_TRACKERS := ["/user/hand_tracker/left", "/user/hand_tracker/right"]
 const JOINT_RADIUS := 0.004
@@ -17,13 +19,15 @@ const COLOR_TRACKED := Color(0.3, 1.0, 0.5)
 const COLOR_LOST := Color(0.5, 0.5, 0.5)
 
 var joints: Array[MultiMeshInstance3D] = []
-## Узлы силуэта (XRNode3D на трекер руки) — их прячет set_active.
+## Держатели силуэта (под XRNode3D на трекер руки) — их прячет set_active.
 var meshes: Array[Node3D] = []
 ## рука → "ready" | "unavailable" | "" (сигнал ещё не пришёл) | "нет класса"
 var mesh_state: Dictionary = {}
 var active := false
 ## Фальсификатор «meshstays»: силуэт не прячется, как в сессии 11.
 var falsify_mesh_stays := false
+## Фальсификатор «jointsstay»: точки суставов видны и поверх готовой сетки рук.
+var falsify_joints_stay := false
 
 
 func setup(origin: Node3D) -> void:
@@ -62,7 +66,12 @@ func _add_mesh(origin: Node3D, hand: int) -> void:
 	# Без этого узел остаётся видимым в последней позе, когда трекер перестал отдавать данные.
 	node.show_when_tracked = true
 	origin.add_child(node)
-	meshes.append(node)
+	# Видимостью самого XRNode3D с show_when_tracked правит движок: set_visible(has_tracking_data)
+	# при каждой смене трекинга (xr_nodes.cpp:466) — наше «спрятать» он перетёр бы. Прячем держатель.
+	var holder := Node3D.new()
+	holder.name = "HandMeshHolder"
+	node.add_child(holder)
+	meshes.append(holder)
 	var mesh: Node3D = ClassDB.instantiate("OpenXRFbHandTrackingMesh")
 	mesh.set("hand", hand)
 	var mat := StandardMaterial3D.new()
@@ -70,20 +79,32 @@ func _add_mesh(origin: Node3D, hand: int) -> void:
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mesh.set("material", mat)
 	if mesh.has_signal("openxr_fb_hand_tracking_mesh_ready"):
-		mesh.connect("openxr_fb_hand_tracking_mesh_ready", func(): mesh_state[key] = "ready")
+		mesh.connect("openxr_fb_hand_tracking_mesh_ready", func(): on_mesh_ready(key))
 	if mesh.has_signal("openxr_fb_hand_tracking_mesh_unavailable"):
 		mesh.connect("openxr_fb_hand_tracking_mesh_unavailable", func(): mesh_state[key] = "unavailable")
-	node.add_child(mesh)
+	holder.add_child(mesh)
 	var mod := XRHandModifier3D.new()
 	mod.hand_tracker = HAND_TRACKERS[hand]
 	mesh.add_child(mod)
 
 
-## Руки ведут меню — видно всё; нет — ни суставов, ни силуэта.
+## Сетка руки от рантайма готова (сигнал узла; проверки зовут напрямую) — точки этой руки больше
+## не нужны.
+func on_mesh_ready(key: String) -> void:
+	mesh_state[key] = "ready"
+	set_active(active)
+
+
+## Точки руки нужны, только пока её сетки нет.
+func _joints_needed(h: int) -> bool:
+	return falsify_joints_stay or mesh_state.get("L" if h == 0 else "R", "") != "ready"
+
+
+## Руки ведут меню — видны сетки (или точки, где сетки нет); не ведут — ничего.
 func set_active(on: bool) -> void:
 	active = on
-	for mmi in joints:
-		mmi.visible = on
+	for h in joints.size():
+		joints[h].visible = on and _joints_needed(h)
 	for node in meshes:
 		node.visible = on or falsify_mesh_stays
 
@@ -105,7 +126,7 @@ func update() -> void:
 	for h in HAND_TRACKERS.size():
 		var ht := XRServer.get_tracker(HAND_TRACKERS[h]) as XRHandTracker
 		var mmi := joints[h]
-		var has := ht != null and ht.has_tracking_data
+		var has := ht != null and ht.has_tracking_data and _joints_needed(h)
 		mmi.visible = has
 		if not has:
 			continue

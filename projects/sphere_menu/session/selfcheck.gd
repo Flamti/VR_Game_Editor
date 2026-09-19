@@ -19,6 +19,10 @@ const Menu := preload("res://menu/sphere_menu.gd")
 const Settings := preload("res://menu/settings.gd")
 const SettingEdit := preload("res://menu/setting_edit.gd")
 const UiPanel := preload("res://menu/ui_panel.gd")
+const Pin := preload("res://profile/pin.gd")
+## Вход по PIN — не дольше этого, мс (docs/design/user-profiles.md §8). Цель, а не измерение: столько
+## человек ждёт после «Готово», не замечая задержки.
+const PIN_TARGET_MS := 300.0
 
 ## Прогрев судится по счётчику компиляций поверхности (урок фазы W прибора):
 ## счётчики считают запросы, эталон W2 — прогретый путь даёт surface 0, draw 1.
@@ -41,7 +45,7 @@ var results := {}
 func run(host: Node, menu: Menu) -> bool:
 	var checks := ["xr", "частота", "msaa", "прогрев", "глобус худший", "глобус крупный", "линза худшая",
 			"раскладки худшие", "атлас", "панель", "панель лучом", "прокрутка панели", "пропуск перерисовки",
-			"подписи", "клавиатура overlay"]
+			"подписи", "клавиатура overlay", "PIN: время входа"]
 	expected = checks.size()
 	r.note("=== САМОПРОВЕРКА ШАР-МЕНЮ ===")
 	r.note("ожидается исполненных проверок: %d" % expected)
@@ -319,6 +323,7 @@ func run(host: Node, menu: Menu) -> bool:
 		r.fail("клавиатура overlay: FEATURE_VIRTUAL_KEYBOARD %s, запросов показа %d из 1" % [has_vk, req])
 
 	menu.close()
+	_pin_time()
 	return _verdict()
 
 
@@ -367,6 +372,23 @@ func _budget_check(label: String, m: Dictionary, budget: float) -> void:
 	var msg := "%s: p95 GPU %.2f / CPU рендера+скриптов %.2f мс из %.2f, связывает %s; %s" % [
 			label, g95, c95, budget, binding, ProbeWindow.delivery_brief(m, 1000.0 / budget)]
 	if maxf(g95, c95) <= budget and int(m["over"]) == 0:
+		r.pass_(msg)
+	else:
+		r.fail(msg)
+
+
+## Время вывода ключа PIN на этом шлеме: PBKDF2 с Pin.ITERATIONS — число итераций измеряется здесь,
+## а не выбирается на столе (CLAUDE.md, правило 1). Три замера, берётся худший.
+func _pin_time() -> void:
+	var worst := 0.0
+	var salt := Pin.make_salt()
+	for _i in 3:
+		var t0 := Time.get_ticks_usec()
+		Pin.hash_pin("2468", salt, Pin.ITERATIONS)
+		worst = maxf(worst, (Time.get_ticks_usec() - t0) / 1000.0)
+	results["pin_ms"] = worst
+	var msg := "PIN: вывод ключа %d итераций — %.0f мс (худший из 3), цель ≤ %.0f мс" % [Pin.ITERATIONS, worst, PIN_TARGET_MS]
+	if worst <= PIN_TARGET_MS:
 		r.pass_(msg)
 	else:
 		r.fail(msg)

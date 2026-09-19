@@ -550,6 +550,9 @@ func _default(it: Item, scroll: Variant) -> Dictionary:
 					return {"do": "reload", "scroll": sc}
 				"exit":
 					return {"do": "exit"}
+			# Действия профиля пользователя (ADR-0010): «profile_<что>[:<аргумент>]», исполняет сессия.
+			if it.action.begins_with("profile_"):
+				return {"do": "profile", "action": it.action}
 			return {"do": "none"}
 	if picking:
 		picking = false

@@ -42,14 +42,25 @@ tools/bake_grids.py                    # запечь сетки шар-меню
 
 ```bash
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
-    --script res://tests/run_tests.gd [-- --falsify=<имя>]    # пол 91, 38 фальсификаторов
+    --script res://tests/run_tests.gd [-- --falsify=<имя>]    # пол 100, 47 фальсификаторов
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
-    --script res://tests/smoke_menu.gd [-- --falsify=<имя>]   # интеграция, пол 38, 15 фальсификаторов
+    --script res://tests/smoke_menu.gd [-- --falsify=<имя>]   # интеграция, пол 45, 24 фальсификатора
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
     --script res://tests/bench_menu.gd                         # замер кадра меню: глобус и линза
 # сверки КАРТИНКОЙ — нужен дисплей, без --headless (GLSL в headless не компилируется):
 godot/bin/godot.linuxbsd.editor.x86_64 --path projects/sphere_menu --rendering-method mobile \
     --script res://tests/render_lens.gd|render_labels.gd|render_screenshot.gd [-- --falsify=glsl|nolabel|noworld]
+```
+
+Аккаунты (ADR-0011). OAuth-клиент Google («TVs and Limited Input devices») — файл
+`projects/sphere_menu/secrets/oauth_clients.cfg` (вне git, в APK через `include_filter`):
+`[google]` `client_id="…"` `client_secret="…"`. Ключ API без набора в шлеме (отладочная сборка;
+**на шлеме ещё не проверено**):
+
+```bash
+adb push claude.key /data/local/tmp/ && adb shell run-as org.flamti.vrge.sphere \
+    sh -c 'mkdir -p files/import && cp /data/local/tmp/claude.key files/import/' && adb shell rm /data/local/tmp/claude.key
+# в шлеме: Настройки → Профиль → Аккаунты → Claude → «Из файла»; файл удаляется после импорта
 ```
 
 С шлема после сессии: журнал — `adb pull /sdcard/Download/VRGE/<дата-время>`, скриншоты —
@@ -227,6 +238,11 @@ tools/         сборка, деплой, проверка артефактов
     нельзя решить, в руке ли контроллер: один щипок навсегда запер бы меню за контроллерами.
     Свидетель — профиль взаимодействия (`XRPositionalTracker.profile`, `input/input_arbiter.gd`).
     `XRHandTracker.hand_tracking_source` на Quest всегда 0 — в решение не входит.
+31. **Видимостью `XRNode3D` с `show_when_tracked` правит движок:** `set_visible(has_tracking_data)` при
+    каждой смене трекинга (`xr_nodes.cpp:466`). Своё «спрятать» на таком узле он перетрёт — прятать
+    держатель под ним. В дымовом прогоне трекинга нет, и ошибка там не видна.
+    Модели шлема: руки — `XR_FB_hand_tracking_mesh`, контроллеры Meta — `XR_FB_render_model`
+    (`OpenXRFbRenderModel` на позе grip), а не `XR_EXT_render_model` ядра (сессия 12: не пришла).
 
 ## Архитектурные правила
 

@@ -31,8 +31,9 @@ func _init(p_settings: Settings) -> void:
 	settings = p_settings
 
 
+## Шаги — основные настройки, относящиеся к способу ввода (у рук нет стика и вибро), и итог.
 func steps() -> Array:
-	return Settings.MAIN + [SUMMARY]
+	return Settings.MAIN.filter(func(id: String): return settings.applies(id)) + [SUMMARY]
 
 
 func current() -> String:
@@ -45,7 +46,8 @@ func note_change() -> void:
 	history.append([current(), "change", settings.get_value(current())])
 
 
-func confirm(save_path: String = Settings.PATH) -> void:
+## save_path пустой — файл способа ввода этих настроек (Settings.path).
+func confirm(save_path: String = "") -> void:
 	if done:
 		return
 	if current() == SUMMARY:
@@ -78,6 +80,8 @@ func back() -> void:
 ## Текст итога: каждая настройка мастера, её значение и как получено.
 func summary_lines() -> PackedStringArray:
 	var out := PackedStringArray()
-	for id in Settings.MAIN:
+	for id in steps():
+		if id == SUMMARY:
+			continue
 		out.append("%s: %s (%s)" % [Settings.SPEC[id]["title"], settings.label(id), outcome.get(id, "не пройдено")])
 	return out

@@ -90,6 +90,15 @@ const ExportRes := preload("res://session/export.gd")
 const LabelTextRes := preload("res://menu/label_text.gd")
 const ScreenshotRes := preload("res://session/screenshot.gd")
 const ChordRes := preload("res://input/chord.gd")
+const ArbiterRes := preload("res://input/input_arbiter.gd")
+const HandPoseRes := preload("res://input/hand_pose.gd")
+const HandGestureRes := preload("res://input/hand_gesture.gd")
+const HandTouchRes := preload("res://input/hand_touch.gd")
+const HandSourceRes := preload("res://input/hand_source.gd")
+const HandFeaturesRes := preload("res://probe_hand_features.gd")
+const SynthHand := preload("res://tests/synth_hand.gd")
+const InputSettingsRes := preload("res://profile/input_settings.gd")
+const WizardRes := preload("res://menu/wizard.gd")
 const ScenarioRes := preload("res://session/scenario.gd")
 
 ## Уровни икосаэдра под проверками поверхностей: там O(n²) поиски, крупные ничего не добавляют.
@@ -117,8 +126,12 @@ const MODEL_CHECKS := ["короткое и удержание", "трекбол
 		"опасное без удержания", "стик", "видимость панели", "вращение рукой", "лицом к шлему устойчиво",
 		"вращение и мир", "сглаживание руки", "встряхивание", "взмах влево", "правка значения", "демонстрации",
 		"корень", "избранное", "плюс", "поиск", "выход", "страницы", "раскладка подписи",
-		"имя скриншота", "место под скриншоты", "оба стика", "сценарий теста"]
-const SHARED_COPIES := ["probe_window.gd", "probe_stats.gd", "probe_report.gd", "probe_budget.gd"]
+		"имя скриншота", "место под скриншоты", "оба стика", "источник ввода", "сценарий теста"]
+## Шаг 1к: руки на синтетических трассах суставов, до шлема.
+const HAND_CHECKS := ["поза руки", "кулак и щипок", "задержка отпускания", "касание кончиком", "протяжка",
+		"арбитр источника", "настройки по вводу"]
+const SHARED_COPIES := ["probe_window.gd", "probe_stats.gd", "probe_report.gd", "probe_budget.gd",
+		"probe_hand_features.gd"]
 
 var r: Report = Report.new()
 var falsify := ""
@@ -143,6 +156,8 @@ func _init() -> void:
 	_copies()
 	_extra()
 	_model()
+	_hands()
+	_input_settings_check()
 
 	var total := r.executed()
 	r.note("")
@@ -164,7 +179,8 @@ func _expected() -> int:
 		+ CATALOG_CHECKS.size() \
 		+ 1 \
 		+ extra_expected() \
-		+ MODEL_CHECKS.size()
+		+ MODEL_CHECKS.size() \
+		+ HAND_CHECKS.size()
 
 
 const SURFACE_CHECKS := ["ячейка под направлением", "шаг вращения", "раздача глобуса",
@@ -1911,6 +1927,42 @@ func _home_checks() -> void:
 	else:
 		r.fail("оба стика: %s, ожидалось %s" % [shots, want_shots])
 
+	# Источник ввода (шаг 1к): выбор живёт до перезапуска — в файл не пишется и из файла, даже
+	# старого, не читается; арбитр подчиняется выбору сразу, «авто» возвращает свидетелей.
+	var is_bad: Array[String] = []
+	var ist := SettingsRes.new()
+	ist.falsify_save_session = falsify == "sessionsave"
+	ist.set_value("input_source", "hands")
+	var is_path := "user://test_input_source.cfg"
+	ist.save(is_path)
+	var is_cf := ConfigFile.new()
+	is_cf.load(is_path)
+	if is_cf.has_section_key("sphere", "input_source"):
+		is_bad.append("выбор записан в файл")
+	is_cf.set_value("sphere", "input_source", "hands")
+	is_cf.save(is_path)
+	var ist2 := SettingsRes.new()
+	ist2.falsify_save_session = ist.falsify_save_session
+	var is_rej: Array = ist2.load_from(is_path)
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(is_path))
+	if ist2.get_value("input_source") != "auto" or not is_rej.is_empty():
+		is_bad.append("после перезапуска «%s», отвергнуто %s" % [ist2.get_value("input_source"), is_rej])
+	if not "input_source" in SettingsRes.ADVANCED:
+		is_bad.append("нет в «Дополнительно»")
+	var arb := ArbiterRes.new()
+	var ctrl_w := {"profile": {"left": "/interaction_profiles/meta/touch_controller_plus", "right": ""},
+			"ctrl_pose": {"left": true}, "ctrl_in": {}, "hand_ok": {"left": true, "right": true}, "hand_src": {}}
+	arb.mode = "hands"
+	var got_manual := arb.feed(0, ctrl_w)
+	arb.mode = "auto"
+	var got_auto := arb.feed(16, ctrl_w)
+	if got_manual != ArbiterRes.HANDS or got_auto != ArbiterRes.CONTROLLERS:
+		is_bad.append("арбитр: руки → %s, авто при контроллере → %s" % [got_manual, got_auto])
+	if is_bad.is_empty():
+		r.pass_("источник ввода: выбор «руки» не пережил перезапуск (и из старого файла не читается), арбитр — сразу руки, «авто» при контроллере — контроллеры")
+	else:
+		r.fail("источник ввода: %s" % "; ".join(is_bad))
+
 	# Сценарий теста: шаги засчитываются своими событиями в любом порядке (сессия 9: строгий порядок
 	# терял сделанное); чужая папка и «Раньше» без «Дальше» шаг не закрывают; B пропускает первый
 	# оставшийся; повторное включение продолжает, а не начинает заново.
@@ -1974,3 +2026,403 @@ static func _do_action(nav: RefCounted, id: String, action: String) -> void:
 		nav.hold(s, null)
 	else:
 		nav.short(s, null)
+
+
+# --- руки (шаг 1к) ---------------------------------------------------------------
+#
+# Рука — tests/synth_hand.gd, общая с дымовым прогоном.
+
+const HAND_DT_US := 11111   # кадр 90 Гц
+
+
+func _synth_hand(ht: XRHandTracker, is_left: bool, wrist: Vector3, fwd: Vector3, up: Vector3,
+		curls: Dictionary, pinch_m: float) -> void:
+	SynthHand.pose(ht, is_left, wrist, fwd, up, curls, pinch_m)
+
+
+func _open_curls(c: float = 0.02) -> Dictionary:
+	return SynthHand.curls(c)
+
+
+## Прогнать трассу кадров через HandGesture. frames — массив [curls, pinch_m, wrist_fwd_angle].
+## Возвращает число фронтов каждого класса и класс последнего кадра.
+func _gesture_trace(g: RefCounted, is_left: bool, frames: Array) -> Dictionary:
+	var ht := XRHandTracker.new()
+	var fronts := {"fist": 0, "pinch": 0}
+	var t := 0
+	for fr in frames:
+		var ang: float = fr[2] if fr.size() > 2 else 0.0
+		var fwd := Vector3.FORWARD.rotated(Vector3.UP, ang)
+		_synth_hand(ht, is_left, Vector3(0, 1, 0), fwd, Vector3.UP.rotated(fwd, ang * 0.5), fr[0], fr[1])
+		var cls: String = g.update(HandFeaturesRes.sample(ht, is_left, Vector3(0, 1.6, 0.4)), t)
+		for k in fronts:
+			if g.entered(k):
+				fronts[k] += 1
+		t += HAND_DT_US
+	fronts["last"] = g.prev
+	return fronts
+
+
+func _repeat(fr: Array, n: int) -> Array:
+	var out := []
+	for _i in n:
+		out.append(fr)
+	return out
+
+
+func _hands() -> void:
+	var OPEN := _open_curls()
+	var FIST := _open_curls(0.62)
+	const FAR := 0.06
+
+	# 1. Поза руки: нормаль ладони наружу из ладони, базис шара ортонормирован, «вперёд» вдоль
+	# пальцев, начало — в ладони. Знак нормали левой — тот, что сверен с рантаймом (прогон 14).
+	HandPoseRes.falsify_mirror = falsify == "handmirror"
+	var pose_bad: Array[String] = []
+	var ht := XRHandTracker.new()
+	for c in [[true, Vector3.UP], [false, Vector3.UP], [true, Vector3.DOWN], [false, Vector3(1, 1, 0)]]:
+		_synth_hand(ht, c[0], Vector3(0, 1, 0), Vector3.FORWARD, c[1], OPEN, FAR)
+		var want: Vector3 = (c[1] as Vector3).normalized()
+		var n: Variant = HandPoseRes.palm_normal(ht, c[0])
+		var ps: Variant = HandPoseRes.pose(ht, c[0])
+		var name := "%s %s" % ["левая" if c[0] else "правая", c[1]]
+		if n == null or (n as Vector3).dot(want) < 0.99:
+			pose_bad.append("%s: нормаль %s" % [name, n])
+			continue
+		var b: Basis = (ps as Transform3D).basis
+		var ortho := absf(b.x.dot(b.y)) < 1e-4 and absf(b.y.dot(b.z)) < 1e-4 and absf(b.determinant() - 1.0) < 1e-4
+		var palm := ht.get_hand_joint_transform(XRHandTracker.HAND_JOINT_PALM).origin
+		if not ortho or b.y.dot(want) < 0.99 or (-b.z).dot(Vector3.FORWARD) < 0.99 \
+				or (ps as Transform3D).origin.distance_to(palm) > 1e-5:
+			pose_bad.append("%s: поза %s" % [name, ps])
+	ht.set_hand_joint_flags(XRHandTracker.HAND_JOINT_INDEX_FINGER_TIP, 0)
+	if HandPoseRes.tip(ht) != null:
+		pose_bad.append("кончик без отслеживания не отброшен")
+	ht.has_tracking_data = false
+	if HandPoseRes.pose(ht, true) != null or not HandPoseRes.ray(ht, true).is_empty():
+		pose_bad.append("поза без данных не отброшена")
+	HandPoseRes.falsify_mirror = false
+	if pose_bad.is_empty():
+		r.pass_("поза руки: нормаль ладони обеих рук вверх и вниз, базис шара ортонормирован, начало в ладони; неотслеженное отброшено")
+	else:
+		r.fail("поза руки: %s" % "; ".join(pose_bad))
+
+	# 2. Кулак и щипок по паспорту: два кулака — два фронта; полусжатая рука (0.30, между
+	# выходом и входом) кулак не начинает, но и не обрывает; щипок при вытянутых остальных —
+	# есть, у свободной руки (остальные согнуты 0.12, прогоны 14–15) гейт его снимает.
+	# Контроль: покой и вращение кистью — ни одного срабатывания.
+	var cls_bad: Array[String] = []
+	var tr := _repeat([OPEN, FAR], 20) + _repeat([FIST, FAR], 20) + _repeat([OPEN, FAR], 20) \
+			+ _repeat([FIST, FAR], 20) + _repeat([_open_curls(0.30), FAR], 20) + _repeat([OPEN, FAR], 20)
+	var got := _gesture_trace(HandGestureRes.new(), true, tr)
+	if got["fist"] != 2 or got["pinch"] != 0:
+		cls_bad.append("два кулака → %s" % got)
+	got = _gesture_trace(HandGestureRes.new(), true, _repeat([OPEN, FAR], 20) + _repeat([_open_curls(0.30), FAR], 30))
+	if got["fist"] != 0:
+		cls_bad.append("полусжатая рука → кулак")
+	got = _gesture_trace(HandGestureRes.new(), true, _repeat([FIST, FAR], 20) + _repeat([_open_curls(0.30), FAR], 30))
+	if got["last"] != "fist":
+		cls_bad.append("полусжатая после кулака оборвала его: %s" % got["last"])
+	var pinch_curls := {"index": 0.10, "middle": 0.03, "ring": 0.04, "pinky": 0.05}
+	var free_curls := {"index": 0.10, "middle": 0.12, "ring": 0.14, "pinky": 0.16}
+	var gp := HandGestureRes.new()
+	gp.falsify_no_gate = falsify == "handgate"
+	got = _gesture_trace(gp, false, _repeat([pinch_curls, FAR], 10) + _repeat([pinch_curls, 0.009], 20)
+			+ _repeat([pinch_curls, FAR], 20))
+	if got["pinch"] != 1 or got["fist"] != 0:
+		cls_bad.append("щипок → %s" % got)
+	var gf := HandGestureRes.new()
+	gf.falsify_no_gate = falsify == "handgate"
+	got = _gesture_trace(gf, false, _repeat([free_curls, FAR], 10) + _repeat([free_curls, 0.005], 30)
+			+ _repeat([free_curls, FAR], 10))
+	if got["pinch"] != 0:
+		cls_bad.append("свободная рука (остальные 0.12) → щипок %d" % got["pinch"])
+	var rest := []
+	for i in 270:
+		rest.append([_open_curls(0.02 + 0.01 * sin(i * 0.3)), FAR, 0.6 * sin(i * 0.05)])
+	got = _gesture_trace(HandGestureRes.new(), true, rest)
+	if got["fist"] != 0 or got["pinch"] != 0:
+		cls_bad.append("покой и вращение кистью → %s" % got)
+	if cls_bad.is_empty():
+		r.pass_("кулак и щипок: два кулака — 2, полусжатая не начинает и не обрывает, щипок — 1, свободную руку гейт снял, покой 3 с — 0")
+	else:
+		r.fail("кулак и щипок: %s" % "; ".join(cls_bad))
+
+	# 3. Задержка отпускания (ловушка 21): выброс на один кадр внутри жеста не рвёт его — прогон 14,
+	# щипок 21 → 35 → 9 мм; настоящее отпускание засчитывается.
+	var rel_bad: Array[String] = []
+	var no_rel := falsify == "handrelease"
+	var gr := HandGestureRes.new()
+	gr.falsify_no_release = no_rel
+	got = _gesture_trace(gr, false, _repeat([pinch_curls, FAR], 5) + _repeat([pinch_curls, 0.009], 10)
+			+ [[pinch_curls, 0.021], [pinch_curls, 0.035], [pinch_curls, 0.009]] + _repeat([pinch_curls, 0.009], 10)
+			+ _repeat([pinch_curls, FAR], 10) + _repeat([pinch_curls, 0.009], 10) + _repeat([pinch_curls, FAR], 10))
+	if got["pinch"] != 2:
+		rel_bad.append("щипок с выбросом 35 мм и второй щипок → %d фронтов, ожидалось 2" % got["pinch"])
+	var gk := HandGestureRes.new()
+	gk.falsify_no_release = no_rel
+	got = _gesture_trace(gk, true, _repeat([OPEN, FAR], 5) + _repeat([FIST, FAR], 15) + [[OPEN, FAR]]
+			+ _repeat([FIST, FAR], 15) + _repeat([OPEN, FAR], 10))
+	if got["fist"] != 1 or got["last"] != "":
+		rel_bad.append("кулак с выбросом на кадр → %s" % got)
+	if rel_bad.is_empty():
+		r.pass_("задержка отпускания: выброс на кадр не рвёт ни щипок, ни кулак; настоящее отпускание засчитано")
+	else:
+		r.fail("задержка отпускания: %s" % "; ".join(rel_bad))
+
+	# 4. Касание кончиком: дрожь у самой поверхности (8…15 мм, через порог входа туда-обратно) —
+	# одно касание; кончик в 4 см с той же дрожью (перенос руки мимо шара) — ни одного. Расстояние
+	# со знаком (сессия 11): тычок сквозь поверхность на 5 см внутрь и обратно — одно касание;
+	# кончик, оказавшийся внутри шара, минуя внешнюю сторону, и дрейфующий к поверхности — ни одного.
+	var R := 0.11
+	var touch_bad: Array[String] = []
+	var tc := HandTouchRes.new()
+	tc.falsify_one_threshold = falsify == "handtouch"
+	var enters := 0
+	var exits := 0
+	for i in 60:
+		var d := 0.05 - 0.002 * i if i < 20 else 0.0115 + 0.0035 * sin(i * 1.7)
+		var ev := tc.update(d, Vector3.BACK, R, 0.02)
+		enters += int(ev == "enter")
+		exits += int(ev == "exit")
+	var last_ev := tc.update(0.05, Vector3.BACK, R, 0.02)
+	exits += int(last_ev == "exit")
+	if enters != 1 or exits != 1:
+		touch_bad.append("дрожь у поверхности → входов %d, выходов %d" % [enters, exits])
+	var tf := HandTouchRes.new()
+	tf.falsify_one_threshold = tc.falsify_one_threshold
+	var far_enters := 0
+	for i in 180:
+		var d := 0.04 + 0.004 * sin(i * 1.3)
+		var dir := Vector3.BACK.rotated(Vector3.UP, 0.02 * i)
+		far_enters += int(tf.update(d, dir, R, 0.02) == "enter")
+	if far_enters != 0:
+		touch_bad.append("кончик в 4 см при переносе руки → %d касаний" % far_enters)
+	var poke_abs := falsify == "handpoke"
+	var tp := HandTouchRes.new()
+	tp.falsify_abs = poke_abs
+	var poke_enters := 0
+	# 78 мс туда-обратно на 90 Гц, как пары касаний сессии 11
+	for d in [0.05, 0.02, 0.005, -0.02, -0.05, -0.02, 0.005, 0.02, 0.05]:
+		poke_enters += int(tp.update(d, Vector3.BACK, R, 0.02) == "enter")
+	if poke_enters != 1:
+		touch_bad.append("сквозной тычок на 5 см → %d касаний" % poke_enters)
+	var ti := HandTouchRes.new()
+	ti.falsify_abs = poke_abs
+	var inside_enters := 0
+	for i in 30:
+		inside_enters += int(ti.update(-0.05 + 0.0015 * i, Vector3.BACK, R, 0.02) == "enter")
+	if inside_enters != 0:
+		touch_bad.append("кончик внутри шара дрейфует к поверхности → %d касаний" % inside_enters)
+	if touch_bad.is_empty():
+		r.pass_("касание кончиком: дрожь 8…15 мм у поверхности — одно касание, кончик в 4 см при переносе — ни одного, сквозной тычок — одно, кончик изнутри — ни одного")
+	else:
+		r.fail("касание кончиком: %s" % "; ".join(touch_bad))
+
+	# 5. Протяжка: тычок с дрожью кончика 3 мм вдоль поверхности — выбор, не протяжка; ход 0.6
+	# ячейки (спорная зона сессии 11) — выбор; ход 5 см — одна протяжка; дрожь туда-обратно по 1 см
+	# (сумма шагов большая, дуга малая) — не протяжка. Порог — DRAG_CELLS ячейки 4.17 см глобуса.
+	var cell_m := 0.0417
+	var drag_m := HandSourceRes.DRAG_CELLS * cell_m
+	var drag_bad: Array[String] = []
+	var no_drag := falsify == "handdrag"
+	var run_touch := func(dirs: Array) -> Dictionary:
+		var t2 := HandTouchRes.new()
+		t2.falsify_no_drag = no_drag
+		var drags := 0
+		t2.update(0.05, dirs[0], R, drag_m)   # подход снаружи: вход только после него
+		for dr in dirs:
+			drags += int(t2.update(0.005, dr, R, drag_m) == "drag")
+		t2.update(0.05, dirs.back(), R, drag_m)
+		return {"drags": drags, "dragging": t2.dragging, "travel": t2.travel}
+	var arc_dir := func(arc_m: float) -> Vector3:
+		return Vector3.BACK.rotated(Vector3.UP, arc_m / R)
+	var tap := []
+	for i in 30:
+		tap.append(arc_dir.call(0.003 * sin(i * 2.1)))
+	var res_tap: Dictionary = run_touch.call(tap)
+	if res_tap["drags"] != 0 or res_tap["dragging"]:
+		drag_bad.append("тычок с дрожью 3 мм → %s" % res_tap)
+	var near := []
+	for i in 21:
+		near.append(arc_dir.call(0.6 * cell_m * i / 20.0))
+	var res_near: Dictionary = run_touch.call(near)
+	if res_near["drags"] != 0:
+		drag_bad.append("ход 0.6 ячейки → %s" % res_near)
+	var slide := []
+	for i in 51:
+		slide.append(arc_dir.call(0.001 * i))
+	var res_slide: Dictionary = run_touch.call(slide)
+	if res_slide["drags"] != 1 or not res_slide["dragging"] or res_slide["travel"] < 0.049:
+		drag_bad.append("ход 5 см → %s" % res_slide)
+	var wiggle := []
+	for i in 60:
+		wiggle.append(arc_dir.call(0.01 * sin(i * 0.8)))
+	var res_wig: Dictionary = run_touch.call(wiggle)
+	if res_wig["drags"] != 0:
+		drag_bad.append("дрожь ±1 см → %s" % res_wig)
+	if drag_bad.is_empty():
+		r.pass_("протяжка: порог %.2f ячейки = %.1f см; тычок с дрожью 3 мм — выбор, ход 0.6 ячейки — выбор, ход 5 см — одна протяжка (путь %.1f см), ±1 см на месте — выбор" % [HandSourceRes.DRAG_CELLS, drag_m * 100.0, res_slide["travel"] * 100.0])
+	else:
+		r.fail("протяжка: %s" % "; ".join(drag_bad))
+
+	# 6. Арбитр источника: профиль — главный свидетель. Щипок при профиле рук приходит курком —
+	# он не должен запереть контроллеры; пролёт профиля через none и мелькание рук на 200 мс
+	# не переключают; контроллер забирает управление сразу; вердикт рантайма в решение не входит.
+	var CTRL := "/interaction_profiles/meta/touch_controller_plus"
+	var HANDP := ArbiterRes.HAND_PROFILE
+	var NONE := ArbiterRes.NONE_PROFILE
+	var mk := func(pl: String, pr: String, pose: bool, inp: bool, hand_ok: bool,
+			src: int = XRHandTracker.HAND_TRACKING_SOURCE_UNKNOWN) -> Dictionary:
+		return {"profile": {"left": pl, "right": pr}, "ctrl_pose": {"left": pose, "right": pose},
+				"ctrl_in": {"left": inp, "right": inp}, "hand_ok": {"left": hand_ok, "right": hand_ok},
+				"hand_src": {"left": src, "right": src}}
+	var new_arb := func() -> RefCounted:
+		var a := ArbiterRes.new()
+		a.falsify_no_hold = falsify == "armswitch"
+		a.falsify_trust_word = falsify == "armword"
+		return a
+	# Прогнать [длительность мс, снимок] шагами по 11 мс; вернуть источник в каждой контрольной точке.
+	var run_arb := func(a: RefCounted, segs: Array) -> Array:
+		var t := 0
+		var marks := []
+		for sg in segs:
+			var end: int = t + int(sg[0])
+			while t < end:
+				a.feed(t, sg[1])
+				t += 11
+			marks.append(a.current)
+		return marks
+	var arb_bad: Array[String] = []
+	var a1: RefCounted = new_arb.call()
+	var m1: Array = run_arb.call(a1, [[300, mk.call(HANDP, HANDP, true, true, true)],
+			[300, mk.call(HANDP, HANDP, true, true, true)], [2000, mk.call(HANDP, HANDP, true, true, true)]])
+	if m1 != [ArbiterRes.CONTROLLERS, ArbiterRes.HANDS, ArbiterRes.HANDS]:
+		arb_bad.append("профиль рук со щипком-курком → %s" % [m1])
+	var m2: Array = run_arb.call(a1, [[11, mk.call(CTRL, CTRL, true, false, true)]])
+	if m2 != [ArbiterRes.CONTROLLERS]:
+		arb_bad.append("контроллер взят — не сразу: %s" % [m2])
+	var a3: RefCounted = new_arb.call()
+	var m3: Array = run_arb.call(a3, [[500, mk.call(CTRL, CTRL, true, false, true)],
+			[200, mk.call(NONE, HANDP, false, false, true)], [500, mk.call(CTRL, CTRL, true, false, true)]])
+	if m3 != [ArbiterRes.CONTROLLERS, ArbiterRes.CONTROLLERS, ArbiterRes.CONTROLLERS]:
+		arb_bad.append("мелькание рук 200 мс → %s" % [m3])
+	var a4: RefCounted = new_arb.call()
+	var m4: Array = run_arb.call(a4, [[500, mk.call(CTRL, CTRL, true, false, true)],
+			[100, mk.call(NONE, NONE, false, false, true)], [600, mk.call(HANDP, HANDP, true, false, true)]])
+	if m4 != [ArbiterRes.CONTROLLERS, ArbiterRes.CONTROLLERS, ArbiterRes.HANDS]:
+		arb_bad.append("контроллеры отложены через none → %s" % [m4])
+	var a5: RefCounted = new_arb.call()
+	var m5: Array = run_arb.call(a5, [[500, mk.call(CTRL, HANDP, true, false, true)]])
+	if m5 != [ArbiterRes.CONTROLLERS]:
+		arb_bad.append("контроллер в одной руке → %s" % [m5])
+	var a6: RefCounted = new_arb.call()
+	var m6: Array = run_arb.call(a6, [[500, mk.call("", "", true, false, false)],
+			[600, mk.call("", "", false, true, true)]])
+	if m6 != [ArbiterRes.CONTROLLERS, ArbiterRes.HANDS]:
+		arb_bad.append("профиль молчит, судит доставка → %s" % [m6])
+	var a7: RefCounted = new_arb.call()
+	var m7: Array = run_arb.call(a7, [[600, mk.call(HANDP, HANDP, true, false, true)],
+			[500, mk.call(HANDP, HANDP, true, false, true, XRHandTracker.HAND_TRACKING_SOURCE_CONTROLLER)]])
+	if m7 != [ArbiterRes.HANDS, ArbiterRes.HANDS] or a7.conflicts == 0:
+		arb_bad.append("вердикт рантайма «контроллер» против профиля рук → %s, расхождений %d" % [m7, a7.conflicts])
+	if arb_bad.is_empty():
+		r.pass_("арбитр источника: щипок-курок не запирает, контроллер — сразу, мелькание 200 мс и пролёт через none — без дребезга, одна рука с контроллером — контроллеры, без профиля — по доставке, вердикт рантайма только считается (%d)" % a7.conflicts)
+	else:
+		r.fail("арбитр источника: %s" % "; ".join(arb_bad))
+
+
+# --- настройки по способу ввода (ADR-0010) ------------------------------------------
+
+func _cfg_value(path: String, key: String) -> Variant:
+	var cf := ConfigFile.new()
+	if cf.load(path) != OK:
+		return null
+	return cf.get_value("sphere", key, null)
+
+
+func _rm_dir(dir: String) -> void:
+	var abs := ProjectSettings.globalize_path(dir)
+	var d := DirAccess.open(abs)
+	if d == null:
+		return
+	for f in d.get_files():
+		d.remove(f)
+	DirAccess.remove_absolute(abs)
+
+
+## Руки при первом переключении — копия контроллеров; дальше у каждого своё, в своём файле, и
+## после перезапуска руки читаются из файла, а не копируются заново. Общая настройка переходит
+## при смене ввода. Стик и вибро рук не касаются. Файл до профилей переносится в контроллеры.
+func _input_settings_check() -> void:
+	var dir := "user://test_input_settings"
+	_rm_dir(dir)
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(dir))
+	var bad: Array[String] = []
+	var st := SettingsRes.new()
+	var ins := InputSettingsRes.new(st, dir)
+	ins.falsify_shared = falsify == "inputshare"
+	ins.falsify_no_copy = falsify == "nocopy"
+	ins.falsify_common_split = falsify == "commonsplit"
+	ins.load_current()
+	st.set_value("radius_cm", 10.0)
+	st.save()
+	ins.switch("hands")
+	if float(st.get_value("radius_cm")) != 10.0:
+		bad.append("руки при первом переключении: радиус %s, а у контроллеров 10" % st.get_value("radius_cm"))
+	st.set_value("radius_cm", 15.0)
+	st.save()
+	ins.switch("controllers")
+	var back_ctrl := float(st.get_value("radius_cm"))
+	ins.switch("hands")
+	var back_hands := float(st.get_value("radius_cm"))
+	if back_ctrl != 10.0 or back_hands != 15.0:
+		bad.append("после правки рук: контроллеры %s (ждали 10), руки %s (ждали 15)" % [back_ctrl, back_hands])
+	var f_ctrl: Variant = _cfg_value(ins.path_for("controllers"), "radius_cm")
+	var f_hands: Variant = _cfg_value(ins.path_for("hands"), "radius_cm")
+	if f_ctrl != 10.0 or f_hands != 15.0:
+		bad.append("файлы: контроллеры %s, руки %s" % [f_ctrl, f_hands])
+	# Перезапуск: новый объект, руки читаются из файла.
+	var st2 := SettingsRes.new()
+	var ins2 := InputSettingsRes.new(st2, dir)
+	ins2.falsify_shared = ins.falsify_shared
+	ins2.falsify_no_copy = ins.falsify_no_copy
+	ins2.falsify_common_split = ins.falsify_common_split
+	ins2.load_current()
+	var r_ctrl := float(st2.get_value("radius_cm"))
+	ins2.switch("hands")
+	if r_ctrl != 10.0 or float(st2.get_value("radius_cm")) != 15.0:
+		bad.append("после перезапуска: контроллеры %s, руки %s" % [r_ctrl, st2.get_value("radius_cm")])
+	# Общая настройка (переопределённая область): правка у рук видна у контроллеров.
+	st2.scope_override = {"surface": "user"}
+	st2.set_value("surface", "lens")
+	st2.save()
+	ins2.switch("controllers")
+	var common_file: Variant = _cfg_value(ins2.common_path(), "surface")
+	if st2.get_value("surface") != "lens" or common_file != "lens":
+		bad.append("общая «поверхность»: у контроллеров %s, в общем файле %s" % [st2.get_value("surface"), common_file])
+	# Стик и вибро рук не касаются — ни в папке, ни в мастере.
+	ins2.switch("hands")
+	var wz = WizardRes.new(st2)
+	if st2.applies("stick_speed") or st2.applies("haptics") or "stick_speed" in wz.steps() or "haptics" in wz.steps():
+		bad.append("у рук видны стик или вибро: шаги мастера %s" % [wz.steps()])
+	# Файл до профилей становится набором контроллеров и переименовывается.
+	var dir3 := "user://test_input_settings_legacy"
+	_rm_dir(dir3)
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(dir3))
+	var legacy := dir3.path_join("sphere_settings.cfg")
+	var lc := ConfigFile.new()
+	lc.set_value("sphere", "radius_cm", 12.0)
+	lc.save(legacy)
+	var st3 := SettingsRes.new()
+	var ins3 := InputSettingsRes.new(st3, dir3)
+	var moved := ins3.migrate_legacy(legacy)
+	if not moved or _cfg_value(ins3.path_for("controllers"), "radius_cm") != 12.0 \
+			or FileAccess.file_exists(legacy) or not FileAccess.file_exists(legacy + ".migrated"):
+		bad.append("перенос файла до профилей: %s, контроллеры %s" % [moved, _cfg_value(ins3.path_for("controllers"), "radius_cm")])
+	_rm_dir(dir)
+	_rm_dir(dir3)
+	if bad.is_empty():
+		r.pass_("настройки по вводу: руки начались копией контроллеров и разошлись (10 / 15), каждый в своём файле и после перезапуска, общая настройка переходит, у рук нет стика и вибро, файл до профилей перенесён")
+	else:
+		r.fail("настройки по вводу: %s" % "; ".join(bad))

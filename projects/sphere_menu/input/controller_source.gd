@@ -40,6 +40,8 @@ var panel: UiPanel
 var session: Node
 var ray: MeshInstance3D
 var tasks_on := false
+## Пока false, источник ничего не делает: ведут руки (input/input_arbiter.gd).
+var enabled := true
 
 var _prev := {}
 var _chord: Chord = Chord.new()
@@ -74,12 +76,28 @@ func _pressed_edge(ctrl: XRController3D, action: String) -> bool:
 	return now and not was
 
 
+## Отдать управление рукам: начатое бросается без события. Отпустить курок через press_key
+## нельзя — отпускание само даёт короткий выбор (menu/press.gd).
+func release() -> void:
+	enabled = false
+	if menu != null:
+		menu.press_abort("left")
+		menu.press_abort("right")
+		menu.grab.end()
+		menu.hover_key = null
+	if panel != null and panel.pointer_held():
+		panel.pointer_update(null, false)
+	if ray != null:
+		ray.visible = false
+	_prev.clear()
+
+
 func tip_position() -> Vector3:
 	return right.global_position - right.global_basis.z.normalized() * TIP
 
 
 func _process(delta: float) -> void:
-	if left == null or right == null or menu == null:
+	if not enabled or left == null or right == null or menu == null:
 		return
 	var now := Time.get_ticks_msec()
 

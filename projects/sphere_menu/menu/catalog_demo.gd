@@ -113,6 +113,21 @@ func _init() -> void:
 		_add("settings", so)
 
 
+## Папка настроек — по способу ввода этих значений (profile/input_settings.gd): в заголовке видно,
+## чей набор правится, а настройки, к вводу не относящиеся (у рук — стик и вибро), скрыты.
+## Пункты остаются в items — при возврате ввода они встают на прежние места.
+func apply_input(st: Settings) -> void:
+	var hands := st.input == "hands"
+	var folder: Item = items["settings_sphere"]
+	folder.title = "Шар-меню — руки" if hands else "Шар-меню — контроллеры"
+	folder.short = "Шар·руки" if hands else "Шар·контр."
+	var main: Array = Settings.MAIN.filter(func(sid: String): return st.applies(sid)) \
+			.map(func(sid: String): return "set_" + sid)
+	children_of["settings_sphere"] = main + ["settings_sphere_adv", "set_wizard"]
+	children_of["settings_sphere_adv"] = Settings.ADVANCED.filter(func(sid: String): return st.applies(sid)) \
+			.map(func(sid: String): return "set_" + sid)
+
+
 func _setting_item(parent: String, sid: String) -> void:
 	var it: Item = Item.make("set_" + sid, Settings.SPEC[sid]["title"], K.OPTION, P.STAY)
 	it.setting = sid

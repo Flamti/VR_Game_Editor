@@ -1,0 +1,2 @@
+--------- beginning of main
+09-19 16:00:35.789  8889  8931 I godot   : выход: выгрузка /storage/emulated/0/Download/VRGE/2026-09-19_16-00-35 — записано ["sphere_session.tsv", "sphere_settings.cfg", "favorites.cfg", "selfcheck.txt"], отказ []

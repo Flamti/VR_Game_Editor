@@ -27,7 +27,20 @@ extends SceneTree
 ##   --falsify=enterclose  «Готово» системной клавиатуры закрывает поиск, как в сессии 7, —
 ##                         краснеет только «системная клавиатура»;
 ##   --falsify=found       строка «найдено» молчит, как до сессии 10, — краснеет только
-##                         «строка найденного».
+##                         «строка найденного»;
+##   --falsify=handspace   суставы рук берутся как мировые, мимо XROrigin3D, — краснеет только
+##                         «руки: кулак и касание» (касание не находит шар);
+##   --falsify=dragselect  протяжка не отменяет выбор — краснеет только «руки: протяжка и перенос»;
+##   --falsify=nocolumns   в строке журнала нет ввода и профиля, как в сессии 11, — краснеет только
+##                         «журнал»;
+##   --falsify=earlyinput  источник берёт меню до конца самопроверки, как в сессии 11, — краснеет
+##                         только «ввод после самопроверки»;
+##   --falsify=meshstays   силуэт рук не прячется при взятых контроллерах, как в сессии 11, —
+##                         краснеет только «видно того, кто ведёт»;
+##   --falsify=noswitch    смена источника не меняет набор настроек — краснеет только «настройки
+##                         того, кто ведёт»;
+##   --falsify=handoff     отдача управления не бросает начатое касание — краснеет только
+##                         «руки: отдача управления» (контроллер отпускает курок — выбор).
 ## Пол — по числу исполненных шагов; ошибки выполнения печатаются движком, их
 ## ищет вызывающий по «SCRIPT ERROR».
 
@@ -39,12 +52,19 @@ const Journal := preload("res://session/journal.gd")
 const SettingsRes := preload("res://menu/settings.gd")
 const Surface := preload("res://menu/surface.gd")
 const Wizard := preload("res://menu/wizard.gd")
+const Hands := preload("res://input/hand_source.gd")
+const Router := preload("res://input/input_router.gd")
+const Arbiter := preload("res://input/input_arbiter.gd")
+const InputSettings := preload("res://profile/input_settings.gd")
+const SynthHand := preload("res://tests/synth_hand.gd")
 
 const STEPS := ["открыть", "войти коротким", "действия удержанием", "копировать", "вставить",
 		"удалить удержанием", "отменить", "линза и захват", "панель и атлас", "мастер",
 		"вращение рукой", "правка открыта", "ползунок лучом", "клавиатура лучом", "демонстрация доводки", "журнал", "назад на корне", "замок панели",
 		"поиск на панели", "системная клавиатура", "строка найденного", "плюс", "прокрутка панели", "прокрутка правки", "раскладка панели",
-		"панель по делу", "страницы", "подписи большой папки", "жест возврата", "встряхивание", "раскладки", "выход удержанием"]
+		"панель по делу", "страницы", "подписи большой папки", "жест возврата", "встряхивание",
+		"руки: кулак и касание", "руки: протяжка и перенос", "руки: отдача управления",
+		"ввод после самопроверки", "видно того, кто ведёт", "настройки того, кто ведёт", "раскладки", "выход удержанием"]
 
 var r: Report = Report.new()
 ## Фальсификатор дымового прогона: --falsify=scroll снимает ограничение хода прокрутки.
@@ -110,6 +130,8 @@ func _initialize() -> void:
 		[285, _scroll_prep], [288, _scroll_read], [291, _scroll_check],
 		[293, _edit_scroll_open], [296, _edit_scroll_move], [299, _edit_scroll_check],
 		[301, _panel_layout_open], [304, _panel_layout], [307, _panel_show], [307, _pages], [307, _big_folder_labels], [306, _gesture_choice], [308, _shake_root],
+		[309, _hands_fist_touch], [309, _hands_drag], [309, _hands_handoff],
+		[309, _router_ready], [309, _router_visuals], [309, _router_settings], [309, _router_done],
 		[310, _layouts], [314, _exit_hold], [320, _finish],
 	]
 
@@ -406,12 +428,21 @@ func _demo_check() -> void:
 
 ## Строка журнала несёт параметры живого меню: колонки не пустые и по числу совпадают.
 func _journal() -> void:
+	# Ввод и профиль — в каждой строке (сессия 11: источник восстанавливали по строкам «источник»).
+	Journal.falsify_old_keys = falsify == "nocolumns"
+	var was := [menu.input_source, menu.profile_id]
+	menu.input_source = "hands"
+	menu.profile_id = "p_test"
 	var line := Journal.row("проверка", menu.params(), "", "", -1, "x")
+	menu.input_source = was[0]
+	menu.profile_id = was[1]
+	Journal.falsify_old_keys = false
 	var cells := line.split("\t")
 	var radius_col := Journal.COLUMNS.find("радиус_см")
 	if cells.size() == Journal.COLUMNS.size() and cells[radius_col] == str(menu.settings.get_value("radius_cm")) \
-			and cells[Journal.COLUMNS.find("поверхность")] != "":
-		r.pass_("журнал: %d колонок, радиус %s, поверхность %s" % [cells.size(), cells[radius_col], cells[2]])
+			and cells[Journal.COLUMNS.find("поверхность")] != "" and cells[Journal.COLUMNS.find("ввод")] == "hands" \
+			and cells[Journal.COLUMNS.find("профиль")] == "p_test":
+		r.pass_("журнал: %d колонок, радиус %s, поверхность %s, ввод и профиль в строке" % [cells.size(), cells[radius_col], cells[2]])
 	else:
 		r.fail("журнал: колонок %d из %d, строка «%s»" % [cells.size(), Journal.COLUMNS.size(), line])
 
@@ -1026,6 +1057,312 @@ func _shake_trace(head: Vector3, seconds: float, amp: float, freq: float, carry:
 		if menu.nav.state.folder() != before:
 			fired = true
 	return fired
+
+
+# --- руки (шаг 1к) ---------------------------------------------------------------
+#
+# Источник рук целиком — input/hand_source.gd над настоящим меню; вместо трекеров шлема —
+# синтетические (tests/synth_hand.gd). Трекер повёрнут и сдвинут относительно мира, как
+# XROrigin3D на шлеме: суставы приходят в его пространстве, и перевод в мир проверяется.
+
+var hands: Hands
+var _lt := XRHandTracker.new()
+var _rt := XRHandTracker.new()
+var _oxf := Transform3D(Basis(Vector3.UP, 0.4), Vector3(0.3, 0.0, -0.2))
+var _hand_us := 0
+var _gest: Array = []
+## Левая рука ладонью вверх, пальцы вперёд, в мире.
+var _left_wrist := Vector3.ZERO
+
+
+func _hands_ready() -> void:
+	if hands != null:
+		return
+	var root3d := head.get_parent()
+	hands = Hands.new()
+	root3d.add_child(hands)
+	hands.setup(root3d, menu, root3d)
+	# step() кормится вручную: _process источника молчит, пока enabled = false.
+	hands.enabled = false
+	hands.falsify_drag_selects = falsify == "dragselect"
+	hands.falsify_keep_on_release = falsify == "handoff"
+	hands.gesture.connect(func(n: String, d: Dictionary): _gest.append([n, d]))
+	menu.hand = hands.anchor
+	menu.hand_offset = Vector3(0, 0.06, -0.1)
+	menu.settings.values["hand_rotation"] = "ball"
+	menu.settings.values["hand_smoothing"] = 0.0
+	menu.apply_settings()
+	_left_wrist = head.global_position + Vector3(0, -0.45, -0.25)
+	_hand_us = _t * 1000
+
+
+func _set_left(curl: float) -> void:
+	var inv := _oxf.affine_inverse()
+	SynthHand.pose(_lt, true, inv * _left_wrist, inv.basis * Vector3.FORWARD, inv.basis * Vector3.UP,
+			SynthHand.curls(curl))
+
+
+## Кончик правого указательного — в точку мира, палец смотрит в центр шара.
+func _set_right_tip(world_tip: Vector3) -> void:
+	var inv := _oxf.affine_inverse()
+	var fwd := (menu.global_position - world_tip).normalized()
+	var up := Vector3.UP if absf(fwd.y) < 0.9 else Vector3.BACK
+	SynthHand.point_at(_rt, inv * world_tip, inv.basis * fwd, inv.basis * up)
+
+
+## Точка на расстоянии off от поверхности шара над ячейкой key, в мире.
+## Ключа нет (шаг раньше не вошёл в папку) — точка далеко от шара: касания не будет, шаг
+## краснеет своим отказом, а не ошибкой выполнения.
+func _over(key: Variant, off: float) -> Vector3:
+	if key == null:
+		return menu.global_position + Vector3(0.5, 0, 0)
+	return menu.global_transform * (menu.surface().direction_of(key) * (menu.radius() + off))
+
+
+func _hand_frame() -> void:
+	hands.step(_lt, _rt, _oxf, head.global_transform, _hand_us, 1.0 / 90.0)
+	menu._process(1.0 / 90.0)
+	_hand_us += 11111
+	_t = _hand_us / 1000
+
+
+## Тычок кончиком в ячейку: подход с 5 см, 4 кадра на поверхности, отход.
+func _hand_poke(key: Variant) -> void:
+	for off in [0.05, 0.04, 0.03, 0.02, 0.01, 0.004, 0.003, 0.003, 0.004, 0.01, 0.02, 0.04, 0.05]:
+		_set_right_tip(_over(key, off))
+		_hand_frame()
+
+
+func _gest_count(name: String) -> int:
+	return _gest.filter(func(g: Array): return g[0] == name).size()
+
+
+## Кулак левой открывает шар; касаниями правой — «Файлы» → «Ассеты».
+func _hands_fist_touch() -> void:
+	_hands_ready()
+	_gest.clear()
+	# Перевод из пространства трекера — механика всех трёх шагов; фальсификатор бьёт только здесь.
+	hands.falsify_world_space = falsify == "handspace"
+	menu.close()
+	_set_right_tip(_left_wrist + Vector3(0.3, 0, 0))
+	for c in [0.02, 0.62, 0.02]:
+		_set_left(c)
+		for _i in 10:
+			_hand_frame()
+	var opened := menu.is_open()
+	_hand_poke(_key_of(_slot_of("files")))
+	var after_files := menu.nav.state.folder()
+	_hand_poke(_key_of(_slot_of("assets")))
+	var folder := menu.nav.state.folder()
+	if opened and _gest_count("fist") == 1 and after_files == "files" and folder == "assets" \
+			and _gest_count("touch") == 2 and _gest_count("drag") == 0:
+		r.pass_("руки: кулак открыл шар, касания вошли в «Файлы» → «Ассеты» (трекер повёрнут и сдвинут от мира)")
+	else:
+		r.fail("руки: открыт %s, после «Файлов» «%s», итог «%s», жесты %s" % [opened, after_files, folder, _gest])
+	hands.falsify_world_space = false
+
+
+## Протяжка 5 см по поверхности, начатая на «Файлах», вращает шар и не выбирает (коротким
+## «Файлы» открылись бы — так отказ виден, в отличие от пустой ячейки); кончик в 4 см от шара, пока его
+## несут вместе с рукой, — ни одного касания.
+func _hands_drag() -> void:
+	_hands_ready()
+	_gest.clear()
+	_to_root_open()
+	_set_left(0.02)
+	for _i in 3:
+		_hand_frame()
+	var folder := menu.nav.state.folder()
+	var key: Variant = _key_of(_slot_of("files"))
+	var basis0: Basis = menu.surface().render_basis()
+	var local0: Vector3 = menu.surface().direction_of(key)
+	var axis: Vector3 = local0.cross(Vector3.UP).normalized()
+	var arc := 0.05 / menu.radius()
+	for off in [0.05, 0.03, 0.01, 0.004]:
+		_set_right_tip(menu.global_transform * (local0 * (menu.radius() + off)))
+		_hand_frame()
+	# Палец ведёт по неподвижным мировым точкам: шар поворачивается под ним.
+	var start_world: Vector3 = menu.global_transform.basis * local0
+	for i in 25:
+		var d: Vector3 = start_world.rotated(axis, arc * float(i + 1) / 25.0)
+		_set_right_tip(menu.global_position + d * (menu.radius() + 0.004))
+		_hand_frame()
+	var last_world: Vector3 = start_world.rotated(axis, arc)
+	_set_right_tip(menu.global_position + last_world * (menu.radius() + 0.05))
+	_hand_frame()
+	var turned: float = menu.surface().render_basis().get_rotation_quaternion().angle_to(basis0.get_rotation_quaternion())
+	var dragged := _gest_count("drag")
+	var selected := menu.nav.state.folder() != folder or _gest_count("touch") > 0
+	# Перенос: шар несут на 15 см, правая рука идёт рядом в 4 см от поверхности с дрожью 3 мм.
+	var touches_before := _gest.size()
+	var wrist0 := _left_wrist
+	for i in 90:
+		_left_wrist = wrist0 + Vector3(0.15 * i / 90.0, 0.03 * sin(i * 0.1), 0)
+		_set_left(0.02)
+		var d := (head.global_position - menu.global_position).normalized()
+		_set_right_tip(menu.global_position + d * (menu.radius() + 0.04 + 0.003 * sin(i * 1.7)))
+		_hand_frame()
+	_left_wrist = wrist0
+	var carry_touches := _gest.size() - touches_before
+	if dragged == 1 and not selected and turned > 0.2 and carry_touches == 0 and menu.nav.state.folder() == folder:
+		r.pass_("руки: протяжка 5 см повернула шар на %.2f рад без выбора; перенос с кончиком в 4 см — ни одного касания" % turned)
+	else:
+		r.fail("руки: протяжек %d, выбор %s, поворот %.2f рад, касаний при переносе %d, жесты %s" % [
+				dragged, selected, turned, carry_touches, _gest])
+
+
+## Управление забирают посреди касания: начатое бросается без события. Контроллер после
+## этого отпускает курок каждый кадр (controller_source.gd) — выбора быть не должно.
+func _hands_handoff() -> void:
+	_hands_ready()
+	_gest.clear()
+	_to_root_open()
+	_set_left(0.02)
+	var key: Variant = _key_of(_slot_of("files"))
+	for off in [0.05, 0.02, 0.004, 0.003, 0.003]:
+		_set_right_tip(_over(key, off))
+		_hand_frame()
+	var was_down := menu.press_right.is_down()
+	hands.release()
+	for _i in 5:
+		menu.press_key(null, false, _t)
+		_t += 11
+	var folder := menu.nav.state.folder()
+	var clean := not menu.press_right.is_down() and not hands.touch.inside
+	menu.hand = null
+	if was_down and folder == "" and clean:
+		r.pass_("руки: отдача посреди касания — нажатие брошено, контроллер отпустил курок без выбора")
+	else:
+		r.fail("руки: нажатие было %s, папка после отдачи «%s», чисто %s" % [was_down, folder, clean])
+
+
+# --- роутер ввода (input/input_router.gd) ------------------------------------------
+#
+# Свидетели — синтетические, как в настольной проверке арбитра: роутер не спрашивает XRServer.
+
+var router: Router
+var _rt_ms := 0
+
+
+func _witness(profile: String, pose: bool, hand_ok: bool) -> Dictionary:
+	return {"profile": {"left": profile, "right": profile}, "ctrl_pose": {"left": pose, "right": pose},
+			"ctrl_in": {}, "hand_ok": {"left": hand_ok, "right": hand_ok}, "hand_src": {}}
+
+
+## Кормить роутер свидетелем ms миллисекунд шагами по 11 мс.
+func _router_feed(w: Dictionary, ms: int) -> void:
+	var end := _rt_ms + ms
+	while _rt_ms < end:
+		router.feed(_rt_ms, w)
+		_rt_ms += 11
+
+
+func _router_make() -> void:
+	if router != null:
+		return
+	var root3d := head.get_parent()
+	var l := XRController3D.new()
+	l.tracker = &"left_hand"
+	root3d.add_child(l)
+	var rr := XRController3D.new()
+	rr.tracker = &"right_hand"
+	root3d.add_child(rr)
+	router = Router.new()
+	router.auto_observe = false
+	router.falsify_ignore_ready = falsify == "earlyinput"
+	root3d.add_child(router)
+	router.setup(root3d, l, rr, menu, menu.panel, root3d)
+	router.hand_view.falsify_mesh_stays = falsify == "meshstays"
+
+
+## До готовности (идёт самопроверка) арбитр видит руки, их видно, но ни один источник меню не
+## трогает; после готовности управление получают руки.
+func _router_ready() -> void:
+	_router_make()
+	_router_feed(_witness(Arbiter.HAND_PROFILE, true, true), 600)
+	var before := [router.current(), router.hands.enabled, router.controllers.enabled, router.hand_view.active]
+	router.set_ready()
+	var after := [router.hands.enabled, router.controllers.enabled, menu.hand == router.hands.anchor]
+	if before == [Arbiter.HANDS, false, false, true] and after == [true, false, true]:
+		r.pass_("ввод после самопроверки: до готовности руки видны, но меню не трогают; после — ведут руки, шар на их якоре")
+	else:
+		r.fail("ввод после самопроверки: до готовности [источник, руки, контроллеры, руки видны] = %s, после [руки, контроллеры, шар на якоре] = %s" % [before, after])
+
+
+## Взяли контроллеры — суставы и силуэт рук пропадают, модели контроллеров появляются; модель
+## рантайма не пришла за FALLBACK_MS — запасная. Положили — наоборот.
+func _router_visuals() -> void:
+	_router_make()
+	var bad: Array[String] = []
+	_router_feed(_witness("/interaction_profiles/oculus/touch_controller", true, false), 22)
+	if router.current() != Arbiter.CONTROLLERS:
+		bad.append("источник %s" % router.current())
+	if router.hand_view.anything_visible():
+		bad.append("при контроллерах видно руки (силуэтов %d)" % router.hand_view.meshes.size())
+	if router.controller_view.manager != null and not router.controller_view.manager.visible:
+		bad.append("менеджер моделей скрыт")
+	var kind := router.controller_view.update(Time.get_ticks_msec() + router.controller_view.FALLBACK_MS + 1)
+	if kind != "запасные" or not router.controller_view.anything_visible():
+		bad.append("без модели рантайма: «%s», видно %s" % [kind, router.controller_view.anything_visible()])
+	_router_feed(_witness(Arbiter.HAND_PROFILE, true, true), 600)
+	if router.controller_view.anything_visible() or not router.hand_view.anything_visible():
+		bad.append("руки снова: контроллеры видны %s, руки видны %s" % [router.controller_view.anything_visible(),
+				router.hand_view.anything_visible()])
+	if bad.is_empty():
+		r.pass_("видно того, кто ведёт: контроллеры — руки спрятаны (силуэтов %d), модель запасная через %d мс; руки — наоборот" % [
+				router.hand_view.meshes.size(), router.controller_view.FALLBACK_MS])
+	else:
+		r.fail("видно того, кто ведёт: %s" % "; ".join(bad))
+
+
+## Смена источника через роутер меняет набор настроек настоящего меню: радиус шара, заголовок папки
+## настроек, стик в ней. Наборы — во временном каталоге; настройки прогона потом возвращаются.
+func _router_settings() -> void:
+	_router_make()
+	var dir := "user://smoke_input_settings"
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(dir))
+	var saved := [menu.settings.values.duplicate(), menu.settings.path, menu.settings.common_path, menu.settings.input]
+	for pair in [["controllers", 9.0], ["hands", 16.0]]:
+		var cf := ConfigFile.new()
+		cf.set_value("sphere", "radius_cm", pair[1])
+		cf.save(dir.path_join("settings_%s.cfg" % pair[0]))
+	var ins := InputSettings.new(menu.settings, dir)
+	ins.current = router.current()
+	ins.load_current()
+	menu.apply_settings()
+	router.input_settings = ins
+	router.falsify_no_switch = falsify == "noswitch"
+	_to_root_open()
+	var got := {}
+	for step in [["/interaction_profiles/oculus/touch_controller", false, "контроллеры"],
+			[Arbiter.HAND_PROFILE, true, "руки"]]:
+		_router_feed(_witness(step[0], true, step[1]), 600)
+		var folder = menu.catalog.items["settings_sphere"]
+		got[step[2]] = [snappedf(menu.radius() * 100.0, 0.1), folder.title,
+				"set_stick_speed" in (menu.catalog.children_of["settings_sphere"] as Array)]
+	router.input_settings = null
+	menu.settings.values = saved[0]
+	menu.settings.path = saved[1]
+	menu.settings.common_path = saved[2]
+	menu.settings.input = saved[3]
+	menu.apply_settings()
+	menu.catalog.apply_input(menu.settings)
+	for f in ["settings_controllers.cfg", "settings_hands.cfg", "settings_common.cfg"]:
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(dir.path_join(f)))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(dir))
+	var want := {"контроллеры": [9.0, "Шар-меню — контроллеры", true], "руки": [16.0, "Шар-меню — руки", false]}
+	if got == want:
+		r.pass_("настройки того, кто ведёт: контроллеры — шар 9 см, руки — 16 см, папка настроек по вводу, стик только у контроллеров")
+	else:
+		r.fail("настройки того, кто ведёт: %s, ожидалось %s" % [got, want])
+
+
+## Роутер больше не нужен: его источники не должны трогать меню в следующих шагах.
+func _router_done() -> void:
+	router.hands.release()
+	router.controllers.release()
+	router.set_process(false)
+	menu.hand = null
 
 
 ## «Выход»: короткое не выходит, удержание до конца кольца — сигнал выхода.

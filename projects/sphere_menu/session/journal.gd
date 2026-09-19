@@ -10,9 +10,14 @@ const PATH := "user://sphere_session.tsv"
 ## Параметры берутся из menu.params() по тем же ключам, что в Settings.SPEC. Первая
 ## версия читала «strategy/radius/alpha», которых меню не отдаёт: в журнале сессии 1
 ## (2026-09-15) колонки стратегии и радиуса пусты во всех строках.
-const PARAM_KEYS := ["surface", "radius_cm", "cell_cm", "actual_cell_cm", "freq", "hand_rotation"]
+## Ввод и профиль — с 2026-09-19: в сессии 11 источник ввода пришлось восстанавливать по строкам
+## «источник», потому что в строки событий он не попадал.
+const PARAM_KEYS := ["surface", "radius_cm", "cell_cm", "actual_cell_cm", "freq", "hand_rotation", "input", "profile"]
 const COLUMNS := ["unix_время", "событие", "поверхность", "радиус_см", "ячейка_см", "ячейка_факт_см",
-		"уровень_глобуса", "вращение_рукой", "папка", "задание", "попадание", "мс_от_задания", "подробности"]
+		"уровень_глобуса", "вращение_рукой", "ввод", "профиль", "папка", "задание", "попадание", "мс_от_задания",
+		"подробности"]
+## Фальсификатор «nocolumns»: ключи до 2026-09-19 — ввода и профиля в строке нет.
+static var falsify_old_keys := false
 
 var _f: FileAccess
 var rows := 0
@@ -36,7 +41,7 @@ static func row(event: String, params: Dictionary, task: String = "", hit: Strin
 		ms_since_task: int = -1, detail: String = "") -> String:
 	var cells := PackedStringArray(["%.3f" % Time.get_unix_time_from_system(), event])
 	for k in PARAM_KEYS:
-		cells.append(str(params.get(k, "")))
+		cells.append("" if falsify_old_keys and k in ["input", "profile"] else str(params.get(k, "")))
 	cells.append_array([str(params.get("folder", "")), task, hit,
 			str(ms_since_task) if ms_since_task >= 0 else "", detail.replace("\t", " ")])
 	return "\t".join(cells)

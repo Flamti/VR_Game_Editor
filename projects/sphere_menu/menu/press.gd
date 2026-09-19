@@ -55,6 +55,14 @@ func update(pressed: bool, now_ms: int) -> String:
 	return "cancel" if _confirming else "short"
 
 
+## Бросить начатое нажатие БЕЗ события: касание пальцем перешло в протяжку по шару, и на
+## отпускании не должно получиться короткого выбора. Отпускание само по себе всегда даёт "short"
+## (см. update), отменить его иначе нечем.
+func abort() -> void:
+	_down_ms = -1
+	_fired = false
+
+
 ## Следующее удержание — подтверждение опасного действия.
 func arm_confirm() -> void:
 	_confirming = true

@@ -42,9 +42,9 @@ tools/bake_grids.py                    # запечь сетки шар-меню
 
 ```bash
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
-    --script res://tests/run_tests.gd [-- --falsify=<имя>]    # пол 83, 28 фальсификаторов
+    --script res://tests/run_tests.gd [-- --falsify=<имя>]    # пол 91, 38 фальсификаторов
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
-    --script res://tests/smoke_menu.gd [-- --falsify=<имя>]   # интеграция, пол 32, 8 фальсификаторов
+    --script res://tests/smoke_menu.gd [-- --falsify=<имя>]   # интеграция, пол 38, 15 фальсификаторов
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
     --script res://tests/bench_menu.gd                         # замер кадра меню: глобус и линза
 # сверки КАРТИНКОЙ — нужен дисплей, без --headless (GLSL в headless не компилируется):
@@ -221,6 +221,12 @@ tools/         сборка, деплой, проверка артефактов
     через 0.4 с, `session_focussed` — только после скрытия; кадры идут на 90 Гц. «Готово» IME
     приходит как `KEY_ENTER`, **одно нажатие — несколькими событиями за 20 мс**. Пока клавиатура
     открыта, контроллеры приложению не доходят.
+
+30. **При профиле рук трекеры `left_hand`/`right_hand` отдают позы и «кнопки» ОТ РУК.** Щипок
+    приходит нажатым курком, `get_has_tracking_data()` у контроллера — `true` (сессия 11). По ним
+    нельзя решить, в руке ли контроллер: один щипок навсегда запер бы меню за контроллерами.
+    Свидетель — профиль взаимодействия (`XRPositionalTracker.profile`, `input/input_arbiter.gd`).
+    `XRHandTracker.hand_tracking_source` на Quest всегда 0 — в решение не входит.
 
 ## Архитектурные правила
 

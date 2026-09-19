@@ -37,7 +37,7 @@ const SPEC := {
 	"cell_cm": {"title": "Размер ячейки", "kind": "number", "default": 2.5, "min": 1.5, "max": 15.0,
 		"round": 0.1, "unit": "см", "marks": [[2.0, "мелкие"], [5.0, "крупные"], [13.0, "~7 на виду"]],
 		"hint": "Сколько пунктов видно сразу и насколько они крупные. У глобуса размер округляется до ближайшей сетки."},
-	"stick_speed": {"title": "Скорость стика", "kind": "number", "default": 2.5, "min": 0.5, "max": 6.0,
+	"stick_speed": {"title": "Скорость стика", "kind": "number", "inputs": ["controllers"], "default": 2.5, "min": 0.5, "max": 6.0,
 		"round": 0.1, "unit": "рад/с", "marks": [[1.0, "медленно"], [2.5, "средне"], [5.0, "быстро"]],
 		"hint": "Вращение левым стиком, одинаковое по горизонтали и вертикали."},
 	"detent": {"title": "Доводка к ячейке", "kind": "number", "default": 14.0, "min": 0.0, "max": 25.0,
@@ -49,7 +49,7 @@ const SPEC := {
 	"panel_side": {"title": "Сторона панели", "kind": "choice", "default": "top",
 		"options": [["top", "над шаром"], ["left_top", "слева-сверху"], ["right", "справа"]],
 		"hint": "Где висит панель информации об активном объекте."},
-	"haptics": {"title": "Вибро", "kind": "choice", "default": true,
+	"haptics": {"title": "Вибро", "kind": "choice", "default": true, "inputs": ["controllers"],
 		"options": [[true, "вкл"], [false, "выкл"]],
 		"hint": "Тик при касании шара и смене активной ячейки."},
 	"grab_friction": {"title": "Инерция захвата", "kind": "number", "default": 4.0, "min": 1.0, "max": 15.0,
@@ -72,6 +72,12 @@ const SPEC := {
 	"search_keyboard": {"title": "Клавиатура поиска", "kind": "choice", "default": "system",
 		"options": [["system", "системная Quest"], ["panel", "на панели"]],
 		"hint": "Системная — привычная клавиатура Quest; пока она открыта, шар закрыт ею и не отвечает: нажмите на ней «Готово» и выбирайте найденное. На панели — раскладка лучом, шар остаётся доступен."},
+	# Шаг 1к. Выбор живёт до перезапуска («session»): выбранные руки при выключенном в системе
+	# отслеживании рук заперли бы приложение — вернуть настройку было бы нечем, ни сейчас, ни
+	# после перезапуска. Выход через системное меню Quest возвращает «авто».
+	"input_source": {"title": "Источник ввода", "kind": "choice", "default": "auto", "scope": "session",
+		"options": [["auto", "авто"], ["controllers", "контроллеры"], ["hands", "руки"]],
+		"hint": "Авто — ведут контроллеры, пока они в руках; отложили — ведут руки. Выбор источника действует до перезапуска: если руки не отвечают, перезапустите приложение."},
 }
 ## Основные — шаги мастера по порядку (решение владельца 2026-09-15: доводка с
 ## демонстрацией в мастере).
@@ -80,12 +86,30 @@ const MAIN := ["surface", "hand_rotation", "radius_cm", "cell_cm", "stick_speed"
 ## «Дополнительно» — в настройках, не в мастере: владелец не понял, что они делают;
 ## у каждой — демонстрация.
 const ADVANCED := ["grab_friction", "hysteresis", "return_gesture", "gesture_cm", "hand_smoothing",
-		"search_keyboard"]
+		"search_keyboard", "input_source"]
 const ORDER := MAIN + ADVANCED
 ## Поверхность → семейство сетки (menu/goldberg.gd). Линзы нет: у неё своя решётка.
 const FAMILY := {"globe": "icosa", "globe_hex": "icosa", "octa": "octa", "rings": "rings", "fib": "fib"}
 
+## Области действия (ADR-0010): "input" — своя у каждого способа ввода (умолчание; решение
+## владельца 2026-09-19 — сейчас такие ВСЕ настройки меню), "user" — общая для пользователя,
+## "session" — живёт до перезапуска. Поле "inputs" в SPEC — к каким способам ввода настройка
+## относится вообще (у рук нет стика и вибро); без поля — ко всем.
+const SCOPES := ["input", "user", "session"]
+const INPUTS := ["controllers", "hands"]
+
 var values: Dictionary = {}
+## Файл настроек активного способа ввода и файл общих настроек пользователя. Пустой common_path —
+## всё в одном файле (так было до профилей, так пишут проверки).
+var path := PATH
+var common_path := ""
+## Способ ввода, чьи это значения (profile/input_settings.gd): по нему прячутся чужие настройки.
+var input := "controllers"
+## Переопределение области: id → scope. Механизм общих настроек проверяется, пока ни одна настройка
+## не общая.
+var scope_override: Dictionary = {}
+## Фальсификатор «sessionsave»: настройка сессии пишется в файл и читается из него, как постоянная.
+var falsify_save_session := false
 
 
 func _init() -> void:
@@ -194,22 +218,61 @@ func label(id: String) -> String:
 	return "%s — %s" % [s, m] if m != "" else s
 
 
-func save(path: String = PATH) -> Error:
+## Сохранить: настройки способа ввода — в p (по умолчанию path), общие — в common_path, если он
+## задан; иначе всё в p.
+func save(p: String = "") -> Error:
+	var target := p if p != "" else path
 	var cf := ConfigFile.new()
+	var common := ConfigFile.new()
 	for id in ORDER:
-		cf.set_value("sphere", id, values[id])
-	return cf.save(path)
+		if is_session(id) and not falsify_save_session:
+			continue
+		if common_path != "" and scope(id) == "user":
+			common.set_value("sphere", id, values[id])
+		else:
+			cf.set_value("sphere", id, values[id])
+	if common_path != "":
+		var err_common := common.save(common_path)
+		if err_common != OK:
+			return err_common
+	return cf.save(target)
+
+
+## Настройка только на время сессии: не сохраняется и не загружается.
+static func is_session(id: String) -> bool:
+	return SPEC[id].get("scope", "input") == "session"
+
+
+## Область действия с учётом переопределения.
+func scope(id: String) -> String:
+	return scope_override.get(id, SPEC[id].get("scope", "input"))
+
+
+## Относится ли настройка к способу ввода этих значений.
+func applies(id: String) -> bool:
+	return input in SPEC[id].get("inputs", INPUTS)
 
 
 ## Загрузка с проверкой: число вне пределов или не числом, вариант не из списка —
 ## берётся умолчание, а не мусор. Возвращает список отвергнутых ключей.
-func load_from(path: String = PATH) -> Array[String]:
+func load_from(p: String = "") -> Array[String]:
 	var rejected: Array[String] = []
+	_load_file(p if p != "" else path, rejected, false)
+	if common_path != "":
+		_load_file(common_path, rejected, true)
+	return rejected
+
+
+## only_common — из файла берутся только общие настройки (файл общих поверх файла ввода).
+func _load_file(p: String, rejected: Array[String], only_common: bool) -> void:
 	var cf := ConfigFile.new()
-	if cf.load(path) != OK:
-		return rejected
+	if cf.load(p) != OK:
+		return
 	for id in ORDER:
-		if not cf.has_section_key("sphere", id):
+		if only_common and scope(id) != "user":
+			continue
+		# Файл, записанный до того, как настройка стала сессионной, её тоже не навязывает.
+		if not cf.has_section_key("sphere", id) or (is_session(id) and not falsify_save_session):
 			continue
 		var v: Variant = cf.get_value("sphere", id)
 		if is_number(id):
@@ -222,11 +285,10 @@ func load_from(path: String = PATH) -> Array[String]:
 			rejected.append(id)
 		else:
 			values[id] = v
-	return rejected
 
 
-static func exists(path: String = PATH) -> bool:
-	return FileAccess.file_exists(path)
+static func exists(p: String = PATH) -> bool:
+	return FileAccess.file_exists(p)
 
 
 ## Угловой радиус ячейки линзы (центр → вершина) из размера ячейки и радиуса шара.

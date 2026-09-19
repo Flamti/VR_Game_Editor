@@ -93,6 +93,12 @@ var _marks := PackedByteArray()
 var _last_rotate_ms := -100000
 var _pressed_key: Variant = null
 var _pressed_hand := ""
+## Кто ведёт меню сейчас: "controllers" | "hands". Ставит арбитр (input/input_arbiter.gd).
+## Живёт здесь, а не в main.gd: журнал берёт его из params(), и дымовой прогон, который
+## собирает меню мимо оркестратора, тоже его видит.
+var input_source := ""
+## Id активного профиля пользователя (ADR-0010) — в журнал через params(), по той же причине.
+var profile_id := ""
 var _last_item_ms := -100000
 ## Фальсификатор «panelshow» дымового прогона: пустая ячейка считается содержимым —
 ## панель висит всегда, как до шага 1е.
@@ -136,6 +142,8 @@ func params() -> Dictionary:
 	d["view"] = nav.view
 	d["freq"] = settings.globe_frequency()
 	d["actual_cell_cm"] = snappedf(settings.actual_cell_cm(), 0.01)
+	d["input"] = input_source
+	d["profile"] = profile_id
 	return d
 
 
@@ -250,6 +258,22 @@ func press_active(pressed: bool, now_ms: int) -> void:
 ## Правый курок — на ячейке под лучом или под кончиком.
 func press_key(key: Variant, pressed: bool, now_ms: int) -> void:
 	_press(press_right, "right", key, pressed, now_ms)
+
+
+## Каталог поменялся снаружи (папка настроек сменила способ ввода): подписи и список — заново.
+func refresh_list() -> void:
+	_list_version += 1
+	if is_open():
+		_load_list(null)
+
+
+## Бросить нажатие, начатое этой рукой: палец повёл по шару, и касание стало вращением.
+## Без этого отпускание пальца дало бы короткий выбор поверх уже начатого вращения.
+func press_abort(hand: String) -> void:
+	var p: Press = press_left if hand == "left" else press_right
+	p.abort()
+	if _pressed_hand == hand:
+		_pressed_key = null
 
 
 ## Цель нажатия фиксируется в момент нажатия: пока держат курок, шар может

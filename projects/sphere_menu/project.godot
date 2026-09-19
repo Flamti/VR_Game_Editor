@@ -57,3 +57,10 @@ openxr/extensions/meta/hand_tracking_aim=true
 ; Модель руки от рантайма для визуализации рук (OpenXRFbHandTrackingMesh
 ; плагина читает эту настройку, openxr_fb_hand_tracking_mesh.cpp:100).
 openxr/extensions/meta/hand_tracking_mesh=true
+; Модели контроллеров от рантайма (input/controller_view.gd, сессия 11: контроллеры не было видно).
+; XR_EXT_render_model Godot регистрирует только по этой настройке (main.cpp:2907); манифест для
+; Meta — com.oculus.feature.RENDER_MODEL и разрешение — плагин пишет по meta/render_model
+; (meta_export_plugin.cpp:397-404, ADR-0009). Перечислит ли рантайм расширение — не проверено;
+; если нет, controller_view.gd через 3 с показывает запасную модель.
+openxr/extensions/render_model=true
+openxr/extensions/meta/render_model=true

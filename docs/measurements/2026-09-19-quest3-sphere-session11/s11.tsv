@@ -1,0 +1,599 @@
+# сессия 2026-09-19T15:55:02
+1789815302.246	сессия_openxr	globe	8.0	4.0	4.17	2	face					session_begun кадр 0
+1789815302.568	сессия_openxr	globe	8.0	4.0	4.17	2	face					session_visible кадр 1
+1789815302.569	сессия_openxr	globe	8.0	4.0	4.17	2	face					session_focussed кадр 1
+1789815303.848	источник	globe	8.0	4.0	4.17	2	face					hands: профиль левой | { "profile": { "left": "/interaction_profiles/ext/hand_interaction_ext", "right": "/interaction_profiles/ext/hand_interaction_ext" }, "ctrl_pose": { "left": true, "right": true }, "ctrl_in": { "left": true, "right": true }, "hand_ok": { "left": true, "right": true }, "hand_src": { "left": 0, "right": 0 }, "conflicts": 0, "mode": "auto" }
+1789815304.132	folder	globe	20.0	1.5	3.52	13	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815304.133	toggle	globe	20.0	1.5	3.52	13	face					{ "open": true }
+1789815304.879	рука_drag	globe	20.0	1.5	3.52	13	face					{ "key": "361", "travel_cm": 5.11, "ms": 268 }
+1789815307.392	toggle	globe	20.0	1.5	3.52	13	face					{ "open": false }
+1789815307.392	рука_fist	globe	20.0	1.5	3.52	13	face					{ "open": false }
+1789815308.504	folder	globe	20.0	15.0	15.07	1	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815308.505	toggle	globe	20.0	15.0	15.07	1	face					{ "open": true }
+1789815308.505	рука_fist	globe	20.0	15.0	15.07	1	face					{ "open": true }
+1789815312.994	folder	lens	20.0	1.5	1.5	13	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815317.504	folder	globe_hex	20.0	1.5	3.52	13	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815322.102	folder	octa	20.0	1.5	3.65	21	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815326.687	folder	rings	20.0	1.5	3.29	16	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815331.294	folder	fib	20.0	1.5	3.47	27	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815335.855	folder	fib	8.0	1.5	1.49	26	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815335.855	настройка_значение	fib	8.0	1.5	1.49	26	face					radius_cm=8.0
+1789815335.876	folder	fib	17.5	1.5	3.04	27	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815335.877	настройка_значение	fib	17.5	1.5	3.04	27	face					radius_cm=17.5
+1789815335.891	folder	fib	20.0	1.5	3.47	27	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815335.961	folder	globe	20.0	1.5	3.52	13	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815371.208	folder	globe	20.0	1.5	3.52	13	face	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789815371.208	intent	globe	20.0	1.5	3.52	13	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789815371.220	folder	globe	20.0	1.5	3.52	13	face	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789815371.221	intent	globe	20.0	1.5	3.52	13	face	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789815375.739	folder	lens	20.0	1.5	1.5	13	face	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789815375.741	folder	lens	20.0	1.5	1.5	13	face	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789815375.741	intent	lens	20.0	1.5	1.5	13	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789815375.742	folder	lens	20.0	1.5	1.5	13	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815375.742	intent	lens	20.0	1.5	1.5	13	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789815375.743	folder	lens	20.0	1.5	1.5	13	face	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789815375.743	intent	lens	20.0	1.5	1.5	13	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789815375.752	folder	lens	20.0	1.5	1.5	13	face	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789815375.752	intent	lens	20.0	1.5	1.5	13	face	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789815380.291	folder	globe	20.0	1.5	3.52	13	face	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789815380.293	folder	globe	20.0	1.5	3.52	13	face	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789815380.293	intent	globe	20.0	1.5	3.52	13	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789815380.294	folder	globe	20.0	1.5	3.52	13	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815380.294	intent	globe	20.0	1.5	3.52	13	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789815380.297	клавиатура	globe	20.0	1.5	3.52	13	face					show
+1789815380.315	toggle	globe	20.0	1.5	3.52	13	face					{ "open": false }
+1789815380.316	самопроверка	globe	20.0	1.5	3.52	13	face			PASS		{ "глобус уровень 13, 0 ячеек, вращение": { "gpu95": 2.24600005149841, "cpu95": 0.22800000011921, "proc95": 2.611, "over": 0 }, "глобус крупный: уровень 1, 32 ячеек, радиус 20.0 см, вращение": { "gpu95": 2.05800008773804, "cpu95": 0.23100000619888, "proc95": 2.516, "over": 0 }, "линза α=0.037, 700 ячеек, вращение": { "gpu95": 2.99900007247925, "cpu95": 0.26499998569489, "proc95": 7.247, "over": 0 } }
+1789815384.132	folder	globe	8.0	4.0	4.17	2	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815384.132	toggle	globe	8.0	4.0	4.17	2	face					{ "open": true }
+1789815384.133	рука_fist	globe	8.0	4.0	4.17	2	face					{ "open": true }
+1789815384.987	toggle	globe	8.0	4.0	4.17	2	face					{ "open": false }
+1789815384.987	рука_fist	globe	8.0	4.0	4.17	2	face					{ "open": false }
+1789815385.698	folder	globe	8.0	4.0	4.17	2	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815385.698	toggle	globe	8.0	4.0	4.17	2	face					{ "open": true }
+1789815385.698	рука_fist	globe	8.0	4.0	4.17	2	face					{ "open": true }
+1789815386.220	toggle	globe	8.0	4.0	4.17	2	face					{ "open": false }
+1789815386.220	рука_fist	globe	8.0	4.0	4.17	2	face					{ "open": false }
+1789815386.899	folder	globe	8.0	4.0	4.17	2	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815386.899	toggle	globe	8.0	4.0	4.17	2	face					{ "open": true }
+1789815386.899	рука_fist	globe	8.0	4.0	4.17	2	face					{ "open": true }
+1789815388.665	рука_drag	globe	8.0	4.0	4.17	2	face					{ "key": "22", "travel_cm": 6.62, "ms": 200 }
+1789815389.420	рука_drag	globe	8.0	4.0	4.17	2	face					{ "key": "22", "travel_cm": 11.6, "ms": 300 }
+1789815390.087	рука_drag	globe	8.0	4.0	4.17	2	face					{ "key": "24", "travel_cm": 18.35, "ms": 399 }
+1789815391.154	рука_drag	globe	8.0	4.0	4.17	2	face					{ "key": "13", "travel_cm": 21.49, "ms": 823 }
+1789815391.810	рука_drag	globe	8.0	4.0	4.17	2	face					{ "key": "42", "travel_cm": 7.75, "ms": 200 }
+1789815392.399	рука_drag	globe	8.0	4.0	4.17	2	face					{ "key": "41", "travel_cm": 7.03, "ms": 344 }
+1789815395.499	рука_drag	globe	8.0	4.0	4.17	2	face					{ "key": "3", "travel_cm": 22.84, "ms": 2578 }
+1789815397.632	рука_drag	globe	8.0	4.0	4.17	2	face					{ "key": "22", "travel_cm": 8.88, "ms": 1400 }
+1789815399.103	folder	globe	8.0	4.0	4.17	2	face	settings				{ "folder": "settings", "view": "browse", "items": 4, "total": 4, "page": 1, "pages": 1 }
+1789815399.103	intent	globe	8.0	4.0	4.17	2	face	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789815399.103	рука_touch	globe	8.0	4.0	4.17	2	face	settings				{ "key": "58", "travel_cm": 0.59, "ms": 233 }
+1789815400.399	рука_drag	globe	8.0	4.0	4.17	2	face	settings				{ "key": "58", "travel_cm": 2.19, "ms": 334 }
+1789815402.691	folder	globe	8.0	4.0	4.17	2	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815402.691	intent	globe	8.0	4.0	4.17	2	face	settings_sphere				{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789815402.691	рука_touch	globe	8.0	4.0	4.17	2	face	settings_sphere				{ "key": "58", "travel_cm": 0.45, "ms": 233 }
+1789815405.580	настройка_открыта	globe	8.0	4.0	4.17	2	face	settings_sphere				radius_cm
+1789815405.581	intent	globe	8.0	4.0	4.17	2	face	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "radius_cm" }
+1789815405.581	рука_touch	globe	8.0	4.0	4.17	2	face	settings_sphere				{ "key": "23", "travel_cm": 0.82, "ms": 290 }
+1789815420.666	рука_pinch	globe	8.0	4.0	4.17	2	face	settings_sphere				{  }
+1789815421.256	рука_pinch	globe	8.0	4.0	4.17	2	face	settings_sphere				{  }
+1789815421.259	folder	globe	16.0	4.0	4.03	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815421.259	настройка_значение	globe	16.0	4.0	4.03	8	face	settings_sphere				radius_cm=16.0
+1789815421.277	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815421.277	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815421.295	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815421.296	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815421.319	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815421.320	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815421.348	folder	globe	13.5	4.0	4.3	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815421.348	настройка_значение	globe	13.5	4.0	4.3	6	face	settings_sphere				radius_cm=13.5
+1789815421.373	folder	globe	13.0	4.0	4.14	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815421.374	настройка_значение	globe	13.0	4.0	4.14	6	face	settings_sphere				radius_cm=13.0
+1789815421.392	folder	globe	12.5	4.0	3.98	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815421.392	настройка_значение	globe	12.5	4.0	3.98	6	face	settings_sphere				radius_cm=12.5
+1789815421.427	folder	globe	12.0	4.0	3.83	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815421.427	настройка_значение	globe	12.0	4.0	3.83	6	face	settings_sphere				radius_cm=12.0
+1789815422.577	рука_pinch	globe	12.0	4.0	3.83	6	face	settings_sphere				{  }
+1789815422.580	folder	globe	11.0	4.0	3.84	5	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815422.580	настройка_значение	globe	11.0	4.0	3.84	5	face	settings_sphere				radius_cm=11.0
+1789815422.593	folder	globe	11.5	4.0	4.01	5	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815422.593	настройка_значение	globe	11.5	4.0	4.01	5	face	settings_sphere				radius_cm=11.5
+1789815422.605	folder	globe	12.0	4.0	3.83	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815422.606	настройка_значение	globe	12.0	4.0	3.83	6	face	settings_sphere				radius_cm=12.0
+1789815422.684	folder	globe	11.5	4.0	4.01	5	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815422.685	настройка_значение	globe	11.5	4.0	4.01	5	face	settings_sphere				radius_cm=11.5
+1789815422.695	folder	globe	12.0	4.0	3.83	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815422.696	настройка_значение	globe	12.0	4.0	3.83	6	face	settings_sphere				radius_cm=12.0
+1789815422.705	folder	globe	11.5	4.0	4.01	5	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815422.706	настройка_значение	globe	11.5	4.0	4.01	5	face	settings_sphere				radius_cm=11.5
+1789815422.720	folder	globe	12.0	4.0	3.83	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815422.720	настройка_значение	globe	12.0	4.0	3.83	6	face	settings_sphere				radius_cm=12.0
+1789815422.738	folder	globe	11.5	4.0	4.01	5	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815422.738	настройка_значение	globe	11.5	4.0	4.01	5	face	settings_sphere				radius_cm=11.5
+1789815422.949	folder	globe	12.0	4.0	3.83	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815422.949	настройка_значение	globe	12.0	4.0	3.83	6	face	settings_sphere				radius_cm=12.0
+1789815422.979	folder	globe	11.5	4.0	4.01	5	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815422.979	настройка_значение	globe	11.5	4.0	4.01	5	face	settings_sphere				radius_cm=11.5
+1789815422.990	folder	globe	12.0	4.0	3.83	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815422.990	настройка_значение	globe	12.0	4.0	3.83	6	face	settings_sphere				radius_cm=12.0
+1789815423.054	folder	globe	12.5	4.0	3.98	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.054	настройка_значение	globe	12.5	4.0	3.98	6	face	settings_sphere				radius_cm=12.5
+1789815423.098	folder	globe	13.0	4.0	4.14	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.099	настройка_значение	globe	13.0	4.0	4.14	6	face	settings_sphere				radius_cm=13.0
+1789815423.127	folder	globe	13.5	4.0	4.3	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.127	настройка_значение	globe	13.5	4.0	4.3	6	face	settings_sphere				radius_cm=13.5
+1789815423.160	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.160	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815423.183	folder	globe	13.5	4.0	4.3	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.183	настройка_значение	globe	13.5	4.0	4.3	6	face	settings_sphere				radius_cm=13.5
+1789815423.195	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.195	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815423.232	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.232	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815423.243	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.243	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815423.253	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.253	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815423.263	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.263	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815423.272	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.273	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815423.466	folder	globe	15.0	4.0	4.13	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.466	настройка_значение	globe	15.0	4.0	4.13	7	face	settings_sphere				radius_cm=15.0
+1789815423.480	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.480	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815423.490	folder	globe	15.0	4.0	4.13	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.490	настройка_значение	globe	15.0	4.0	4.13	7	face	settings_sphere				radius_cm=15.0
+1789815423.529	folder	globe	15.5	4.0	3.9	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.529	настройка_значение	globe	15.5	4.0	3.9	8	face	settings_sphere				radius_cm=15.5
+1789815423.722	folder	globe	15.0	4.0	4.13	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.722	настройка_значение	globe	15.0	4.0	4.13	7	face	settings_sphere				radius_cm=15.0
+1789815423.738	folder	globe	15.5	4.0	3.9	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.738	настройка_значение	globe	15.5	4.0	3.9	8	face	settings_sphere				radius_cm=15.5
+1789815423.750	folder	globe	15.0	4.0	4.13	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.750	настройка_значение	globe	15.0	4.0	4.13	7	face	settings_sphere				radius_cm=15.0
+1789815423.809	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.809	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815423.822	folder	globe	15.0	4.0	4.13	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.822	настройка_значение	globe	15.0	4.0	4.13	7	face	settings_sphere				radius_cm=15.0
+1789815423.832	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.833	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815423.930	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.930	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815423.946	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.946	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815423.957	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.957	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815423.965	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.965	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815423.974	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.974	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815423.982	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.983	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815423.993	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815423.993	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815424.094	folder	globe	13.5	4.0	4.3	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815424.094	настройка_значение	globe	13.5	4.0	4.3	6	face	settings_sphere				radius_cm=13.5
+1789815424.123	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815424.124	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815424.135	folder	globe	13.5	4.0	4.3	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815424.136	настройка_значение	globe	13.5	4.0	4.3	6	face	settings_sphere				radius_cm=13.5
+1789815424.145	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815424.145	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815424.220	folder	globe	13.5	4.0	4.3	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815424.220	настройка_значение	globe	13.5	4.0	4.3	6	face	settings_sphere				radius_cm=13.5
+1789815424.233	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815424.234	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815424.245	folder	globe	13.5	4.0	4.3	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815424.245	настройка_значение	globe	13.5	4.0	4.3	6	face	settings_sphere				radius_cm=13.5
+1789815424.521	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815424.521	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815424.646	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815424.646	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815424.661	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815424.661	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815424.673	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815424.673	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815424.691	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815424.691	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815424.701	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815424.701	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815424.709	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815424.709	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815424.786	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815424.787	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815424.801	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815424.802	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815424.813	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815424.813	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815424.822	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815424.822	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815424.832	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815424.832	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815424.840	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815424.841	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815424.848	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815424.848	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815424.860	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815424.860	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815424.872	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815424.872	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815424.883	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815424.883	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815424.893	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815424.893	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815425.119	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815425.119	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815425.136	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815425.136	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815425.153	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815425.153	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815425.210	folder	globe	13.5	4.0	4.3	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815425.210	настройка_значение	globe	13.5	4.0	4.3	6	face	settings_sphere				radius_cm=13.5
+1789815425.253	folder	globe	13.0	4.0	4.14	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815425.254	настройка_значение	globe	13.0	4.0	4.14	6	face	settings_sphere				radius_cm=13.0
+1789815425.268	folder	globe	12.5	4.0	3.98	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815425.268	настройка_значение	globe	12.5	4.0	3.98	6	face	settings_sphere				radius_cm=12.5
+1789815425.325	folder	globe	12.0	4.0	3.83	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815425.325	настройка_значение	globe	12.0	4.0	3.83	6	face	settings_sphere				radius_cm=12.0
+1789815426.144	рука_pinch	globe	12.0	4.0	3.83	6	face	settings_sphere				{  }
+1789815426.147	folder	globe	13.5	4.0	4.3	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815426.147	настройка_значение	globe	13.5	4.0	4.3	6	face	settings_sphere				radius_cm=13.5
+1789815426.161	folder	globe	13.0	4.0	4.14	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815426.161	настройка_значение	globe	13.0	4.0	4.14	6	face	settings_sphere				radius_cm=13.0
+1789815426.173	folder	globe	13.5	4.0	4.3	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815426.173	настройка_значение	globe	13.5	4.0	4.3	6	face	settings_sphere				radius_cm=13.5
+1789815426.213	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815426.214	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815426.319	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815426.319	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815426.335	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815426.335	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815426.347	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815426.347	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815426.356	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815426.356	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815426.364	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815426.364	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815426.372	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815426.372	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815426.383	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815426.383	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815426.419	folder	globe	15.0	4.0	4.13	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815426.419	настройка_значение	globe	15.0	4.0	4.13	7	face	settings_sphere				radius_cm=15.0
+1789815426.429	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815426.430	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815426.439	folder	globe	15.0	4.0	4.13	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815426.439	настройка_значение	globe	15.0	4.0	4.13	7	face	settings_sphere				radius_cm=15.0
+1789815426.553	folder	globe	15.5	4.0	3.9	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815426.553	настройка_значение	globe	15.5	4.0	3.9	8	face	settings_sphere				radius_cm=15.5
+1789815426.844	folder	globe	15.0	4.0	4.13	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815426.845	настройка_значение	globe	15.0	4.0	4.13	7	face	settings_sphere				radius_cm=15.0
+1789815426.859	folder	globe	15.5	4.0	3.9	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815426.859	настройка_значение	globe	15.5	4.0	3.9	8	face	settings_sphere				radius_cm=15.5
+1789815426.882	folder	globe	15.0	4.0	4.13	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815426.882	настройка_значение	globe	15.0	4.0	4.13	7	face	settings_sphere				radius_cm=15.0
+1789815426.900	folder	globe	15.5	4.0	3.9	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815426.900	настройка_значение	globe	15.5	4.0	3.9	8	face	settings_sphere				radius_cm=15.5
+1789815426.910	folder	globe	15.0	4.0	4.13	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815426.910	настройка_значение	globe	15.0	4.0	4.13	7	face	settings_sphere				radius_cm=15.0
+1789815427.053	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815427.054	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815427.108	folder	globe	15.0	4.0	4.13	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815427.108	настройка_значение	globe	15.0	4.0	4.13	7	face	settings_sphere				radius_cm=15.0
+1789815427.123	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815427.123	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815427.135	folder	globe	15.0	4.0	4.13	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815427.135	настройка_значение	globe	15.0	4.0	4.13	7	face	settings_sphere				radius_cm=15.0
+1789815427.144	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815427.145	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815427.152	folder	globe	15.0	4.0	4.13	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815427.152	настройка_значение	globe	15.0	4.0	4.13	7	face	settings_sphere				radius_cm=15.0
+1789815427.160	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815427.161	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815427.173	folder	globe	15.0	4.0	4.13	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815427.173	настройка_значение	globe	15.0	4.0	4.13	7	face	settings_sphere				radius_cm=15.0
+1789815427.182	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815427.182	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815427.192	folder	globe	15.0	4.0	4.13	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815427.193	настройка_значение	globe	15.0	4.0	4.13	7	face	settings_sphere				radius_cm=15.0
+1789815427.205	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815427.205	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815427.216	folder	globe	15.0	4.0	4.13	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815427.216	настройка_значение	globe	15.0	4.0	4.13	7	face	settings_sphere				radius_cm=15.0
+1789815427.227	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815427.227	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815427.420	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815427.421	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815427.486	folder	globe	13.5	4.0	4.3	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815427.487	настройка_значение	globe	13.5	4.0	4.3	6	face	settings_sphere				radius_cm=13.5
+1789815427.502	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815427.502	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815427.513	folder	globe	13.5	4.0	4.3	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815427.514	настройка_значение	globe	13.5	4.0	4.3	6	face	settings_sphere				radius_cm=13.5
+1789815427.553	folder	globe	13.0	4.0	4.14	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815427.553	настройка_значение	globe	13.0	4.0	4.14	6	face	settings_sphere				radius_cm=13.0
+1789815428.299	рука_pinch	globe	13.0	4.0	4.14	6	face	settings_sphere				{  }
+1789815428.302	folder	globe	13.5	4.0	4.3	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815428.302	настройка_значение	globe	13.5	4.0	4.3	6	face	settings_sphere				radius_cm=13.5
+1789815428.316	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815428.317	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815428.331	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815428.331	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815428.346	folder	globe	15.0	4.0	4.13	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815428.346	настройка_значение	globe	15.0	4.0	4.13	7	face	settings_sphere				radius_cm=15.0
+1789815428.375	folder	globe	15.5	4.0	3.9	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815428.375	настройка_значение	globe	15.5	4.0	3.9	8	face	settings_sphere				radius_cm=15.5
+1789815428.433	folder	globe	16.0	4.0	4.03	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815428.433	настройка_значение	globe	16.0	4.0	4.03	8	face	settings_sphere				radius_cm=16.0
+1789815428.453	folder	globe	15.5	4.0	3.9	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815428.453	настройка_значение	globe	15.5	4.0	3.9	8	face	settings_sphere				radius_cm=15.5
+1789815428.544	folder	globe	16.0	4.0	4.03	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815428.544	настройка_значение	globe	16.0	4.0	4.03	8	face	settings_sphere				radius_cm=16.0
+1789815428.560	folder	globe	15.5	4.0	3.9	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815428.560	настройка_значение	globe	15.5	4.0	3.9	8	face	settings_sphere				radius_cm=15.5
+1789815428.698	folder	globe	16.0	4.0	4.03	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815428.698	настройка_значение	globe	16.0	4.0	4.03	8	face	settings_sphere				radius_cm=16.0
+1789815428.715	folder	globe	15.5	4.0	3.9	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815428.716	настройка_значение	globe	15.5	4.0	3.9	8	face	settings_sphere				radius_cm=15.5
+1789815428.828	folder	globe	16.0	4.0	4.03	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815428.828	настройка_значение	globe	16.0	4.0	4.03	8	face	settings_sphere				radius_cm=16.0
+1789815428.844	folder	globe	15.5	4.0	3.9	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815428.844	настройка_значение	globe	15.5	4.0	3.9	8	face	settings_sphere				radius_cm=15.5
+1789815429.133	folder	globe	16.0	4.0	4.03	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.133	настройка_значение	globe	16.0	4.0	4.03	8	face	settings_sphere				radius_cm=16.0
+1789815429.149	folder	globe	15.5	4.0	3.9	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.149	настройка_значение	globe	15.5	4.0	3.9	8	face	settings_sphere				radius_cm=15.5
+1789815429.162	folder	globe	16.0	4.0	4.03	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.162	настройка_значение	globe	16.0	4.0	4.03	8	face	settings_sphere				radius_cm=16.0
+1789815429.176	folder	globe	15.5	4.0	3.9	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.176	настройка_значение	globe	15.5	4.0	3.9	8	face	settings_sphere				radius_cm=15.5
+1789815429.186	folder	globe	16.0	4.0	4.03	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.186	настройка_значение	globe	16.0	4.0	4.03	8	face	settings_sphere				radius_cm=16.0
+1789815429.195	folder	globe	15.5	4.0	3.9	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.196	настройка_значение	globe	15.5	4.0	3.9	8	face	settings_sphere				radius_cm=15.5
+1789815429.206	folder	globe	16.0	4.0	4.03	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.206	настройка_значение	globe	16.0	4.0	4.03	8	face	settings_sphere				radius_cm=16.0
+1789815429.215	folder	globe	15.5	4.0	3.9	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.215	настройка_значение	globe	15.5	4.0	3.9	8	face	settings_sphere				radius_cm=15.5
+1789815429.227	folder	globe	16.0	4.0	4.03	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.227	настройка_значение	globe	16.0	4.0	4.03	8	face	settings_sphere				radius_cm=16.0
+1789815429.239	folder	globe	15.5	4.0	3.9	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.240	настройка_значение	globe	15.5	4.0	3.9	8	face	settings_sphere				radius_cm=15.5
+1789815429.250	folder	globe	16.0	4.0	4.03	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.250	настройка_значение	globe	16.0	4.0	4.03	8	face	settings_sphere				radius_cm=16.0
+1789815429.262	folder	globe	15.5	4.0	3.9	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.262	настройка_значение	globe	15.5	4.0	3.9	8	face	settings_sphere				radius_cm=15.5
+1789815429.366	folder	globe	15.0	4.0	4.13	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.366	настройка_значение	globe	15.0	4.0	4.13	7	face	settings_sphere				radius_cm=15.0
+1789815429.381	folder	globe	15.5	4.0	3.9	8	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.382	настройка_значение	globe	15.5	4.0	3.9	8	face	settings_sphere				radius_cm=15.5
+1789815429.394	folder	globe	15.0	4.0	4.13	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.394	настройка_значение	globe	15.0	4.0	4.13	7	face	settings_sphere				radius_cm=15.0
+1789815429.424	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.425	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815429.505	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.505	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815429.521	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.521	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815429.537	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.537	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815429.547	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.547	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815429.556	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.556	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815429.568	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.568	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815429.580	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.580	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815429.649	folder	globe	13.5	4.0	4.3	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.650	настройка_значение	globe	13.5	4.0	4.3	6	face	settings_sphere				radius_cm=13.5
+1789815429.664	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.664	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815429.677	folder	globe	13.5	4.0	4.3	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.677	настройка_значение	globe	13.5	4.0	4.3	6	face	settings_sphere				radius_cm=13.5
+1789815429.685	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.686	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815429.775	folder	globe	13.5	4.0	4.3	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.775	настройка_значение	globe	13.5	4.0	4.3	6	face	settings_sphere				radius_cm=13.5
+1789815429.790	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.790	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815429.827	folder	globe	13.5	4.0	4.3	6	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.827	настройка_значение	globe	13.5	4.0	4.3	6	face	settings_sphere				radius_cm=13.5
+1789815429.840	folder	globe	14.0	4.0	3.85	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.841	настройка_значение	globe	14.0	4.0	3.85	7	face	settings_sphere				radius_cm=14.0
+1789815429.950	folder	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815429.950	настройка_значение	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815430.367	рука_pinch	globe	14.5	4.0	3.99	7	face	settings_sphere				{  }
+1789815432.290	рука_pinch	globe	14.5	4.0	3.99	7	face	settings_sphere				{  }
+1789815434.090	рука_pinch	globe	14.5	4.0	3.99	7	face	settings_sphere				{  }
+1789815434.357	панель_кнопка	globe	14.5	4.0	3.99	7	face	settings_sphere				done
+1789815434.360	настройка_сохранена	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815437.283	настройка_открыта	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm
+1789815437.283	intent	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "radius_cm" }
+1789815437.283	рука_touch	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "key": "89", "travel_cm": 0.51, "ms": 300 }
+1789815440.490	рука_pinch	globe	14.5	4.0	3.99	7	face	settings_sphere				{  }
+1789815441.869	рука_pinch	globe	14.5	4.0	3.99	7	face	settings_sphere				{  }
+1789815442.080	панель_кнопка	globe	14.5	4.0	3.99	7	face	settings_sphere				done
+1789815442.081	настройка_сохранена	globe	14.5	4.0	3.99	7	face	settings_sphere				radius_cm=14.5
+1789815445.505	настройка_открыта	globe	14.5	4.0	3.99	7	face	settings_sphere				cell_cm
+1789815445.505	intent	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "cell_cm" }
+1789815445.505	рука_touch	globe	14.5	4.0	3.99	7	face	settings_sphere				{ "key": "90", "travel_cm": 0.52, "ms": 277 }
+1789815462.659	рука_pinch	globe	14.5	4.0	3.99	7	face	settings_sphere				{  }
+1789815465.359	рука_pinch	globe	14.5	4.0	3.99	7	face	settings_sphere				{  }
+1789815465.361	folder	globe	14.5	9.8	10.92	1	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815465.362	настройка_значение	globe	14.5	9.8	10.92	1	face	settings_sphere				cell_cm=9.8
+1789815465.383	folder	globe	14.5	9.9	10.92	1	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815465.383	настройка_значение	globe	14.5	9.9	10.92	1	face	settings_sphere				cell_cm=9.9
+1789815465.493	folder	globe	14.5	9.8	10.92	1	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815465.494	настройка_значение	globe	14.5	9.8	10.92	1	face	settings_sphere				cell_cm=9.8
+1789815465.506	folder	globe	14.5	9.7	10.92	1	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815465.506	настройка_значение	globe	14.5	9.7	10.92	1	face	settings_sphere				cell_cm=9.7
+1789815465.569	рука_pinch	globe	14.5	9.7	10.92	1	face	settings_sphere				{  }
+1789815465.571	folder	globe	14.5	9.8	10.92	1	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815465.571	настройка_значение	globe	14.5	9.8	10.92	1	face	settings_sphere				cell_cm=9.8
+1789815465.615	folder	globe	14.5	9.6	10.92	1	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815465.615	настройка_значение	globe	14.5	9.6	10.92	1	face	settings_sphere				cell_cm=9.6
+1789815465.626	folder	globe	14.5	9.5	10.92	1	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815465.627	настройка_значение	globe	14.5	9.5	10.92	1	face	settings_sphere				cell_cm=9.5
+1789815465.636	folder	globe	14.5	9.4	10.92	1	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815465.636	настройка_значение	globe	14.5	9.4	10.92	1	face	settings_sphere				cell_cm=9.4
+1789815465.681	folder	globe	14.5	9.2	10.92	1	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815465.681	настройка_значение	globe	14.5	9.2	10.92	1	face	settings_sphere				cell_cm=9.2
+1789815465.693	folder	globe	14.5	9.0	7.57	2	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815465.693	настройка_значение	globe	14.5	9.0	7.57	2	face	settings_sphere				cell_cm=9.0
+1789815465.703	folder	globe	14.5	8.9	7.57	2	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815465.703	настройка_значение	globe	14.5	8.9	7.57	2	face	settings_sphere				cell_cm=8.9
+1789815465.714	folder	globe	14.5	8.7	7.57	2	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815465.714	настройка_значение	globe	14.5	8.7	7.57	2	face	settings_sphere				cell_cm=8.7
+1789815465.723	folder	globe	14.5	8.6	7.57	2	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815465.723	настройка_значение	globe	14.5	8.6	7.57	2	face	settings_sphere				cell_cm=8.6
+1789815465.736	folder	globe	14.5	8.4	7.57	2	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815465.736	настройка_значение	globe	14.5	8.4	7.57	2	face	settings_sphere				cell_cm=8.4
+1789815468.048	рука_pinch	globe	14.5	8.4	7.57	2	face	settings_sphere				{  }
+1789815468.770	рука_pinch	globe	14.5	8.4	7.57	2	face	settings_sphere				{  }
+1789815469.804	рука_pinch	globe	14.5	8.4	7.57	2	face	settings_sphere				{  }
+1789815470.703	рука_pinch	globe	14.5	8.4	7.57	2	face	settings_sphere				{  }
+1789815471.525	рука_pinch	globe	14.5	8.4	7.57	2	face	settings_sphere				{  }
+1789815471.715	панель_кнопка	globe	14.5	8.4	7.57	2	face	settings_sphere				done
+1789815471.716	настройка_сохранена	globe	14.5	8.4	7.57	2	face	settings_sphere				cell_cm=8.4
+1789815476.649	рука_drag	globe	14.5	8.4	7.57	2	face	settings_sphere				{ "key": "21", "travel_cm": 16.26, "ms": 3056 }
+1789815479.372	рука_drag	globe	14.5	8.4	7.57	2	face	settings_sphere				{ "key": "62", "travel_cm": 13.68, "ms": 967 }
+1789815480.251	folder	globe	14.5	8.4	7.57	2	face	settings				{ "folder": "settings", "view": "browse", "items": 4, "total": 4, "page": 1, "pages": 1 }
+1789815480.251	intent	globe	14.5	8.4	7.57	2	face	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789815480.251	рука_touch	globe	14.5	8.4	7.57	2	face	settings				{ "key": "27", "travel_cm": 0.46, "ms": 256 }
+1789815485.441	folder	globe	14.5	8.4	7.57	2	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815485.441	intent	globe	14.5	8.4	7.57	2	face	settings_sphere				{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789815485.441	рука_touch	globe	14.5	8.4	7.57	2	face	settings_sphere				{ "key": "61", "travel_cm": 0.54, "ms": 78 }
+1789815485.617	intent	globe	14.5	8.4	7.57	2	face	settings_sphere				{ "do": "none", "view": "browse", "folder": "settings_sphere" }
+1789815485.617	рука_touch	globe	14.5	8.4	7.57	2	face	settings_sphere				{ "key": "61", "travel_cm": 0.26, "ms": 33 }
+1789815488.540	рука_drag	globe	14.5	8.4	7.57	2	face	settings_sphere				{ "key": "62", "travel_cm": 14.29, "ms": 2201 }
+1789815489.540	intent	globe	14.5	8.4	7.57	2	face	settings_sphere				{ "do": "none", "view": "browse", "folder": "settings_sphere" }
+1789815489.540	рука_touch	globe	14.5	8.4	7.57	2	face	settings_sphere				{ "key": "62", "travel_cm": 0.49, "ms": 67 }
+1789815490.140	рука_drag	globe	14.5	8.4	7.57	2	face	settings_sphere				{ "key": "31", "travel_cm": 5.75, "ms": 56 }
+1789815490.851	intent	globe	14.5	8.4	7.57	2	face	settings_sphere				{ "do": "none", "view": "browse", "folder": "settings_sphere" }
+1789815490.851	рука_touch	globe	14.5	8.4	7.57	2	face	settings_sphere				{ "key": "66", "travel_cm": 0.55, "ms": 222 }
+1789815492.295	рука_drag	globe	14.5	8.4	7.57	2	face	settings_sphere				{ "key": "66", "travel_cm": 4.48, "ms": 111 }
+1789815494.106	рука_drag	globe	14.5	8.4	7.57	2	face	settings_sphere				{ "key": "40", "travel_cm": 12.99, "ms": 1667 }
+1789815495.535	folder	globe	14.5	8.4	7.57	2	face	settings_sphere				{ "folder": "settings_sphere", "view": "actions", "items": 5, "total": 4, "page": 1, "pages": 1 }
+1789815495.535	intent	globe	14.5	8.4	7.57	2	face	settings_sphere				{ "do": "reload", "view": "actions", "folder": "settings_sphere" }
+1789815495.561	рука_touch	globe	14.5	8.4	7.57	2	face	settings_sphere				{ "key": "26", "travel_cm": 2.06, "ms": 332 }
+1789815498.552	folder	globe	14.5	8.4	7.57	2	face	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815498.553	intent	globe	14.5	8.4	7.57	2	face	settings_sphere				{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789815498.553	рука_touch	globe	14.5	8.4	7.57	2	face	settings_sphere				{ "key": "9", "travel_cm": 1.13, "ms": 233 }
+1789815499.844	настройка_открыта	globe	14.5	8.4	7.57	2	face	settings_sphere				hand_rotation
+1789815499.845	intent	globe	14.5	8.4	7.57	2	face	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "hand_rotation" }
+1789815499.845	рука_touch	globe	14.5	8.4	7.57	2	face	settings_sphere				{ "key": "26", "travel_cm": 0.72, "ms": 222 }
+1789815508.007	рука_pinch	globe	14.5	8.4	7.57	2	face	settings_sphere				{  }
+1789815509.085	настройка_значение	globe	14.5	8.4	7.57	2	stand	settings_sphere				hand_rotation=stand
+1789815509.774	рука_pinch	globe	14.5	8.4	7.57	2	stand	settings_sphere				{  }
+1789815510.262	рука_pinch	globe	14.5	8.4	7.57	2	stand	settings_sphere				{  }
+1789815510.685	настройка_значение	globe	14.5	8.4	7.57	2	ball	settings_sphere				hand_rotation=ball
+1789815513.519	рука_drag	globe	14.5	8.4	7.57	2	ball	settings_sphere				{ "key": "69", "travel_cm": 17.75, "ms": 388 }
+1789815514.312	настройка_открыта	globe	14.5	8.4	7.57	2	ball	settings_sphere				hand_rotation
+1789815514.312	intent	globe	14.5	8.4	7.57	2	ball	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "hand_rotation" }
+1789815514.312	рука_touch	globe	14.5	8.4	7.57	2	ball	settings_sphere				{ "key": "26", "travel_cm": 2.1, "ms": 33 }
+1789815515.908	intent	globe	14.5	8.4	7.57	2	ball	settings_sphere				{ "do": "none", "view": "browse", "folder": "settings_sphere" }
+1789815515.908	рука_touch	globe	14.5	8.4	7.57	2	ball	settings_sphere				{ "key": "61", "travel_cm": 0.48, "ms": 88 }
+1789815516.386	рука_drag	globe	14.5	8.4	7.57	2	ball	settings_sphere				{ "key": "30", "travel_cm": 4.51, "ms": 322 }
+1789815517.831	рука_drag	globe	14.5	8.4	7.57	2	ball	settings_sphere				{ "key": "5", "travel_cm": 10.11, "ms": 845 }
+1789815521.008	intent	globe	14.5	8.4	7.57	2	ball	settings_sphere				{ "do": "none", "view": "browse", "folder": "settings_sphere" }
+1789815521.009	рука_touch	globe	14.5	8.4	7.57	2	ball	settings_sphere				{ "key": "62", "travel_cm": 3.76, "ms": 167 }
+1789815521.498	folder	globe	14.5	8.4	7.57	2	ball	settings_sphere				{ "folder": "settings_sphere", "view": "actions", "items": 8, "total": 7, "page": 1, "pages": 1 }
+1789815521.498	intent	globe	14.5	8.4	7.57	2	ball	settings_sphere				{ "do": "reload", "view": "actions", "folder": "settings_sphere" }
+1789815521.651	рука_touch	globe	14.5	8.4	7.57	2	ball	settings_sphere				{ "key": "30", "travel_cm": 3.54, "ms": 464 }
+1789815522.910	folder	globe	14.5	8.4	7.57	2	ball	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789815522.910	intent	globe	14.5	8.4	7.57	2	ball	settings_sphere				{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789815522.910	рука_touch	globe	14.5	8.4	7.57	2	ball	settings_sphere				{ "key": "5", "travel_cm": 2.0, "ms": 122 }
+1789815524.231	рука_drag	globe	14.5	8.4	7.57	2	ball	settings_sphere				{ "key": "61", "travel_cm": 11.19, "ms": 566 }
+1789815527.332	folder	globe	14.5	8.4	7.57	2	ball	settings				{ "folder": "settings", "view": "browse", "items": 4, "total": 4, "page": 1, "pages": 1 }
+1789815527.332	intent	globe	14.5	8.4	7.57	2	ball	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789815527.332	рука_touch	globe	14.5	8.4	7.57	2	ball	settings				{ "key": "27", "travel_cm": 1.22, "ms": 233 }
+1789815529.199	folder	globe	14.5	8.4	7.57	2	ball					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815529.199	intent	globe	14.5	8.4	7.57	2	ball					{ "do": "reload", "view": "browse", "folder": "" }
+1789815529.199	рука_touch	globe	14.5	8.4	7.57	2	ball					{ "key": "5", "travel_cm": 0.64, "ms": 245 }
+1789815547.433	рука_pinch	globe	14.5	8.4	7.57	2	ball					{  }
+1789815547.966	рука_pinch	globe	14.5	8.4	7.57	2	ball					{  }
+1789815548.233	панель_кнопка	globe	14.5	8.4	7.57	2	ball					done
+1789815548.234	настройка_сохранена	globe	14.5	8.4	7.57	2	ball					hand_rotation=ball
+1789815550.245	folder	globe	14.5	8.4	7.57	2	ball	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789815550.246	intent	globe	14.5	8.4	7.57	2	ball	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789815550.246	рука_touch	globe	14.5	8.4	7.57	2	ball	files				{ "key": "5", "travel_cm": 2.18, "ms": 223 }
+1789815552.280	folder	globe	14.5	8.4	7.57	2	ball	images				{ "folder": "images", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789815552.280	intent	globe	14.5	8.4	7.57	2	ball	images				{ "do": "reload", "view": "browse", "folder": "images" }
+1789815552.281	рука_touch	globe	14.5	8.4	7.57	2	ball	images				{ "key": "28", "travel_cm": 2.32, "ms": 278 }
+1789815553.345	select	globe	14.5	8.4	7.57	2	ball	images				{ "do": "default", "view": "browse", "folder": "images", "item": "img_map", "title": "Карта" }
+1789815553.345	рука_touch	globe	14.5	8.4	7.57	2	ball	images				{ "key": "4", "travel_cm": 1.32, "ms": 234 }
+1789815553.967	select	globe	14.5	8.4	7.57	2	ball	images				{ "do": "default", "view": "browse", "folder": "images", "item": "img_sketch", "title": "Эскиз замка" }
+1789815553.967	рука_touch	globe	14.5	8.4	7.57	2	ball	images				{ "key": "3", "travel_cm": 0.75, "ms": 233 }
+1789815554.588	select	globe	14.5	8.4	7.57	2	ball	images				{ "do": "default", "view": "browse", "folder": "images", "item": "img_sunset", "title": "Закат" }
+1789815554.589	рука_touch	globe	14.5	8.4	7.57	2	ball	images				{ "key": "28", "travel_cm": 1.74, "ms": 256 }
+1789815555.267	select	globe	14.5	8.4	7.57	2	ball	images				{ "do": "default", "view": "browse", "folder": "images", "item": "img_stone", "title": "Текстура камня" }
+1789815555.267	рука_touch	globe	14.5	8.4	7.57	2	ball	images				{ "key": "26", "travel_cm": 1.31, "ms": 278 }
+1789815556.260	folder	globe	14.5	8.4	7.57	2	ball	images				{ "folder": "images", "view": "actions", "items": 8, "total": 7, "page": 1, "pages": 1 }
+1789815556.260	intent	globe	14.5	8.4	7.57	2	ball	images				{ "do": "reload", "view": "actions", "folder": "images" }
+1789815556.300	рука_touch	globe	14.5	8.4	7.57	2	ball	images				{ "key": "26", "travel_cm": 1.41, "ms": 344 }
+1789815558.612	folder	globe	14.5	8.4	7.57	2	ball	images				{ "folder": "images", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789815558.613	intent	globe	14.5	8.4	7.57	2	ball	images				{ "do": "reload", "view": "browse", "folder": "images" }
+1789815558.613	рука_touch	globe	14.5	8.4	7.57	2	ball	images				{ "key": "19", "travel_cm": 0.53, "ms": 211 }
+1789815560.312	select	globe	14.5	8.4	7.57	2	ball	images				{ "do": "default", "view": "browse", "folder": "images", "item": "img_sunset", "title": "Закат" }
+1789815560.312	рука_touch	globe	14.5	8.4	7.57	2	ball	images				{ "key": "28", "travel_cm": 0.53, "ms": 277 }
+1789815561.068	select	globe	14.5	8.4	7.57	2	ball	images				{ "do": "default", "view": "browse", "folder": "images", "item": "img_sunset", "title": "Закат" }
+1789815561.068	рука_touch	globe	14.5	8.4	7.57	2	ball	images				{ "key": "28", "travel_cm": 1.44, "ms": 178 }
+1789815562.613	folder	globe	14.5	8.4	7.57	2	ball	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789815562.613	intent	globe	14.5	8.4	7.57	2	ball	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789815562.613	рука_touch	globe	14.5	8.4	7.57	2	ball	files				{ "key": "19", "travel_cm": 1.93, "ms": 244 }
+1789815565.286	folder	globe	14.5	8.4	7.57	2	ball	bulk				{ "folder": "bulk", "view": "browse", "items": 70, "total": 128, "page": 1, "pages": 2 }
+1789815565.286	intent	globe	14.5	8.4	7.57	2	ball	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789815565.286	рука_touch	globe	14.5	8.4	7.57	2	ball	bulk				{ "key": "30", "travel_cm": 1.72, "ms": 223 }
+1789815568.446	page	globe	14.5	8.4	7.57	2	ball	bulk				{ "from": 71, "to": 128, "total": 128, "page": 2, "pages": 2 }
+1789815568.450	folder	globe	14.5	8.4	7.57	2	ball	bulk				{ "folder": "bulk", "view": "browse", "items": 58, "total": 128, "page": 2, "pages": 2 }
+1789815568.450	intent	globe	14.5	8.4	7.57	2	ball	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789815568.450	рука_touch	globe	14.5	8.4	7.57	2	ball	bulk				{ "key": "60", "travel_cm": 1.45, "ms": 78 }
+1789815568.635	select	globe	14.5	8.4	7.57	2	ball	bulk				{ "do": "default", "view": "browse", "folder": "bulk", "item": "bulk_075", "title": "Файл 075" }
+1789815568.635	toggle	globe	14.5	8.4	7.57	2	ball	bulk				{ "open": false }
+1789815568.635	рука_touch	globe	14.5	8.4	7.57	2	ball	bulk				{ "key": "60", "travel_cm": 0.75, "ms": 55 }
+1789815574.085	folder	globe	14.5	8.4	7.57	2	ball	bulk				{ "folder": "bulk", "view": "browse", "items": 58, "total": 128, "page": 2, "pages": 2 }
+1789815574.086	toggle	globe	14.5	8.4	7.57	2	ball	bulk				{ "open": true }
+1789815574.086	рука_fist	globe	14.5	8.4	7.57	2	ball	bulk				{ "open": true }
+1789815577.145	shake	globe	14.5	8.4	7.57	2	ball					{ "how": "shake", "from": "bulk" }
+1789815577.146	folder	globe	14.5	8.4	7.57	2	ball					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815577.146	intent	globe	14.5	8.4	7.57	2	ball					{ "do": "reload", "view": "browse", "folder": "" }
+1789815579.190	рука_drag	globe	14.5	8.4	7.57	2	ball					{ "key": "4", "travel_cm": 15.23, "ms": 322 }
+1789815579.613	рука_drag	globe	14.5	8.4	7.57	2	ball					{ "key": "4", "travel_cm": 16.31, "ms": 344 }
+1789815580.357	рука_drag	globe	14.5	8.4	7.57	2	ball					{ "key": "55", "travel_cm": 4.99, "ms": 89 }
+1789815581.024	intent	globe	14.5	8.4	7.57	2	ball					{ "do": "none", "view": "browse", "folder": "" }
+1789815581.024	рука_touch	globe	14.5	8.4	7.57	2	ball					{ "key": "63", "travel_cm": 0.85, "ms": 34 }
+1789815582.958	рука_drag	globe	14.5	8.4	7.57	2	ball					{ "key": "28", "travel_cm": 30.34, "ms": 1500 }
+1789815584.692	folder	globe	14.5	8.4	7.57	2	ball	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789815584.692	intent	globe	14.5	8.4	7.57	2	ball	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789815584.693	рука_touch	globe	14.5	8.4	7.57	2	ball	files				{ "key": "59", "travel_cm": 0.76, "ms": 156 }
+1789815586.048	folder	globe	14.5	8.4	7.57	2	ball	logic				{ "folder": "logic", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789815586.048	intent	globe	14.5	8.4	7.57	2	ball	logic				{ "do": "reload", "view": "browse", "folder": "logic" }
+1789815586.048	рука_touch	globe	14.5	8.4	7.57	2	ball	logic				{ "key": "4", "travel_cm": 1.2, "ms": 177 }
+1789815586.703	toggle	globe	14.5	8.4	7.57	2	ball	logic				{ "open": false }
+1789815586.703	рука_fist	globe	14.5	8.4	7.57	2	ball	logic				{ "open": false }
+1789815587.304	folder	globe	14.5	8.4	7.57	2	ball	logic				{ "folder": "logic", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789815587.304	toggle	globe	14.5	8.4	7.57	2	ball	logic				{ "open": true }
+1789815587.304	рука_fist	globe	14.5	8.4	7.57	2	ball	logic				{ "open": true }
+1789815594.026	select	globe	14.5	8.4	7.57	2	ball	logic				{ "do": "default", "view": "browse", "folder": "logic", "item": "logic_door", "title": "Дверь" }
+1789815594.026	toggle	globe	14.5	8.4	7.57	2	ball	logic				{ "open": false }
+1789815594.026	рука_touch	globe	14.5	8.4	7.57	2	ball	logic				{ "key": "5", "travel_cm": 3.71, "ms": 111 }
+1789815600.815	источник	globe	14.5	8.4	7.57	2	ball	logic				controllers: профиль левой | { "profile": { "left": "/interaction_profiles/oculus/touch_controller", "right": "/interaction_profiles/none" }, "ctrl_pose": { "left": false, "right": false }, "ctrl_in": { "left": true, "right": false }, "hand_ok": { "left": false, "right": false }, "hand_src": { "left": 0, "right": 0 }, "conflicts": 0, "mode": "auto" }
+1789815606.782	источник	globe	14.5	8.4	7.57	2	ball	logic				hands: профиль левой | { "profile": { "left": "/interaction_profiles/ext/hand_interaction_ext", "right": "/interaction_profiles/ext/hand_interaction_ext" }, "ctrl_pose": { "left": true, "right": true }, "ctrl_in": { "left": false, "right": true }, "hand_ok": { "left": false, "right": true }, "hand_src": { "left": 0, "right": 0 }, "conflicts": 0, "mode": "auto" }
+1789815611.338	источник	globe	14.5	8.4	7.57	2	ball	logic				controllers: профиль левой | { "profile": { "left": "/interaction_profiles/oculus/touch_controller", "right": "/interaction_profiles/oculus/touch_controller" }, "ctrl_pose": { "left": true, "right": true }, "ctrl_in": { "left": false, "right": false }, "hand_ok": { "left": false, "right": false }, "hand_src": { "left": 0, "right": 0 }, "conflicts": 0, "mode": "auto" }
+1789815613.861	folder	globe	14.5	8.4	7.57	2	ball	logic				{ "folder": "logic", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789815613.861	toggle	globe	14.5	8.4	7.57	2	ball	logic				{ "open": true }
+1789815615.238	toggle	globe	14.5	8.4	7.57	2	ball	logic				{ "open": false }
+1789815616.595	folder	globe	14.5	8.4	7.57	2	ball	logic				{ "folder": "logic", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789815616.595	toggle	globe	14.5	8.4	7.57	2	ball	logic				{ "open": true }
+1789815618.984	folder	globe	14.5	8.4	7.57	2	ball	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789815618.984	intent	globe	14.5	8.4	7.57	2	ball	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789815623.795	folder	globe	14.5	8.4	7.57	2	ball					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815623.795	intent	globe	14.5	8.4	7.57	2	ball					{ "do": "reload", "view": "browse", "folder": "" }
+1789815628.029	folder	globe	14.5	8.4	7.57	2	ball					{ "folder": "", "view": "actions", "items": 1, "total": 0, "page": 1, "pages": 1 }
+1789815628.029	intent	globe	14.5	8.4	7.57	2	ball					{ "do": "reload", "view": "actions", "folder": "" }
+1789815628.617	intent	globe	14.5	8.4	7.57	2	ball					{ "do": "none", "view": "actions", "folder": "" }
+1789815629.340	folder	globe	14.5	8.4	7.57	2	ball					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815629.340	intent	globe	14.5	8.4	7.57	2	ball					{ "do": "reload", "view": "browse", "folder": "" }
+1789815635.707	intent	globe	14.5	8.4	7.57	2	ball					{ "do": "exit", "view": "browse", "folder": "" }
+1789815635.709	выход	globe	14.5	8.4	7.57	2	ball					выгрузка в /storage/emulated/0/Download/VRGE/2026-09-19_16-00-35

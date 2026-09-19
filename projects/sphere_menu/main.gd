@@ -7,7 +7,9 @@ extends Node3D
 
 const ProbeBudget := preload("res://probe_budget.gd")
 const Menu := preload("res://menu/sphere_menu.gd")
-const Controllers := preload("res://input/controller_source.gd")
+const Router := preload("res://input/input_router.gd")
+const Arbiter := preload("res://input/input_arbiter.gd")
+const InputSettings := preload("res://profile/input_settings.gd")
 const Screenshot := preload("res://session/screenshot.gd")
 const Scenario := preload("res://session/scenario.gd")
 ## Сколько висит сообщение о скриншоте, мс.
@@ -25,6 +27,8 @@ const Export := preload("res://session/export.gd")
 
 ## Шар над ладонью левого контроллера, в его координатах (поза grip).
 const BALL_OFFSET := Vector3(0.0, 0.06, -0.10)
+## Задание найдено руками — следующее само через столько секунд: кнопки B у рук нет.
+const HANDS_NEXT_S := 2.5
 ## Задания мастера: на каждом шаге — что найти, чтобы почувствовать настройку.
 const WIZARD_TASKS := ["Дуб", "Карта", "Замок", "Фонарь", "Таймер", "Небо", "Пещера", "Мост", "Горы", "Дверь"]
 
@@ -39,7 +43,10 @@ var panel: UiPanel
 var editing: SettingEdit = null
 ## Строки последней самопроверки — в выгрузку при выходе.
 var selfcheck_lines: Array = []
-var controllers: Controllers
+## Ввод: арбитр, контроллеры, руки и их видимость (input/input_router.gd).
+var router: Router
+## Наборы настроек меню по способу ввода (ADR-0010).
+var input_settings: InputSettings
 var journal: Journal = Journal.new()
 var task_label: Label3D
 ## Сообщение о скриншоте перед лицом — видно и при закрытом шаре (тост панели — только при открытом).
@@ -71,8 +78,11 @@ func _ready() -> void:
 	menu.head = camera
 	menu.hand = left
 	menu.hand_offset = BALL_OFFSET
-	var had_settings := Settings.exists()
-	menu.settings.load_from()
+	input_settings = InputSettings.new(menu.settings, "user://")
+	var migrated := input_settings.migrate_legacy(Settings.PATH)
+	var had_settings := input_settings.exists_any()
+	var rejected := input_settings.load_current()
+	menu.catalog.apply_input(menu.settings)
 	# Не ребёнок контроллера: ориентацию задаёт следование за рукой (menu/hand_follow.gd).
 	add_child(menu)
 	panel = UiPanel.new()
@@ -97,12 +107,17 @@ func _ready() -> void:
 	panel.edit_changed.connect(_on_edit_changed)
 	panel.button.connect(_on_panel_button)
 
-	controllers = Controllers.new()
-	add_child(controllers)
-	controllers.setup(left, right, menu, self)
-	controllers.panel = panel
-	controllers.next_task.connect(_next_task)
-	controllers.screenshot_requested.connect(_take_screenshot)
+	router = Router.new()
+	add_child(router)
+	router.setup(origin, left, right, menu, panel, self)
+	router.controllers.next_task.connect(_next_task)
+	router.controllers.screenshot_requested.connect(_take_screenshot)
+	router.source_changed.connect(_on_source)
+	router.gesture.connect(_on_hand_gesture)
+	router.controller_models.connect(_on_controller_models)
+	router.input_settings = input_settings
+	router.settings_switched.connect(func(input: String):
+		journal.log("настройки_ввода", menu.params(), "", "", -1, input))
 
 	notice = Label3D.new()
 	notice.font_size = 40
@@ -123,6 +138,9 @@ func _ready() -> void:
 	_place_task_label()
 
 	journal.open()
+	if migrated or not rejected.is_empty():
+		journal.log("настройки_загружены", menu.params(), "", "", -1,
+				"перенесены из %s; отвергнуто %s" % [Settings.PATH, rejected] if migrated else "отвергнуто %s" % [rejected])
 	_prepare_tasks()
 
 	await _warm_in_xr()
@@ -138,6 +156,9 @@ func _ready() -> void:
 	# Самопроверка гоняет худшие раскладки — возвращаются настройки человека.
 	menu.settings.values = saved
 	menu.apply_settings()
+	# Ввод — только теперь: в сессии 11 кулак закрыл шар посреди самопроверки.
+	router.set_ready()
+	journal.log("ввод_готов", menu.params(), "", "", -1, router.current())
 	if had_settings:
 		_show_help()
 	else:
@@ -145,6 +166,10 @@ func _ready() -> void:
 
 
 func _show_help() -> void:
+	if router.current() == Arbiter.HANDS:
+		task_label.text = "руки: кулак левой — шар · коснуться ячейки кончиком правого — открыть · удержать касание — действия\nпровести пальцем по шару — вращать · щипок правой — нажать на панели лучом ладони · встряхнуть — верхний уровень\nвзять контроллер — управление вернётся к контроллерам"
+		_place_task_label()
+		return
 	task_label.text = "Y — шар · курок — открыть · удержание — действия · X — назад · встряхнуть — верхний уровень · оба стика — скриншот\nправый: луч или касание + курок · касание + грип — вращать · B — отменить · стик — прокрутка панели\nнастройки — лучом по панели: ползунок, кнопки, цифры"
 	_place_task_label()
 
@@ -162,7 +187,7 @@ func _warm_in_xr() -> void:
 	panel.visible = true
 	# редактор панели (ползунок, кнопки, клавиатура) — свои 2D-материалы вьюпорта
 	panel.open_editor(SettingEdit.new(menu.settings, "radius_cm"), "", ["back", "default", "demo", "next"])
-	controllers.ray.visible = true
+	router.controllers.ray.visible = true
 	for _i in 6:
 		var p := camera.global_position - camera.global_basis.z * 1.0
 		warm.global_position = p
@@ -172,7 +197,7 @@ func _warm_in_xr() -> void:
 		(mmi as MultiMeshInstance3D).visible = false
 	panel.close_editor()
 	panel.visible = false
-	controllers.ray.visible = false
+	router.controllers.ray.visible = false
 
 
 ## Скриншот: снимок — до сообщения, чтобы сообщение не попало в кадр.
@@ -219,6 +244,26 @@ func _place_task_label() -> void:
 	fwd = fwd.normalized() if fwd.length() > 0.01 else Vector3.FORWARD
 	task_label.global_position = camera.global_position + fwd * 1.5 + Vector3(0, 0.25, 0)
 	task_label.look_at(task_label.global_position + fwd, Vector3.UP)
+
+
+# --- источник ввода --------------------------------------------------------------
+
+## Смена источника — передачу управления делает роутер; здесь подсказка и журнал.
+func _on_source(src: String, why: String, witnesses: Dictionary) -> void:
+	# Подсказка — того, кто ведёт; задание или сценарий на экране не затираются.
+	if _task_id == "" and not scenario.active and not wizard_active():
+		_show_help()
+	journal.log("источник", menu.params(), "", "", -1, "%s: %s | %s" % [src, why, witnesses])
+	print("источник ввода: %s (%s)" % [src, why])
+
+
+func _on_hand_gesture(name: String, data: Dictionary) -> void:
+	journal.log("рука_" + name, menu.params(), "", "", -1, str(data))
+
+
+func _on_controller_models(kind: String) -> void:
+	journal.log("модели_контроллеров", menu.params(), "", "", -1, kind)
+	print("модели контроллеров: %s" % kind)
 
 
 # --- мастер и правка настроек ---------------------------------------------------
@@ -421,7 +466,7 @@ func _exit_app() -> void:
 # --- задания ---------------------------------------------------------------------
 
 func _on_tasks(on: bool) -> void:
-	controllers.tasks_on = on
+	router.controllers.tasks_on = on
 	if on:
 		var fresh := scenario.start()
 		_step_ms = Time.get_ticks_msec()
@@ -465,6 +510,13 @@ func _prepare_tasks() -> void:
 	_tasks.shuffle()
 
 
+## Следующее задание само — только если за паузу никто не взял следующее кнопкой B.
+func _next_task_later(found_task_ms: int) -> void:
+	await get_tree().create_timer(HANDS_NEXT_S).timeout
+	if _task_id == "" and _task_ms == found_task_ms and not scenario.active and router.controllers.tasks_on:
+		_next_task()
+
+
 func _next_task() -> void:
 	if scenario.active:
 		var sid := scenario.skip()
@@ -492,9 +544,13 @@ func _on_menu_event(name: String, data: Dictionary) -> void:
 		since = Time.get_ticks_msec() - _task_ms
 		if name == "select" and data.get("item", "") == _task_id:
 			hit = "да"
-			task_label.text = "Найдено: %s за %.1f с — B для следующего" % [_task_title, since / 1000.0]
+			var by_hands := router.current() == Arbiter.HANDS
+			task_label.text = "Найдено: %s за %.1f с — %s" % [_task_title, since / 1000.0,
+					"следующее через %.0f с" % HANDS_NEXT_S if by_hands else "B для следующего"]
 			journal.log(name, menu.params(), _task_id, hit, since, str(data))
 			_task_id = ""
+			if by_hands:
+				_next_task_later(_task_ms)
 			return
 		if name == "select":
 			hit = "нет"

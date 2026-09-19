@@ -10,7 +10,8 @@ extends RefCounted
 ## шлеме: результат каждого файла пишется в журнал. Отвергнуто: MANAGE_EXTERNAL_STORAGE —
 ## широкое разрешение ради трёх файлов; сеть — владелец выбрал папку.
 
-const FILES := ["sphere_session.tsv", "sphere_settings.cfg", "favorites.cfg"]
+const FILES := ["sphere_session.tsv", "settings_controllers.cfg", "settings_hands.cfg", "settings_common.cfg",
+		"favorites.cfg"]
 
 
 ## Скопировать файлы user:// и текст самопроверки в каталог. dst — корень выгрузки (на столе

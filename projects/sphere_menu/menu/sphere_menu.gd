@@ -26,6 +26,8 @@ signal search_closed
 signal exit_requested
 ## Действие профиля пользователя: action — «profile_<что>», arg — после двоеточия (id профиля).
 signal profile_action(action: String, arg: String)
+## Действие пространства: «space_reset» (world/space.gd).
+signal space_action(action: String)
 
 const Item := preload("res://menu/item.gd")
 const State := preload("res://menu/state.gd")
@@ -665,6 +667,9 @@ func _handle(res: Dictionary) -> void:
 			var parts: PackedStringArray = str(res["action"]).split(":", true, 1)
 			data["action"] = res["action"]
 			profile_action.emit(parts[0], parts[1] if parts.size() > 1 else "")
+		"space":
+			data["action"] = res["action"]
+			space_action.emit(str(res["action"]))
 		"edit":
 			if res.has("scroll"):
 				_load_list(res["scroll"])

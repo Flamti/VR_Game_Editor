@@ -19,6 +19,7 @@ const Menu := preload("res://menu/sphere_menu.gd")
 const UiPanel := preload("res://menu/ui_panel.gd")
 const AccountService := preload("res://accounts/account_service.gd")
 const ApiKey := preload("res://accounts/api_key.gd")
+const EyeMeasure := preload("res://world/eye_measure.gd")
 
 const HEIGHT_MIN := 50
 const HEIGHT_MAX := 250
@@ -39,6 +40,10 @@ var origin: Node3D
 var play_area: Callable = func() -> PackedVector3Array:
 	var xr := XRServer.primary_interface
 	return xr.get_play_area() if xr != null else PackedVector3Array()
+## Режим игровой зоны рантайма — в журнал вместе с местом: по нему видно, почему зоны нет.
+var play_area_mode: Callable = func() -> int:
+	var xr := XRServer.primary_interface
+	return int(xr.get_play_area_mode()) if xr != null else -1
 ## Кто ведёт меню сейчас — набор настроек открываемого профиля берётся для него.
 var current_input: Callable = func() -> String: return "controllers"
 ## Время системы, мс: задержка после неверного PIN переживает перезапуск.
@@ -50,6 +55,8 @@ var pin_target := ""
 var pin_next := ""
 ## Фальсификатор «nolock»: пока спрашивают PIN при запуске, шар не заперт.
 var falsify_no_lock := false
+## Замер высоты глаз окном (world/eye_measure.gd): мгновенный отсчёт ловил наклон головы.
+var eye: EyeMeasure = EyeMeasure.new()
 ## Фальсификатор «eyeworld»: высота глаз — от нуля мира, а не от пола XR-пространства.
 var falsify_eye_world := false
 ## Фальсификатор «noreseal»: при смене или снятии PIN секреты не перешифровываются — файл остаётся
@@ -141,23 +148,42 @@ func on_action(action: String, arg: String) -> void:
 				logged.emit("профиль_удалён", old_name)
 
 
-## Высота глаз стоя — высота головы над полом XR-пространства (stage), м.
+## Начать замер высоты глаз: окно WINDOW_S, чтобы наклон головы не портил отсчёт (сессия 13 дала
+## 1.26 и 1.59 м подряд). Кадры подаёт main.gd через tick_eye.
 func measure_eye() -> void:
+	eye.start()
+	menu.nav.message = "Встаньте прямо и смотрите вперёд: меряю %.0f с" % EyeMeasure.WINDOW_S
+	logged.emit("профиль_глаза", "замер начат")
+
+
+## Кадр замера. Возвращает true, пока замер идёт.
+func tick_eye(dt: float) -> bool:
+	if not eye.active:
+		return false
 	var y := head.global_position.y if falsify_eye_world else (origin.global_transform.affine_inverse() * head.global_position).y
-	profiles.profile.eye_m = snappedf(y, 0.01)
+	var res := eye.add(y, dt)
+	if res.is_empty():
+		return true
+	if not res["ok"]:
+		menu.nav.message = "Замер не вышел: голова двигалась на %s м — попробуйте снова" % String.num(res["spread_m"], 2).replace(".", ",")
+		logged.emit("профиль_глаза", "отброшен, размах %.2f м" % res["spread_m"])
+		return false
+	profiles.profile.eye_m = res["eye_m"]
 	profiles.store.save_profile(profiles.profile)
 	menu.nav.message = "Высота глаз: %s м" % String.num(profiles.profile.eye_m, 2).replace(".", ",")
-	logged.emit("профиль_глаза", "%.2f м" % profiles.profile.eye_m)
+	logged.emit("профиль_глаза", "%.2f м, размах %.2f м" % [res["eye_m"], res["spread_m"]])
 	rebuild()
+	return false
 
 
 ## Запомнить место: игровая зона и рабочая точка — где стоит голова, куда смотрит (по горизонту).
+##
+## Сессия 13 (2026-09-20): Quest отдал пустую зону — `xrGetReferenceSpaceBoundsRect` даёт размеры,
+## только когда граница задана (у выключенной границы их нет). Место всё равно запоминается: без
+## зоны оно просто не узнаётся само, выбирается по имени. Режим зоны — в журнал, чтобы причина
+## была видна следующей сессии.
 func remember_place() -> void:
 	var area: PackedVector3Array = play_area.call()
-	if area.is_empty():
-		menu.nav.message = "Шлем не отдал игровую зону — место не запомнено"
-		logged.emit("профиль_место", "зоны нет")
-		return
 	var p := profiles.profile
 	var local := origin.global_transform.affine_inverse() * head.global_transform
 	var fwd := -local.basis.z
@@ -168,8 +194,12 @@ func remember_place() -> void:
 	var place_name: String = p.places[known]["name"] if known >= 0 else "Место %d" % (p.places.size() + 1)
 	p.remember_place(place_name, area, work)
 	profiles.store.save_profile(p)
-	menu.nav.message = "%s: %s" % ["Место обновлено" if known >= 0 else "Место запомнено", place_name]
-	logged.emit("профиль_место", "%s, вершин %d, %s" % [place_name, area.size(), "обновлено" if known >= 0 else "новое"])
+	if area.is_empty():
+		menu.nav.message = "%s: границы нет, место не будет узнаваться само" % place_name
+	else:
+		menu.nav.message = "%s: %s" % ["Место обновлено" if known >= 0 else "Место запомнено", place_name]
+	logged.emit("профиль_место", "%s, вершин %d, режим зоны %d, %s" % [place_name, area.size(),
+			play_area_mode.call(), "обновлено" if known >= 0 else "новое"])
 	rebuild()
 
 

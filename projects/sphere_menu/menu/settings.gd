@@ -78,6 +78,38 @@ const SPEC := {
 	"input_source": {"title": "Источник ввода", "kind": "choice", "default": "auto", "scope": "session",
 		"options": [["auto", "авто"], ["controllers", "контроллеры"], ["hands", "руки"]],
 		"hint": "Авто — ведут контроллеры, пока они в руках; отложили — ведут руки. Выбор источника действует до перезапуска: если руки не отвечают, перезапустите приложение."},
+	# Пространство и свет (этап Ф3). Область — «user»: от способа ввода они не зависят, значит общие
+	# для пользователя и лежат в settings_common.cfg.
+	"space_light": {"title": "Освещение", "kind": "choice", "default": "studio", "scope": "user",
+		"options": [["studio", "студия"], ["dim", "приглушённое"], ["bright", "яркое"]],
+		"hint": "Свет сцены. Без него не видно кнопок на моделях контроллеров (сессия 13)."},
+	"space_glow": {"title": "Свечение", "kind": "choice", "default": false, "scope": "user",
+		"options": [[true, "вкл"], [false, "выкл"]],
+		"hint": "Свечение ярких мест и сетки. На мобильном рендере стоит заполнения экрана — включать, глядя на кадр."},
+	"grid_mode": {"title": "Сетка пола", "kind": "choice", "default": "around", "scope": "user",
+		"options": [["off", "выкл"], ["around", "вокруг меня"], ["scene", "вся сцена"]],
+		"hint": "Сетка на уровне настоящего пола: у нас пространство stage, и пол — это ноль высоты XR."},
+	"grid_origin": {"title": "Сетка в начале координат", "kind": "choice", "default": false, "scope": "user",
+		"options": [[true, "вкл"], [false, "выкл"]],
+		"hint": "Вторая сетка, привязанная к началу координат мира, а не к вам."},
+	"grid_cell_cm": {"title": "Ячейка сетки", "kind": "number", "default": 50.0, "min": 10.0, "max": 200.0,
+		"round": 5.0, "unit": "см", "scope": "user", "marks": [[25.0, "мелкая"], [50.0, "средняя"], [100.0, "крупная"]],
+		"hint": "Сторона клетки."},
+	"grid_radius_m": {"title": "Радиус сетки", "kind": "number", "default": 6.0, "min": 1.0, "max": 20.0,
+		"round": 0.5, "unit": "м", "scope": "user", "marks": [[3.0, "близко"], [6.0, "средне"], [15.0, "далеко"]],
+		"hint": "Докуда видна сетка вокруг вас; к краю она растворяется."},
+	"grid_thickness_mm": {"title": "Толщина линий", "kind": "number", "default": 4.0, "min": 1.0, "max": 20.0,
+		"round": 1.0, "unit": "мм", "scope": "user", "marks": [[2.0, "тонкие"], [6.0, "средние"], [14.0, "жирные"]],
+		"hint": "Ширина линии сетки на полу."},
+	"grid_alpha": {"title": "Прозрачность сетки", "kind": "number", "default": 0.35, "min": 0.05, "max": 1.0,
+		"round": 0.05, "unit": "", "scope": "user", "marks": [[0.15, "едва"], [0.35, "средне"], [0.8, "ярко"]],
+		"hint": "0 — не видно, 1 — плотная линия."},
+	"grid_color": {"title": "Цвет сетки", "kind": "choice", "default": "cyan", "scope": "user",
+		"options": [["cyan", "бирюзовый"], ["white", "белый"], ["green", "зелёный"], ["orange", "оранжевый"]],
+		"hint": "Цвет линий."},
+	"grid_xray": {"title": "Сетка сквозь объекты", "kind": "choice", "default": false, "scope": "user",
+		"options": [[true, "вкл"], [false, "выкл"]],
+		"hint": "«Рентген»: сетка видна поверх всего, даже за платформами. Помогает судить о совпадении с полом."},
 }
 ## Основные — шаги мастера по порядку (решение владельца 2026-09-15: доводка с
 ## демонстрацией в мастере).
@@ -87,7 +119,13 @@ const MAIN := ["surface", "hand_rotation", "radius_cm", "cell_cm", "stick_speed"
 ## у каждой — демонстрация.
 const ADVANCED := ["grab_friction", "hysteresis", "return_gesture", "gesture_cm", "hand_smoothing",
 		"search_keyboard", "input_source"]
-const ORDER := MAIN + ADVANCED
+## «Пространство» — свет, сетка пола; общие для пользователя (scope «user»).
+const SPACE := ["space_light", "space_glow", "grid_mode", "grid_origin", "grid_cell_cm", "grid_radius_m",
+		"grid_thickness_mm", "grid_alpha", "grid_color", "grid_xray"]
+const ORDER := MAIN + ADVANCED + SPACE
+## Цвета сетки пола: имя настройки → цвет.
+const GRID_COLORS := {"cyan": Color(0.35, 0.85, 0.95), "white": Color(0.9, 0.92, 0.95),
+		"green": Color(0.45, 0.9, 0.5), "orange": Color(0.95, 0.65, 0.3)}
 ## Поверхность → семейство сетки (menu/goldberg.gd). Линзы нет: у неё своя решётка.
 const FAMILY := {"globe": "icosa", "globe_hex": "icosa", "octa": "octa", "rings": "rings", "fib": "fib"}
 

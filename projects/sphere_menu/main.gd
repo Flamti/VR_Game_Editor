@@ -14,6 +14,9 @@ const ProfileSession := preload("res://profile/profile_session.gd")
 const ProfileUI := preload("res://profile/profile_ui.gd")
 const AccountService := preload("res://accounts/account_service.gd")
 const HttpTransport := preload("res://accounts/http_transport.gd")
+const WorldEnv := preload("res://world/environment.gd")
+const FloorGrid := preload("res://world/floor_grid.gd")
+const Space := preload("res://world/space.gd")
 const Screenshot := preload("res://session/screenshot.gd")
 const Scenario := preload("res://session/scenario.gd")
 ## Сколько висит сообщение о скриншоте, мс.
@@ -55,6 +58,10 @@ var profiles: ProfileSession
 var profile_ui: ProfileUI
 ## Подключаемые аккаунты открытого профиля (ADR-0011).
 var accounts: AccountService
+## Свет, сетка пола и пространство XR (этап Ф3).
+var world_env: WorldEnv = WorldEnv.new()
+var floor_grid: FloorGrid = FloorGrid.new()
+var space: Space = Space.new()
 var journal: Journal = Journal.new()
 var task_label: Label3D
 ## Сообщение о скриншоте перед лицом — видно и при закрытом шаре (тост панели — только при открытом).
@@ -81,6 +88,10 @@ func _ready() -> void:
 	# MSAA 2x задан в project.godot (формат кадра при загрузке); здесь только проверка.
 	if vp.msaa_3d != Viewport.MSAA_2X:
 		push_warning("MSAA 3D = %d, ожидался 2x из project.godot" % vp.msaa_3d)
+
+	# Свет и окружение — до меню: в сессии 13 сцена была пуста, и кнопок на контроллерах не было видно.
+	world_env.setup(self)
+	floor_grid.setup(origin, camera)
 
 	menu = Menu.new()
 	menu.head = camera
@@ -131,6 +142,9 @@ func _ready() -> void:
 	profile_ui.current_input = router.current
 	profile_ui.logged.connect(func(ev: String, detail: String): journal.log(ev, menu.params(), "", "", -1, detail))
 	menu.profile_action.connect(profile_ui.on_action)
+	menu.space_action.connect(_on_space_action)
+	space.reset_done.connect(func(detail: String): journal.log("пространство_сброс", menu.params(), "", "", -1, detail))
+	_apply_world()
 	var http := HttpTransport.new()
 	add_child(http)
 	accounts = AccountService.new(profiles, http.request)
@@ -162,6 +176,7 @@ func _ready() -> void:
 	_place_task_label()
 
 	journal.open()
+	_apply_world()
 	journal.log("профиль_открыт", menu.params(), "", "", -1, "%s%s%s" % [profiles.profile.name,
 			("; создан, перенесено %s" % [boot["migrated"]]) if boot["created"] != "" else "",
 			("; отвергнуто %s" % [rejected]) if not rejected.is_empty() else ""])
@@ -253,6 +268,8 @@ func _take_screenshot() -> void:
 
 
 func _process(_delta: float) -> void:
+	floor_grid.follow()
+	profile_ui.tick_eye(_delta)
 	if notice != null and notice.visible and Time.get_ticks_msec() > _notice_until:
 		notice.visible = false
 	if scenario.active and task_label != null:
@@ -285,6 +302,19 @@ func _on_source(src: String, why: String, witnesses: Dictionary) -> void:
 
 func _on_hand_gesture(name: String, data: Dictionary) -> void:
 	journal.log("рука_" + name, menu.params(), "", "", -1, str(data))
+
+
+## Настройки пространства и света применяются к миру: они общие для пользователя (scope «user»).
+func _apply_world() -> void:
+	world_env.apply(menu.settings)
+	floor_grid.apply(menu.settings)
+
+
+func _on_space_action(action: String) -> void:
+	if action == "space_reset":
+		var detail := space.reset(profile_ui.measure_eye)
+		menu.nav.message = "Пространство сброшено к системным значениям"
+		print("пространство: %s" % detail)
 
 
 func _on_controller_models(kind: String) -> void:
@@ -569,6 +599,9 @@ func _next_task() -> void:
 
 func _on_menu_event(name: String, data: Dictionary) -> void:
 	_scenario_event(name, data)
+	# Настройка пространства или света изменилась — мир перестраивается сразу, как шар.
+	if data.get("setting", "") in Settings.SPACE:
+		_apply_world()
 	var hit := ""
 	var since := -1
 	if _task_id != "":

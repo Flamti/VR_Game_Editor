@@ -104,6 +104,15 @@ func _init() -> void:
 	_folder("settings_sphere", "settings_sphere_adv", "Дополнительно")
 	for sid in Settings.ADVANCED:
 		_setting_item("settings_sphere_adv", sid)
+	# Пространство: свет и сетка пола (этап Ф3). «Сброс к системным» — действие, его исполняет
+	# world/space.gd: вернуть режим зоны и положение к тому, что даёт система шлема.
+	_folder("settings", "settings_space", "Пространство", "Простр.")
+	for sid in Settings.SPACE:
+		_setting_item("settings_space", sid)
+	var reset_it: Item = Item.make("space_reset", "Сброс к системным значениям", K.ACTION, P.STAY, "Сброс")
+	reset_it.action = "space_reset"
+	reset_it.type_label = "действие"
+	_add("settings_space", reset_it)
 	var wiz: Item = Item.make("set_wizard", "Мастер настройки", K.ACTION, P.CLOSE, "Мастер")
 	wiz.action = "wizard"
 	wiz.icon = "wizard"

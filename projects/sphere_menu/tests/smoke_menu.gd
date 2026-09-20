@@ -57,6 +57,9 @@ extends SceneTree
 ##                         ключ Claude»;
 ##   --falsify=noreseal    при смене и снятии PIN секреты не перешифровываются — краснеет только
 ##                         «аккаунт: PIN перешифровывает»;
+##   --falsify=nolight     свет и ambient выключены, как в пустой сцене сессии 13, — краснеет только
+##                         «свет сцены»;
+##   --falsify=gridfollow  сетка не едет за человеком — краснеет только «сетка пола»;
 ##   --falsify=handoff     отдача управления не бросает начатое касание — краснеет только
 ##                         «руки: отдача управления» (контроллер отпускает курок — выбор).
 ## Пол — по числу исполненных шагов; ошибки выполнения печатаются движком, их
@@ -79,6 +82,8 @@ const ProfileSession := preload("res://profile/profile_session.gd")
 const ProfileUI := preload("res://profile/profile_ui.gd")
 const AccountService := preload("res://accounts/account_service.gd")
 const SecretBox := preload("res://accounts/secret_box.gd")
+const FloorGrid := preload("res://world/floor_grid.gd")
+const WorldEnv := preload("res://world/environment.gd")
 const SynthHand := preload("res://tests/synth_hand.gd")
 
 const STEPS := ["открыть", "войти коротким", "действия удержанием", "копировать", "вставить",
@@ -89,7 +94,8 @@ const STEPS := ["открыть", "войти коротким", "действи
 		"руки: кулак и касание", "руки: протяжка и перенос", "руки: отдача управления",
 		"ввод после самопроверки", "видно того, кто ведёт", "настройки того, кто ведёт", "смена пользователя",
 		"профиль: новый с именем", "профиль: PIN при запуске", "профиль: рост, глаза, место",
-		"аккаунт: ключ Claude", "аккаунт: Google по коду", "аккаунт: PIN перешифровывает", "раскладки", "выход удержанием"]
+		"аккаунт: ключ Claude", "аккаунт: Google по коду", "аккаунт: PIN перешифровывает",
+		"свет сцены", "сетка пола", "раскладки", "выход удержанием"]
 
 var r: Report = Report.new()
 ## Фальсификатор дымового прогона: --falsify=scroll снимает ограничение хода прокрутки.
@@ -156,7 +162,7 @@ func _initialize() -> void:
 		[293, _edit_scroll_open], [296, _edit_scroll_move], [299, _edit_scroll_check],
 		[301, _panel_layout_open], [304, _panel_layout], [307, _panel_show], [307, _pages], [307, _big_folder_labels], [306, _gesture_choice], [308, _shake_root],
 		[309, _hands_fist_touch], [309, _hands_drag], [309, _hands_handoff],
-		[309, _router_ready], [309, _router_visuals], [309, _router_settings], [309, _router_done], [309, _profile_switch], [309, _pui_new], [309, _pui_pin], [309, _pui_body], [309, _acc_key], [309, _acc_google], [309, _acc_pin], [309, _pui_done],
+		[309, _router_ready], [309, _router_visuals], [309, _router_settings], [309, _router_done], [309, _profile_switch], [309, _pui_new], [309, _pui_pin], [309, _pui_body], [309, _acc_key], [309, _acc_google], [309, _acc_pin], [309, _pui_done], [310, _world_light], [310, _world_grid],
 		[310, _layouts], [314, _exit_hold], [320, _finish],
 	]
 
@@ -1557,7 +1563,15 @@ func _pui_body() -> void:
 	pui.on_action("profile_height", "")
 	_pui_type("180")
 	pui.on_action("profile_eye", "")
+	# Замер высоты глаз идёт окном (world/eye_measure.gd): кормим кадрами, как main.gd.
+	for _i in 200:
+		if not pui.tick_eye(1.0 / 90.0):
+			break
 	pui.on_action("profile_place", "")
+	pui.on_action("profile_place", "")
+	# Граница выключена (сессия 13): зоны нет, но место всё равно запоминается.
+	pui.play_area = func() -> PackedVector3Array: return PackedVector3Array()
+	pui.play_area_mode = func() -> int: return 0
 	pui.on_action("profile_place", "")
 	var p = pui.profiles.profile
 	var got := [p.height_cm, p.eye_m, p.places.size(), menu.catalog.items["pf_height"].title,
@@ -1574,10 +1588,10 @@ func _pui_body() -> void:
 	var deleted_name: String = p.name
 	pui.on_action("profile_delete", "")
 	var left := [pui.profiles.store.order.size(), pui.profiles.profile.name]
-	var want := [180.0, 1.62, 1, "Рост: 180 см", "Запомнить это место (мест: 1)", ["pf_projects_none"],
+	var want := [180.0, 1.62, 2, "Рост: 180 см", "Запомнить это место (мест: 2)", ["pf_projects_none"],
 			["pf_project_jtest"], "Проекты (1)"]
 	if got == want and left == [1, "Основной"]:
-		r.pass_("профиль: рост, глаза, место — 180 см, глаза 1,62 м от пола XR-пространства, место одно после двух «запомнить», папка проектов честная; удалён «%s», активен «Основной»" % deleted_name)
+		r.pass_("профиль: рост, глаза, место — 180 см, глаза 1,62 м от пола XR-пространства, место одно после двух «запомнить» и второе без границы, папка проектов честная; удалён «%s», активен «Основной»" % deleted_name)
 	else:
 		r.fail("профиль: рост, глаза, место: %s, ожидалось %s; после удаления %s" % [got, want, left])
 
@@ -1740,6 +1754,81 @@ func _rm_tree(dir: String) -> void:
 	for f in d.get_files():
 		d.remove(f)
 	DirAccess.remove_absolute(abs)
+
+
+# --- мир: свет и сетка пола (этап Ф3) ------------------------------------------------
+
+## Свет: три режима настройки дают разную яркость, и ни в одном сцена не тёмная (сессия 13: кнопок
+## на контроллерах не было видно).
+func _world_light() -> void:
+	var env := WorldEnv.new()
+	env.falsify_dark = falsify == "nolight"
+	env.setup(head.get_parent())
+	var seen := {}
+	for level in ["dim", "studio", "bright"]:
+		menu.settings.values["space_light"] = level
+		env.apply(menu.settings)
+		seen[level] = [snappedf(env.light.light_energy, 0.01), snappedf(env.world.environment.ambient_light_energy, 0.01)]
+	menu.settings.values["space_glow"] = true
+	env.apply(menu.settings)
+	var glow_on: bool = env.world.environment.glow_enabled
+	menu.settings.values["space_glow"] = false
+	env.apply(menu.settings)
+	var glow_off: bool = env.world.environment.glow_enabled
+	var lit: bool = seen["dim"][0] > 0.0 and seen["studio"][0] > seen["dim"][0] and seen["bright"][0] > seen["studio"][0]
+	env.world.queue_free()
+	env.light.queue_free()
+	if lit and glow_on and not glow_off:
+		r.pass_("свет сцены: приглушённое %s, студия %s, яркое %s (свет, ambient); свечение включается настройкой" % [
+				seen["dim"], seen["studio"], seen["bright"]])
+	else:
+		r.fail("свет сцены: %s, свечение вкл %s / выкл %s" % [seen, glow_on, glow_off])
+
+
+## Сетка: настройки доходят до шейдера, сетка едет за человеком (линии при этом на месте — они в
+## мировых координатах), «вся сцена» и «в начале координат» работают, «рентген» снимает проверку глубины.
+func _world_grid() -> void:
+	var root3d := head.get_parent()
+	var grid := FloorGrid.new()
+	grid.falsify_no_follow = falsify == "gridfollow"
+	grid.setup(root3d, head)
+	var st := menu.settings
+	st.values["grid_mode"] = "around"
+	st.values["grid_origin"] = true
+	st.values["grid_cell_cm"] = 50.0
+	st.values["grid_radius_m"] = 6.0
+	st.values["grid_thickness_mm"] = 4.0
+	st.values["grid_alpha"] = 0.35
+	st.values["grid_color"] = "cyan"
+	st.values["grid_xray"] = true
+	grid.apply(st)
+	var mat: ShaderMaterial = grid.around.material_override
+	var uniforms := [mat.get_shader_parameter("cell_m"), mat.get_shader_parameter("thickness_m"),
+			mat.get_shader_parameter("alpha"), mat.get_shader_parameter("radius_m"),
+			mat.shader == FloorGrid.SHADER_XRAY]
+	head.position = Vector3(3.0, 1.6, -2.0)
+	grid.follow()
+	var pos := grid.around.position
+	var center: Vector3 = grid.center_of(grid.around)
+	var both_visible: bool = grid.around.visible and grid.origin_grid.visible
+	st.values["grid_mode"] = "off"
+	grid.apply(st)
+	var hidden: bool = not grid.around.visible and not grid.origin_grid.visible
+	st.values["grid_mode"] = "scene"
+	st.values["grid_origin"] = false
+	grid.apply(st)
+	var scene_side: float = grid.around.scale.x
+	head.position = Vector3(0, 0, 0.4)
+	grid.around.queue_free()
+	grid.origin_grid.queue_free()
+	var follows: bool = is_equal_approx(pos.x, 3.0) and is_equal_approx(pos.z, -2.0) and is_zero_approx(pos.y) \
+			and center.distance_to(Vector3(3.0, 0.0, -2.0)) < 0.01
+	if uniforms == [0.5, 0.004, 0.35, 6.0, true] and follows and both_visible and hidden \
+			and scene_side > 50.0:
+		r.pass_("сетка пола: ячейка 50 см, линия 4 мм, прозрачность 0.35, радиус 6 м, рентген; едет за человеком на пол (%.1f, %.1f), «выкл» прячет обе, «вся сцена» — квад %.0f м" % [pos.x, pos.z, scene_side])
+	else:
+		r.fail("сетка пола: параметры %s, следование %s (%s, центр %s), обе видны %s, выкл %s, сцена %s" % [
+				uniforms, follows, pos, center, both_visible, hidden, scene_side])
 
 
 ## «Выход»: короткое не выходит, удержание до конца кольца — сигнал выхода.

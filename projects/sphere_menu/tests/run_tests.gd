@@ -110,6 +110,10 @@ const ApiKeyRes := preload("res://accounts/api_key.gd")
 const DeviceFlowRes := preload("res://accounts/device_flow.gd")
 ## Этап D (ADR-0011): аккаунты.
 const ACCOUNT_CHECKS := ["секреты", "ключи API", "поток кода устройства"]
+const EyeMeasureRes := preload("res://world/eye_measure.gd")
+const SpaceRes := preload("res://world/space.gd")
+## Этап Ф3: пространство.
+const SPACE_CHECKS := ["высота глаз окном", "сброс пространства"]
 const ProjectsRes := preload("res://profile/projects.gd")
 const ScenarioRes := preload("res://session/scenario.gd")
 
@@ -173,6 +177,7 @@ func _init() -> void:
 	_profile_checks()
 	_projects_check()
 	_account_checks()
+	_space_checks()
 
 	var total := r.executed()
 	r.note("")
@@ -197,7 +202,8 @@ func _expected() -> int:
 		+ MODEL_CHECKS.size() \
 		+ HAND_CHECKS.size() \
 		+ PROFILE_CHECKS.size() \
-		+ ACCOUNT_CHECKS.size()
+		+ ACCOUNT_CHECKS.size() \
+		+ SPACE_CHECKS.size()
 
 
 const SURFACE_CHECKS := ["ячейка под направлением", "шаг вращения", "раздача глобуса",
@@ -2606,9 +2612,14 @@ func _profile_checks() -> void:
 	upl.remember_place("Кабинет у окна", jitter, Transform3D(), 0.72)
 	if upl.places.size() != 1 or upl.places[0]["anchors"] != ["uuid-1"] or upl.places[0]["name"] != "Кабинет у окна":
 		pl_bad.append("повтор: мест %d, %s" % [upl.places.size(), upl.places[0]])
+	# Сессия 13: у выключенной границы Quest зоны не отдаёт. Место всё равно запоминается — просто
+	# не узнаётся само.
+	upl.remember_place("Без границы", PackedVector3Array(), Transform3D(Basis(), Vector3(0, 0, 1)))
+	if upl.places.size() != 2 or upl.places[1]["area"].size() != 0 or upl.find_place(PackedVector3Array()) != -1:
+		pl_bad.append("без зоны: мест %d, %s" % [upl.places.size(), upl.places[1]])
 	UserProfileRes.falsify_place_any = false
 	if pl_bad.is_empty():
-		r.pass_("места: зона с дрожью вершин 2 см узнана (допуск %.2f м), другая и пустая — нет, повтор обновил место с якорями" % UserProfileRes.PLACE_TOLERANCE_M)
+		r.pass_("места: зона с дрожью вершин 2 см узнана (допуск %.2f м), другая и пустая — нет, повтор обновил место с якорями, место без границы запомнено и само не узнаётся" % UserProfileRes.PLACE_TOLERANCE_M)
 	else:
 		r.fail("места: %s" % "; ".join(pl_bad))
 
@@ -2765,3 +2776,66 @@ func _projects_check() -> void:
 		r.pass_("проекты: ссылка только внутри каталога проектов (6 плохих путей отвергнуты), тот же путь — та же ссылка, открытие — в недавние со своим состоянием, всё пережило перезапуск")
 	else:
 		r.fail("проекты: %s" % "; ".join(bad))
+
+
+# --- пространство (этап Ф3) ----------------------------------------------------------
+
+## Высота глаз берётся срединным значением окна: один взгляд под ноги её не сдвигает (сессия 13 дала
+## 1.26 и 1.59 м подряд). Если голова гуляла шире SPREAD_MAX_M — замер отбрасывается.
+func _space_checks() -> void:
+	var eye_bad: Array[String] = []
+	var dt := 1.0 / 90.0
+	var em := EyeMeasureRes.new()
+	em.falsify_instant = falsify == "eyeinstant"
+	em.start()
+	var res := {}
+	var n := int(EyeMeasureRes.WINDOW_S / dt) + 2
+	for i in n:
+		# ровно стоящий человек: 1.62 ± 1 см, и один кадр «взгляд под ноги» в конце
+		var y := 1.62 + 0.01 * sin(i * 0.7)
+		if i == n - 2:
+			y = 1.31
+		var r2 := em.add(y, dt)
+		if not r2.is_empty():
+			res = r2
+			break
+	if res.get("ok", false) != true or absf(float(res.get("eye_m", 0.0)) - 1.62) > 0.02:
+		eye_bad.append("ровная поза с одним наклоном → %s" % [res])
+	var em2 := EyeMeasureRes.new()
+	em2.falsify_instant = em.falsify_instant
+	em2.start()
+	var res2 := {}
+	for i in n:
+		var r3 := em2.add(1.2 + 0.01 * i, dt)   # человек встаёт: размах больше предела
+		if not r3.is_empty():
+			res2 = r3
+			break
+	if res2.get("ok", true) != false:
+		eye_bad.append("человек двигался → %s" % [res2])
+	if eye_bad.is_empty():
+		r.pass_("высота глаз окном: %.0f с, срединное значение 1,62 м при наклоне головы в кадре; размах больше %.2f м — замер отброшен" % [
+				EyeMeasureRes.WINDOW_S, EyeMeasureRes.SPREAD_MAX_M])
+	else:
+		r.fail("высота глаз окном: %s" % "; ".join(eye_bad))
+
+	# Сброс пространства: режим зоны — stage, положение — заново от позы головы, высота глаз —
+	# измеряется. Вызовы XR подменены.
+	var sp_bad: Array[String] = []
+	var sp := SpaceRes.new()
+	sp.falsify_no_reset = falsify == "noreset"
+	var calls := {"recenter": 0, "mode": -1, "measure": 0}
+	var mode_now := [int(XRInterface.XR_PLAY_AREA_SITTING)]
+	sp.recenter = func() -> void: calls["recenter"] += 1
+	sp.set_play_area = func(m: int) -> bool:
+		calls["mode"] = m
+		mode_now[0] = m
+		return true
+	sp.play_area_mode = func() -> int: return mode_now[0]
+	var detail := sp.reset(func() -> void: calls["measure"] += 1)
+	if calls["recenter"] != 1 or calls["mode"] != int(XRInterface.XR_PLAY_AREA_STAGE) or calls["measure"] != 1 \
+			or not detail.contains("режим зоны"):
+		sp_bad.append("вызовы %s, строка «%s»" % [calls, detail])
+	if sp_bad.is_empty():
+		r.pass_("сброс пространства: режим зоны → stage, положение сброшено (center_on_hmd), высота глаз измеряется заново; в журнал — «%s»" % detail)
+	else:
+		r.fail("сброс пространства: %s" % "; ".join(sp_bad))

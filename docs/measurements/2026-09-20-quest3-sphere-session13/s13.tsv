@@ -1,0 +1,294 @@
+# unix_время	событие	поверхность	радиус_см	ячейка_см	ячейка_факт_см	уровень_глобуса	вращение_рукой	ввод	профиль	папка	задание	попадание	мс_от_задания	подробности
+# сессия 2026-09-20T11:28:12
+1789885692.684	профиль_открыт	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e					Основной; создан, перенесено ["settings_controllers.cfg", "settings_hands.cfg", "settings_common.cfg", "favorites.cfg"]
+1789885692.729	сессия_openxr	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e					session_begun кадр 0
+1789885692.811	модели_контроллеров	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e					FB
+1789885693.399	сессия_openxr	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e					session_visible кадр 1
+1789885693.399	сессия_openxr	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e					session_focussed кадр 1
+1789885694.448	folder	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789885694.449	toggle	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					{ "open": true }
+1789885698.812	folder	globe	20.0	15.0	15.07	1	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789885703.325	folder	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789885707.832	folder	globe_hex	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789885712.427	folder	octa	20.0	1.5	3.65	21	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789885717.008	folder	rings	20.0	1.5	3.29	16	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789885721.617	folder	fib	20.0	1.5	3.47	27	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789885726.163	folder	fib	8.0	1.5	1.49	26	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789885726.164	настройка_значение	fib	8.0	1.5	1.49	26	face	controllers	p18fd0f41789e					radius_cm=8.0
+1789885726.185	folder	fib	17.5	1.5	3.04	27	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789885726.185	настройка_значение	fib	17.5	1.5	3.04	27	face	controllers	p18fd0f41789e					radius_cm=17.5
+1789885726.202	folder	fib	20.0	1.5	3.47	27	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789885726.281	folder	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789885761.494	folder	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789885761.495	intent	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789885761.507	folder	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789885761.508	intent	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789885766.026	folder	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789885766.027	folder	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789885766.027	intent	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789885766.028	folder	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789885766.028	intent	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "browse", "folder": "" }
+1789885766.029	folder	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789885766.029	intent	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789885766.039	folder	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789885766.039	intent	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789885770.558	folder	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789885770.559	folder	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789885770.559	intent	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789885770.560	folder	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789885770.560	intent	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "browse", "folder": "" }
+1789885770.563	клавиатура	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					show
+1789885770.578	toggle	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					{ "open": false }
+1789885770.696	самопроверка	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e			PASS		{ "глобус уровень 13, 632 ячеек, вращение": { "gpu95": 2.19300007820129, "cpu95": 0.19699999690056, "proc95": 1.962, "over": 0 }, "глобус крупный: уровень 1, 32 ячеек, радиус 20.0 см, вращение": { "gpu95": 1.92900002002716, "cpu95": 0.18400000035763, "proc95": 1.867, "over": 0 }, "линза α=0.037, 700 ячеек, вращение": { "gpu95": 2.96399998664856, "cpu95": 0.36199998855591, "proc95": 6.765, "over": 0 }, "pin_ms": 40.064 }
+1789885770.697	ввод_готов	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e					controllers
+1789885773.607	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789885773.607	toggle	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e					{ "open": true }
+1789885781.610	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	settings				{ "folder": "settings", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789885781.610	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789885783.953	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				{ "folder": "profile", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789885783.954	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				{ "do": "reload", "view": "browse", "folder": "profile" }
+1789885787.664	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				{ "do": "profile", "view": "browse", "folder": "profile", "action": "profile_pin" }
+1789885791.817	профиль_pin	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				задан
+1789885791.818	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				{ "folder": "profile", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789885791.818	панель_кнопка	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				профиль: done
+1789885794.875	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_switch				{ "folder": "profile_switch", "view": "browse", "items": 2, "total": 2, "page": 1, "pages": 1 }
+1789885794.875	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_switch				{ "do": "reload", "view": "browse", "folder": "profile_switch" }
+1789885796.276	клавиатура	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_switch				show
+1789885796.276	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_switch				{ "do": "profile", "view": "browse", "folder": "profile_switch", "action": "profile_new" }
+1789885796.681	сессия_openxr	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_switch				session_visible кадр 9161
+1789885816.488	клавиатура	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_switch				hide
+1789885816.488	клавиатура	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_switch				enter
+1789885816.545	сессия_openxr	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_switch				session_focussed кадр 10948
+1789885821.498	клавиатура	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_switch				hide
+1789885821.511	folder	globe	11.0	2.5	2.47	10	ball	controllers	p35c466c7496e	profile_switch				{ "folder": "profile_switch", "view": "browse", "items": 2, "total": 2, "page": 1, "pages": 1 }
+1789885821.512	folder	globe	11.0	2.5	2.47	10	ball	controllers	p35c466c7496e	profile_switch				{ "folder": "profile_switch", "view": "browse", "items": 2, "total": 2, "page": 1, "pages": 1 }
+1789885821.513	folder	globe	11.0	2.5	2.47	10	ball	controllers	p35c466c7496e	profile_switch				{ "folder": "profile_switch", "view": "browse", "items": 2, "total": 2, "page": 1, "pages": 1 }
+1789885821.513	профиль_открыт	globe	11.0	2.5	2.47	10	ball	controllers	p35c466c7496e	profile_switch				Second Profile
+1789885821.514	профиль_создан	globe	11.0	2.5	2.47	10	ball	controllers	p35c466c7496e	profile_switch				Second Profile
+1789885821.514	панель_кнопка	globe	11.0	2.5	2.47	10	ball	controllers	p35c466c7496e	profile_switch				профиль: done
+1789885827.967	folder	globe	11.0	2.5	2.47	10	ball	controllers	p35c466c7496e	profile				{ "folder": "profile", "view": "browse", "items": 8, "total": 8, "page": 1, "pages": 1 }
+1789885827.968	intent	globe	11.0	2.5	2.47	10	ball	controllers	p35c466c7496e	profile				{ "do": "reload", "view": "browse", "folder": "profile" }
+1789885830.022	folder	globe	11.0	2.5	2.47	10	ball	controllers	p35c466c7496e	profile_switch				{ "folder": "profile_switch", "view": "browse", "items": 3, "total": 3, "page": 1, "pages": 1 }
+1789885830.022	intent	globe	11.0	2.5	2.47	10	ball	controllers	p35c466c7496e	profile_switch				{ "do": "reload", "view": "browse", "folder": "profile_switch" }
+1789885832.968	intent	globe	11.0	2.5	2.47	10	ball	controllers	p35c466c7496e	profile_switch				{ "do": "profile", "view": "browse", "folder": "profile_switch", "action": "profile_open:p18fd0f41789e" }
+1789885836.941	профиль_pin_проверка	globe	11.0	2.5	2.47	10	ball	controllers	p35c466c7496e	profile_switch				Основной: ok
+1789885836.945	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_switch				{ "folder": "profile_switch", "view": "browse", "items": 3, "total": 3, "page": 1, "pages": 1 }
+1789885836.945	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_switch				{ "folder": "profile_switch", "view": "browse", "items": 3, "total": 3, "page": 1, "pages": 1 }
+1789885836.946	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_switch				{ "folder": "profile_switch", "view": "browse", "items": 3, "total": 3, "page": 1, "pages": 1 }
+1789885836.946	профиль_открыт	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_switch				Основной
+1789885836.946	панель_кнопка	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_switch				профиль: done
+1789885841.823	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				{ "folder": "profile", "view": "browse", "items": 8, "total": 8, "page": 1, "pages": 1 }
+1789885841.823	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				{ "do": "reload", "view": "browse", "folder": "profile" }
+1789885846.580	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				{ "do": "profile", "view": "browse", "folder": "profile", "action": "profile_height" }
+1789885851.037	профиль_рост	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				169 см
+1789885851.039	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				{ "folder": "profile", "view": "browse", "items": 8, "total": 8, "page": 1, "pages": 1 }
+1789885851.039	панель_кнопка	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				профиль: done
+1789885853.193	клавиатура	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				show
+1789885853.193	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				{ "do": "profile", "view": "browse", "folder": "profile", "action": "profile_name" }
+1789885853.504	сессия_openxr	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				session_visible кадр 14268
+1789885866.448	клавиатура	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				hide
+1789885866.448	клавиатура	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				enter
+1789885866.502	сессия_openxr	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				session_focussed кадр 15437
+1789885868.083	клавиатура	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				hide
+1789885868.083	профиль_имя	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				Flamti
+1789885868.085	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				{ "folder": "profile", "view": "browse", "items": 8, "total": 8, "page": 1, "pages": 1 }
+1789885868.085	панель_кнопка	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				профиль: done
+1789885871.784	профиль_глаза	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				1.26 м
+1789885871.785	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				{ "folder": "profile", "view": "browse", "items": 8, "total": 8, "page": 1, "pages": 1 }
+1789885871.785	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				{ "do": "profile", "view": "browse", "folder": "profile", "action": "profile_eye" }
+1789885878.617	профиль_глаза	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				1.59 м
+1789885878.618	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				{ "folder": "profile", "view": "browse", "items": 8, "total": 8, "page": 1, "pages": 1 }
+1789885878.619	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				{ "do": "profile", "view": "browse", "folder": "profile", "action": "profile_eye" }
+1789885883.414	профиль_место	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				зоны нет
+1789885883.415	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				{ "do": "profile", "view": "browse", "folder": "profile", "action": "profile_place" }
+1789885889.716	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_accounts				{ "folder": "profile_accounts", "view": "browse", "items": 3, "total": 3, "page": 1, "pages": 1 }
+1789885889.716	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_accounts				{ "do": "reload", "view": "browse", "folder": "profile_accounts" }
+1789885893.977	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_accounts				{ "folder": "profile_accounts", "view": "browse", "items": 3, "total": 3, "page": 1, "pages": 1 }
+1789885893.978	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_accounts				{ "do": "profile", "view": "browse", "folder": "profile_accounts", "action": "profile_account:google" }
+1789885896.082	панель_кнопка	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_accounts				профиль: cancel
+1789885896.807	клавиатура	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_accounts				show
+1789885896.808	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_accounts				{ "do": "profile", "view": "browse", "folder": "profile_accounts", "action": "profile_account:claude" }
+1789885897.097	сессия_openxr	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_accounts				session_visible кадр 18191
+1789885905.284	клавиатура	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_accounts				hide
+1789885905.284	клавиатура	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_accounts				enter
+1789885905.353	сессия_openxr	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_accounts				session_focussed кадр 18933
+1789885907.008	клавиатура	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_accounts				show
+1789885907.009	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_accounts				{ "do": "profile", "view": "browse", "folder": "profile_accounts", "action": "profile_account:openai" }
+1789885907.287	сессия_openxr	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_accounts				session_visible кадр 19107
+1789885908.884	клавиатура	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_accounts				hide
+1789885908.884	клавиатура	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_accounts				enter
+1789885908.943	сессия_openxr	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile_accounts				session_focussed кадр 19256
+1789885909.973	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				{ "folder": "profile", "view": "browse", "items": 8, "total": 8, "page": 1, "pages": 1 }
+1789885909.973	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	profile				{ "do": "reload", "view": "browse", "folder": "profile" }
+1789885912.829	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	settings				{ "folder": "settings", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789885912.829	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789885915.406	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	settings				{ "do": "redraw", "view": "browse", "folder": "settings" }
+1789885916.431	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789885916.432	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	settings_sphere				{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789885921.408	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	settings_sphere_adv				{ "folder": "settings_sphere_adv", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789885921.408	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	settings_sphere_adv				{ "do": "reload", "view": "browse", "folder": "settings_sphere_adv" }
+1789885927.164	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789885927.164	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	settings_sphere				{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789885928.441	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	settings				{ "folder": "settings", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789885928.441	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789885930.530	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789885930.530	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "browse", "folder": "" }
+1789885931.864	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789885931.864	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789885934.059	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 90, "total": 128, "page": 1, "pages": 2 }
+1789885934.060	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789885943.786	клавиатура	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	bulk				hide
+1789885943.786	панель_кнопка	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	bulk				профиль: cancel
+1789885944.986	shake	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e					{ "how": "shake", "from": "bulk" }
+1789885944.987	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789885944.987	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "browse", "folder": "" }
+1789885949.486	сценарий_начат	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e					4 шагов, осталось 4
+1789885949.487	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e					{ "do": "tasks", "view": "browse", "folder": "" }
+1789885961.967	скриншот	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e			да		screenshot_2026-09-20_11-32-41.710.png, 1920×1080, 267739 байт, всего 3234406 (листинг), 257 мс
+1789885961.967	сценарий_шаг	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e		screenshot	да	12481	
+1789885964.122	скриншот	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e			да		screenshot_2026-09-20_11-32-43.854.png, 1920×1080, 282562 байт, всего 3516968 (листинг), 267 мс
+1789885975.478	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	settings				{ "folder": "settings", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789885975.478	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789885977.268	folder	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789885977.268	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	settings_sphere				{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789885979.802	настройка_открыта	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	settings_sphere				cell_cm
+1789885979.803	intent	globe	14.5	6.7	6.85	3	face	controllers	p18fd0f41789e	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "cell_cm" }
+1789885981.601	folder	globe	14.5	7.1	6.85	3	face	controllers	p18fd0f41789e	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789885981.601	настройка_значение	globe	14.5	7.1	6.85	3	face	controllers	p18fd0f41789e	settings_sphere				cell_cm=7.1
+1789885981.614	folder	globe	14.5	7.2	6.85	3	face	controllers	p18fd0f41789e	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789885981.614	настройка_значение	globe	14.5	7.2	6.85	3	face	controllers	p18fd0f41789e	settings_sphere				cell_cm=7.2
+1789885981.642	folder	globe	14.5	7.3	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789885981.643	настройка_значение	globe	14.5	7.3	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				cell_cm=7.3
+1789885981.666	folder	globe	14.5	7.4	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789885981.666	настройка_значение	globe	14.5	7.4	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				cell_cm=7.4
+1789885981.686	folder	globe	14.5	7.5	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789885981.686	настройка_значение	globe	14.5	7.5	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				cell_cm=7.5
+1789885981.720	folder	globe	14.5	7.6	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789885981.720	настройка_значение	globe	14.5	7.6	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				cell_cm=7.6
+1789885981.742	folder	globe	14.5	7.7	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789885981.742	настройка_значение	globe	14.5	7.7	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				cell_cm=7.7
+1789885981.755	folder	globe	14.5	7.8	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789885981.755	настройка_значение	globe	14.5	7.8	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				cell_cm=7.8
+1789885981.765	folder	globe	14.5	8.0	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789885981.766	настройка_значение	globe	14.5	8.0	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				cell_cm=8.0
+1789885981.798	folder	globe	14.5	8.1	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789885981.798	настройка_значение	globe	14.5	8.1	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				cell_cm=8.1
+1789885981.818	folder	globe	14.5	8.0	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789885981.818	настройка_значение	globe	14.5	8.0	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				cell_cm=8.0
+1789885981.888	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789885981.888	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				cell_cm=7.9
+1789885981.920	folder	globe	14.5	7.8	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789885981.920	настройка_значение	globe	14.5	7.8	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				cell_cm=7.8
+1789885982.000	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789885982.000	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				cell_cm=7.9
+1789885982.012	folder	globe	14.5	7.8	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789885982.013	настройка_значение	globe	14.5	7.8	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				cell_cm=7.8
+1789885982.054	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789885982.054	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				cell_cm=7.9
+1789885982.120	folder	globe	14.5	7.8	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789885982.120	настройка_значение	globe	14.5	7.8	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				cell_cm=7.8
+1789885982.140	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789885982.140	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				cell_cm=7.9
+1789885983.254	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				done
+1789885983.255	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				cell_cm=7.9
+1789885984.901	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "folder": "settings", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789885984.901	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789885985.679	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789885985.679	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "browse", "folder": "" }
+1789885986.479	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789885986.479	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789885987.718	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 70, "total": 128, "page": 1, "pages": 2 }
+1789885987.719	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789885990.122	сценарий_шаг	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk	labels	да	28155	
+1789885993.045	page	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "from": 71, "to": 128, "total": 128, "page": 2, "pages": 2 }
+1789885993.049	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 58, "total": 128, "page": 2, "pages": 2 }
+1789885993.049	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789885994.756	сценарий_шаг	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk	pages	да	4634	
+1789885994.756	page	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "from": 1, "to": 70, "total": 128, "page": 1, "pages": 2 }
+1789885994.761	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 70, "total": 128, "page": 1, "pages": 2 }
+1789885994.761	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789885997.702	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789885997.702	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789885998.846	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789885998.846	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "browse", "folder": "" }
+1789885999.791	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "search", "items": 1, "total": 0, "page": 1, "pages": 1 }
+1789885999.794	клавиатура	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					show
+1789885999.794	поиск_открыт	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					
+1789885999.794	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "search", "view": "search", "folder": "" }
+1789886000.115	сессия_openxr	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					session_visible кадр 27412
+1789886006.796	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "search", "items": 9, "total": 8, "page": 1, "pages": 1 }
+1789886006.796	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "search", "folder": "" }
+1789886006.796	поиск_запрос	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					г → 8
+1789886007.137	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "search", "items": 3, "total": 2, "page": 1, "pages": 1 }
+1789886007.137	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "search", "folder": "" }
+1789886007.137	поиск_запрос	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					го → 2
+1789886007.493	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "search", "items": 2, "total": 1, "page": 1, "pages": 1 }
+1789886007.493	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "search", "folder": "" }
+1789886007.494	поиск_запрос	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					гор → 1
+1789886009.916	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "search", "items": 3, "total": 2, "page": 1, "pages": 1 }
+1789886009.916	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "search", "folder": "" }
+1789886009.916	поиск_запрос	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					го → 2
+1789886012.314	клавиатура	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					hide
+1789886012.314	клавиатура	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					enter
+1789886012.375	сессия_openxr	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					session_focussed кадр 28515
+1789886015.314	клавиатура	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	images				hide
+1789886015.315	сценарий_шаг	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	images	search	да	20559	
+1789886015.316	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	images				{ "folder": "images", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789886015.316	select	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	images				{ "do": "default", "view": "browse", "folder": "images", "item": "img_mountains", "title": "Горы" }
+1789886017.403	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789886017.404	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789886017.903	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789886017.904	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "browse", "folder": "" }
+1789886018.481	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "tasks", "view": "browse", "folder": "" }
+1789886020.970	сценарий_начат	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					4 шагов, осталось 4
+1789886020.970	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "tasks", "view": "browse", "folder": "" }
+1789886025.348	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789886025.349	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789886027.087	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 70, "total": 128, "page": 1, "pages": 2 }
+1789886027.088	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789886029.747	сценарий_шаг	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk	labels	да	8777	
+1789886031.248	page	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "from": 71, "to": 128, "total": 128, "page": 2, "pages": 2 }
+1789886031.252	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 58, "total": 128, "page": 2, "pages": 2 }
+1789886031.252	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789886032.181	сценарий_шаг	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk	pages	да	2434	
+1789886032.182	page	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "from": 1, "to": 70, "total": 128, "page": 1, "pages": 2 }
+1789886032.186	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 70, "total": 128, "page": 1, "pages": 2 }
+1789886032.187	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789886033.305	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789886033.305	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789886034.126	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789886034.127	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "browse", "folder": "" }
+1789886036.538	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "search", "items": 1, "total": 0, "page": 1, "pages": 1 }
+1789886036.543	клавиатура	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					show
+1789886036.543	поиск_открыт	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					
+1789886036.543	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "search", "view": "search", "folder": "" }
+1789886036.874	сессия_openxr	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					session_visible кадр 30720
+1789886037.976	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "search", "items": 22, "total": 21, "page": 1, "pages": 1 }
+1789886037.976	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "search", "folder": "" }
+1789886037.977	поиск_запрос	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					м → 21
+1789886038.407	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "search", "items": 4, "total": 3, "page": 1, "pages": 1 }
+1789886038.407	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "search", "folder": "" }
+1789886038.407	поиск_запрос	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					мо → 3
+1789886039.227	клавиатура	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					hide
+1789886039.227	клавиатура	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					enter
+1789886039.286	сессия_openxr	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					session_focussed кадр 30937
+1789886041.561	клавиатура	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes				hide
+1789886041.562	сценарий_шаг	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes	search	да	9381	
+1789886041.563	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes				{ "folder": "scenes", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789886041.563	select	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes				{ "do": "default", "view": "browse", "folder": "scenes", "item": "scene_castle", "title": "Замок" }
+1789886041.563	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes				{ "open": false }
+1789886043.617	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes				{ "folder": "scenes", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789886043.617	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes				{ "open": true }
+1789886046.220	скриншот	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes		да		screenshot_2026-09-20_11-34-05.983.png, 1920×1080, 189167 байт, всего 3706135 (листинг), 237 мс
+1789886046.220	сценарий_шаг	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes	screenshot	да	4658	
+1789886048.449	задание	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes	scene_cave			
+1789886050.417	select	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes	scene_cave	да	1967	{ "do": "default", "view": "browse", "folder": "scenes", "item": "scene_cave", "title": "Пещера" }
+1789886050.417	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes				{ "open": false }
+1789886051.984	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes				{ "folder": "scenes", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789886051.985	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes				{ "open": true }
+1789886052.962	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789886052.962	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789886053.884	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789886053.884	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "browse", "folder": "" }
+1789886056.217	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "exit", "view": "browse", "folder": "" }
+1789886056.221	выход	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					выгрузка в /storage/emulated/0/Download/VRGE/2026-09-20_11-34-16

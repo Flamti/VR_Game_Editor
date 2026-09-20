@@ -45,7 +45,7 @@ var results := {}
 func run(host: Node, menu: Menu) -> bool:
 	var checks := ["xr", "частота", "msaa", "прогрев", "глобус худший", "глобус крупный", "линза худшая",
 			"раскладки худшие", "атлас", "панель", "панель лучом", "прокрутка панели", "пропуск перерисовки",
-			"подписи", "клавиатура overlay", "PIN: время входа"]
+			"подписи", "клавиатура overlay", "PIN: время входа", "мир: свет и сетка"]
 	expected = checks.size()
 	r.note("=== САМОПРОВЕРКА ШАР-МЕНЮ ===")
 	r.note("ожидается исполненных проверок: %d" % expected)
@@ -323,6 +323,7 @@ func run(host: Node, menu: Menu) -> bool:
 		r.fail("клавиатура overlay: FEATURE_VIRTUAL_KEYBOARD %s, запросов показа %d из 1" % [has_vk, req])
 
 	menu.close()
+	await _world_cost(host, menu, rid, budget)
 	_pin_time()
 	return _verdict()
 
@@ -372,6 +373,44 @@ func _budget_check(label: String, m: Dictionary, budget: float) -> void:
 	var msg := "%s: p95 GPU %.2f / CPU рендера+скриптов %.2f мс из %.2f, связывает %s; %s" % [
 			label, g95, c95, budget, binding, ProbeWindow.delivery_brief(m, 1000.0 / budget)]
 	if maxf(g95, c95) <= budget and int(m["over"]) == 0:
+		r.pass_(msg)
+	else:
+		r.fail(msg)
+
+
+## Цена мира: кадр с закрытым шаром без сетки и с сеткой вокруг человека. Разница — цена сетки на
+## этом шлеме (CLAUDE.md, правило 1: число измеряется, а не назначается). Свет горит в обоих окнах:
+## без него сцена не видна вовсе (сессия 13).
+func _world_cost(host: Node, menu: Menu, rid: RID, budget: float) -> void:
+	var grid = host.get("floor_grid")
+	var env = host.get("world_env")
+	if grid == null or env == null:
+		r.fail("мир: свет и сетка — в сцене нет ни сетки, ни окружения")
+		return
+	var st := menu.settings
+	var saved := [st.get_value("grid_mode"), st.get_value("space_light")]
+	menu.close()
+	st.values["grid_mode"] = "off"
+	grid.apply(st)
+	env.apply(st)
+	await ProbeWindow.settle(host, 0.5)
+	var off: Dictionary = await _measure(host, rid, budget)
+	st.values["grid_mode"] = "around"
+	grid.apply(st)
+	grid.follow()
+	await ProbeWindow.settle(host, 0.5)
+	var on: Dictionary = await _measure(host, rid, budget)
+	st.values["grid_mode"] = saved[0]
+	st.values["space_light"] = saved[1]
+	grid.apply(st)
+	env.apply(st)
+	var g_off: float = (off["gpu"] as ProbeStats).percentile(0.95)
+	var g_on: float = (on["gpu"] as ProbeStats).percentile(0.95)
+	var c_on: float = (on["cpu"] as ProbeStats).percentile(0.95) + (on["process"] as ProbeStats).percentile(0.95)
+	results["world"] = {"gpu_off": g_off, "gpu_on": g_on, "cpu_on": c_on}
+	var msg := "мир: свет (%s), сетка вокруг — GPU %.2f → %.2f мс (+%.2f), CPU+скрипты %.2f из %.2f" % [
+			env.brief(), g_off, g_on, g_on - g_off, c_on, budget]
+	if maxf(g_on, c_on) <= budget:
 		r.pass_(msg)
 	else:
 		r.fail(msg)

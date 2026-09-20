@@ -553,6 +553,9 @@ func _default(it: Item, scroll: Variant) -> Dictionary:
 			# Действия профиля пользователя (ADR-0010): «profile_<что>[:<аргумент>]», исполняет сессия.
 			if it.action.begins_with("profile_"):
 				return {"do": "profile", "action": it.action}
+			# Действия пространства (этап Ф3): сброс к системным значениям — world/space.gd.
+			if it.action.begins_with("space_"):
+				return {"do": "space", "action": it.action}
 			return {"do": "none"}
 	if picking:
 		picking = false

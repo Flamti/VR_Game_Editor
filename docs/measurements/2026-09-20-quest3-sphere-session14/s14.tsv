@@ -1,0 +1,413 @@
+# unix_время	событие	поверхность	радиус_см	ячейка_см	ячейка_факт_см	уровень_глобуса	вращение_рукой	ввод	профиль	папка	задание	попадание	мс_от_задания	подробности
+# сессия 2026-09-20T12:30:02
+1789889402.515	профиль_открыт	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					Flamti
+1789889402.557	сессия_openxr	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					session_begun кадр 0
+1789889402.718	модели_контроллеров	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					FB
+1789889402.943	сессия_openxr	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					session_visible кадр 1
+1789889402.943	сессия_openxr	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					session_focussed кадр 1
+1789889403.319	folder	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789889403.320	toggle	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					{ "open": true }
+1789889407.682	folder	globe	20.0	15.0	15.07	1	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789889412.194	folder	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789889416.701	folder	globe_hex	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789889421.303	folder	octa	20.0	1.5	3.65	21	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789889425.891	folder	rings	20.0	1.5	3.29	16	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789889430.512	folder	fib	20.0	1.5	3.47	27	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789889435.070	folder	fib	8.0	1.5	1.49	26	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789889435.070	настройка_значение	fib	8.0	1.5	1.49	26	face	controllers	p18fd0f41789e					radius_cm=8.0
+1789889435.090	folder	fib	17.5	1.5	3.04	27	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789889435.090	настройка_значение	fib	17.5	1.5	3.04	27	face	controllers	p18fd0f41789e					radius_cm=17.5
+1789889435.107	folder	fib	20.0	1.5	3.47	27	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789889435.193	folder	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789889470.507	folder	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789889470.507	intent	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789889470.522	folder	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789889470.522	intent	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789889475.038	folder	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789889475.040	folder	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789889475.040	intent	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789889475.041	folder	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789889475.041	intent	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "browse", "folder": "" }
+1789889475.042	folder	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789889475.042	intent	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789889475.051	folder	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789889475.051	intent	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789889479.564	folder	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789889479.565	folder	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789889479.565	intent	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789889479.566	folder	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789889479.567	intent	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "browse", "folder": "" }
+1789889479.570	клавиатура	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					show
+1789889479.592	toggle	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					{ "open": false }
+1789889488.752	самопроверка	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e			PASS		{ "глобус уровень 13, 632 ячеек, вращение": { "gpu95": 2.61299991607666, "cpu95": 0.21500000357628, "proc95": 2.408, "over": 0 }, "глобус крупный: уровень 1, 32 ячеек, радиус 20.0 см, вращение": { "gpu95": 2.26099991798401, "cpu95": 0.19099999964237, "proc95": 3.324, "over": 0 }, "линза α=0.037, 700 ячеек, вращение": { "gpu95": 4.25699996948242, "cpu95": 0.43599998950958, "proc95": 6.788, "over": 0 }, "world": { "gpu_off": 2.30100011825562, "gpu_on": 2.68300008773804, "cpu_on": 2.37399999797344 }, "pin_ms": 51.806 }
+1789889488.756	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789889488.756	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "open": true }
+1789889488.758	ввод_готов	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					controllers, ждёт PIN
+1789889497.363	профиль_pin_проверка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					Flamti: ok
+1789889497.365	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789889497.366	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					профиль: done
+1789889499.937	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "folder": "settings", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789889499.937	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789889502.268	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "folder": "settings_space", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789889502.268	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "reload", "view": "browse", "folder": "settings_space" }
+1789889505.312	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m
+1789889505.313	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "grid_radius_m" }
+1789889506.620	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=5.5
+1789889506.709	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=6.0
+1789889506.742	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=6.5
+1789889506.775	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=7.0
+1789889506.809	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=7.5
+1789889506.853	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=8.0
+1789889506.886	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=8.5
+1789889506.920	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=9.0
+1789889506.931	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=9.5
+1789889506.942	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=10.0
+1789889506.953	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=10.5
+1789889506.964	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=11.0
+1789889506.986	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=11.5
+1789889506.997	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=12.0
+1789889507.008	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=12.5
+1789889507.020	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=13.0
+1789889507.041	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=13.5
+1789889507.074	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=14.0
+1789889507.154	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=13.5
+1789889507.186	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=13.0
+1789889507.242	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=12.5
+1789889508.309	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				done
+1789889508.311	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=12.5
+1789889509.712	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m
+1789889509.713	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "grid_radius_m" }
+1789889512.910	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=14.0
+1789889512.920	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=14.5
+1789889512.942	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=15.0
+1789889512.964	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=15.5
+1789889512.976	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=16.0
+1789889512.986	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=16.5
+1789889512.997	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=17.0
+1789889513.008	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=18.0
+1789889513.020	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=18.5
+1789889513.030	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=19.0
+1789889513.041	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=19.5
+1789889513.052	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=20.0
+1789889514.020	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				done
+1789889514.021	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=20.0
+1789889520.969	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m
+1789889520.970	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "grid_radius_m" }
+1789889523.569	скриншот	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space		да		screenshot_2026-09-20_12-32-03.256.png, 1920×1080, 500974 байт, всего 4207109 (листинг), 313 мс
+1789889525.455	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=1.0
+1789889527.289	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				done
+1789889527.290	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=1.0
+1789889542.425	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "none", "view": "browse", "folder": "settings_space" }
+1789889543.949	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m
+1789889543.950	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "grid_radius_m" }
+1789889549.331	скриншот	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space		да		screenshot_2026-09-20_12-32-29.047.png, 1920×1080, 259830 байт, всего 4466939 (листинг), 283 мс
+1789889552.380	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=6.5
+1789889552.413	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=7.0
+1789889552.424	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=6.5
+1789889552.458	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=6.0
+1789889553.669	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=9.0
+1789889553.713	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=8.5
+1789889554.269	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=10.0
+1789889554.335	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=10.5
+1789889554.358	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=10.0
+1789889554.369	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=10.5
+1789889554.591	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=11.0
+1789889554.714	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=10.5
+1789889554.735	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=10.0
+1789889556.058	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				done
+1789889556.059	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=10.0
+1789889557.584	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m
+1789889557.584	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "grid_radius_m" }
+1789889562.514	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				default
+1789889563.647	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=7.0
+1789889563.658	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=8.0
+1789889563.669	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=8.5
+1789889563.680	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=9.0
+1789889563.690	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=10.0
+1789889563.701	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=10.5
+1789889563.712	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=11.0
+1789889563.723	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=12.0
+1789889563.734	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=13.0
+1789889563.745	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=14.0
+1789889563.757	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=15.0
+1789889563.768	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=15.5
+1789889563.779	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=16.5
+1789889563.791	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=17.0
+1789889563.801	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=18.0
+1789889563.812	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=18.5
+1789889563.823	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=19.5
+1789889563.835	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=20.0
+1789889570.525	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=10.5
+1789889570.614	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=11.0
+1789889571.270	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=10.5
+1789889571.425	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=10.0
+1789889571.614	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=10.5
+1789889571.714	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=10.0
+1789889571.757	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=10.5
+1789889573.137	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				done
+1789889573.138	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_radius_m=10.5
+1789889575.030	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm
+1789889575.030	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "grid_thickness_mm" }
+1789889577.115	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=5.0
+1789889577.148	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=6.0
+1789889577.182	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=7.0
+1789889577.193	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=8.0
+1789889577.214	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=9.0
+1789889577.236	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=10.0
+1789889577.258	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=11.0
+1789889577.281	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=12.0
+1789889577.302	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=13.0
+1789889577.314	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=14.0
+1789889577.336	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=15.0
+1789889577.359	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=16.0
+1789889577.381	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=17.0
+1789889577.393	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=18.0
+1789889577.413	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=19.0
+1789889577.426	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=20.0
+1789889578.882	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				done
+1789889578.886	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=20.0
+1789889579.918	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm
+1789889579.919	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "grid_thickness_mm" }
+1789889582.638	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=9.0
+1789889582.649	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=8.0
+1789889582.670	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=7.0
+1789889582.692	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=6.0
+1789889582.716	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=5.0
+1789889582.737	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=4.0
+1789889582.749	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=3.0
+1789889583.294	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=2.0
+1789889583.827	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=3.0
+1789889584.993	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				done
+1789889584.995	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm=3.0
+1789889586.364	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_thickness_mm
+1789889586.364	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "grid_thickness_mm" }
+1789889587.784	скриншот	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space		да		screenshot_2026-09-20_12-33-07.483.png, 1920×1080, 496455 байт, всего 4963394 (листинг), 301 мс
+1789889590.733	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_color
+1789889590.733	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "grid_color" }
+1789889592.116	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_color=white
+1789889593.205	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				done
+1789889593.207	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_color=white
+1789889594.710	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_color
+1789889594.711	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "grid_color" }
+1789889596.006	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_color=green
+1789889596.839	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				done
+1789889596.840	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_color=green
+1789889598.166	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_color
+1789889598.166	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "grid_color" }
+1789889599.584	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_color=orange
+1789889600.328	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				done
+1789889600.329	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_color=orange
+1789889601.555	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_color
+1789889601.555	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "grid_color" }
+1789889604.799	скриншот	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space		да		screenshot_2026-09-20_12-33-24.508.png, 1920×1080, 437042 байт, всего 5400436 (листинг), 291 мс
+1789889606.454	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm
+1789889606.454	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "grid_cell_cm" }
+1789889609.384	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=45.0
+1789889609.462	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=40.0
+1789889609.562	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=35.0
+1789889609.617	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=30.0
+1789889609.650	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=25.0
+1789889609.673	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=20.0
+1789889609.684	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=15.0
+1789889609.695	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=10.0
+1789889610.851	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				done
+1789889610.852	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=10.0
+1789889612.099	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm
+1789889612.099	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "grid_cell_cm" }
+1789889613.411	скриншот	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space		да		screenshot_2026-09-20_12-33-32.996.png, 1920×1080, 934911 байт, всего 6335347 (листинг), 413 мс
+1789889615.139	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=180.0
+1789889615.173	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=185.0
+1789889615.195	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=190.0
+1789889615.262	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=195.0
+1789889615.307	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=200.0
+1789889615.406	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=195.0
+1789889615.439	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=190.0
+1789889615.551	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=195.0
+1789889615.573	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=200.0
+1789889617.606	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				done
+1789889617.608	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=200.0
+1789889619.221	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm
+1789889619.221	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "grid_cell_cm" }
+1789889620.385	скриншот	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space		да		screenshot_2026-09-20_12-33-40.086.png, 1920×1080, 307391 байт, всего 6642738 (листинг), 298 мс
+1789889621.652	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=60.0
+1789889622.897	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=55.0
+1789889622.941	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=50.0
+1789889623.041	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=45.0
+1789889623.108	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=40.0
+1789889623.385	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=35.0
+1789889623.819	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=40.0
+1789889624.219	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=45.0
+1789889625.319	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				done
+1789889625.324	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=45.0
+1789889626.144	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm
+1789889626.145	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "grid_cell_cm" }
+1789889627.493	скриншот	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space		да		screenshot_2026-09-20_12-33-47.198.png, 1920×1080, 436456 байт, всего 7079194 (листинг), 294 мс
+1789889630.885	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				done
+1789889630.887	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_cell_cm=45.0
+1789889633.656	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_xray
+1789889633.657	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "grid_xray" }
+1789889636.631	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_xray=false
+1789889637.864	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				done
+1789889637.865	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_xray=false
+1789889643.901	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_alpha
+1789889643.902	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "grid_alpha" }
+1789889646.387	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				done
+1789889646.388	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_alpha=0.35
+1789889648.458	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				space_light
+1789889648.459	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "space_light" }
+1789889651.810	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				space_light=dim
+1789889652.832	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				done
+1789889652.833	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				space_light=dim
+1789889653.881	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				space_light
+1789889653.881	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "space_light" }
+1789889656.251	скриншот	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space		да		screenshot_2026-09-20_12-34-15.889.png, 1920×1080, 531042 байт, всего 7610236 (листинг), 362 мс
+1789889657.755	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				space_light=bright
+1789889658.554	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				done
+1789889658.556	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				space_light=bright
+1789889659.248	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				space_light
+1789889659.248	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "space_light" }
+1789889660.197	скриншот	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space		да		screenshot_2026-09-20_12-34-19.889.png, 1920×1080, 433309 байт, всего 8043545 (листинг), 308 мс
+1789889661.811	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				space_light=studio
+1789889662.866	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				done
+1789889662.867	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				space_light=studio
+1789889663.615	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				space_light
+1789889663.615	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "space_light" }
+1789889664.540	скриншот	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space		да		screenshot_2026-09-20_12-34-24.245.png, 1920×1080, 467015 байт, всего 8510560 (листинг), 294 мс
+1789889666.389	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				done
+1789889666.390	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				space_light=studio
+1789889667.636	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_origin
+1789889667.637	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "grid_origin" }
+1789889674.578	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_origin=true
+1789889675.355	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				done
+1789889675.360	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_origin=true
+1789889676.282	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_origin
+1789889676.282	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "grid_origin" }
+1789889681.179	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_origin=false
+1789889682.001	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				done
+1789889682.002	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_origin=false
+1789889683.071	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				grid_origin
+1789889683.071	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "grid_origin" }
+1789889687.505	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				space_glow
+1789889687.505	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "space_glow" }
+1789889688.691	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				space_glow=true
+1789889689.457	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				done
+1789889689.459	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				space_glow=true
+1789889690.882	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				space_glow
+1789889690.883	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "space_glow" }
+1789889692.146	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				space_glow=false
+1789889692.923	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				done
+1789889692.926	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				space_glow=false
+1789889693.916	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				space_glow
+1789889693.916	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "edit", "view": "browse", "folder": "settings_space", "setting": "space_glow" }
+1789889695.958	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				space_glow=false
+1789889696.613	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				done
+1789889696.614	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				space_glow=false
+1789889697.581	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "folder": "settings", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789889697.581	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789889702.226	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789889702.226	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "browse", "folder": "" }
+1789889705.281	сценарий_начат	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					4 шагов, осталось 4
+1789889705.281	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "tasks", "view": "browse", "folder": "" }
+1789889709.608	скриншот	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e			да		screenshot_2026-09-20_12-35-09.293.png, 1920×1080, 389766 байт, всего 8900326 (листинг), 315 мс
+1789889709.609	сценарий_шаг	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e		screenshot	да	4328	
+1789889714.471	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789889714.471	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789889715.721	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 70, "total": 128, "page": 1, "pages": 2 }
+1789889715.721	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789889718.426	сценарий_шаг	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk	labels	да	8817	
+1789889720.115	page	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "from": 71, "to": 128, "total": 128, "page": 2, "pages": 2 }
+1789889720.119	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 58, "total": 128, "page": 2, "pages": 2 }
+1789889720.119	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789889725.694	сценарий_шаг	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk	pages	да	7268	
+1789889725.694	page	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "from": 1, "to": 70, "total": 128, "page": 1, "pages": 2 }
+1789889725.699	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 70, "total": 128, "page": 1, "pages": 2 }
+1789889725.699	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789889730.373	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789889730.373	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789889731.562	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789889731.562	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "browse", "folder": "" }
+1789889732.562	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "search", "items": 1, "total": 0, "page": 1, "pages": 1 }
+1789889732.565	клавиатура	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					show
+1789889732.565	поиск_открыт	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					
+1789889732.565	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "search", "view": "search", "folder": "" }
+1789889732.977	сессия_openxr	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					session_visible кадр 29304
+1789889735.542	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "search", "items": 61, "total": 60, "page": 1, "pages": 1 }
+1789889735.542	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "search", "folder": "" }
+1789889735.542	поиск_запрос	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					л → 60
+1789889736.197	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "search", "items": 4, "total": 3, "page": 1, "pages": 1 }
+1789889736.197	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "search", "folder": "" }
+1789889736.198	поиск_запрос	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					ле → 3
+1789889738.851	клавиатура	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					hide
+1789889738.851	клавиатура	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					enter
+1789889738.911	сессия_openxr	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					session_focussed кадр 29837
+1789889740.362	клавиатура	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes				hide
+1789889740.363	сценарий_шаг	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes	search	да	14669	
+1789889740.363	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes				{ "folder": "scenes", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789889740.364	select	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes				{ "do": "default", "view": "browse", "folder": "scenes", "item": "scene_forest", "title": "Лес" }
+1789889740.364	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes				{ "open": false }
+1789889742.429	задание	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes	scene_cave			
+1789889743.073	задание	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes	img_sketch			
+1789889743.351	задание	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes	asset_fence			
+1789889743.574	задание	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes	logic_quest			
+1789889743.751	задание	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes	tree_birch			
+1789889743.951	задание	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes	asset_house			
+1789889744.129	задание	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes	asset_bridge			
+1789889744.340	задание	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes	tree_palm			
+1789889744.518	задание	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes	scene_forest			
+1789889744.740	задание	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes	logic_trigger			
+1789889744.918	задание	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes	asset_barrel			
+1789889747.085	задание	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes	scene_draft2			
+1789889748.697	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes	scene_draft2		1612	{ "folder": "scenes", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789889748.697	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes	scene_draft2		1612	{ "open": true }
+1789889748.707	active	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	scenes	scene_draft2		1622	{ "key": "57", "slot": -1 }
+1789889750.130	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files	scene_draft2		3045	{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789889750.130	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files	scene_draft2		3045	{ "do": "reload", "view": "browse", "folder": "files" }
+1789889750.140	active	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files	scene_draft2		3055	{ "key": "57", "slot": 0 }
+1789889750.941	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e		scene_draft2		3856	{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789889750.941	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e		scene_draft2		3856	{ "do": "reload", "view": "browse", "folder": "" }
+1789889750.951	active	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e		scene_draft2		3866	{ "key": "57", "slot": 0 }
+1789889752.841	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings	scene_draft2		5756	{ "folder": "settings", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789889752.842	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings	scene_draft2		5757	{ "do": "reload", "view": "browse", "folder": "settings" }
+1789889752.851	active	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings	scene_draft2		5766	{ "key": "57", "slot": 0 }
+1789889753.430	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		6345	{ "folder": "profile", "view": "browse", "items": 9, "total": 9, "page": 1, "pages": 1 }
+1789889753.431	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		6346	{ "do": "reload", "view": "browse", "folder": "profile" }
+1789889753.440	active	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		6355	{ "key": "57", "slot": 0 }
+1789889756.007	active	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		8922	{ "key": "59", "slot": 5 }
+1789889758.377	профиль_место	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				Место 1, вершин 0, режим зоны 4, новое
+1789889758.379	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		11294	{ "folder": "profile", "view": "browse", "items": 9, "total": 9, "page": 1, "pages": 1 }
+1789889758.379	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		11294	{ "do": "profile", "view": "browse", "folder": "profile", "action": "profile_place" }
+1789889758.385	active	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		11300	{ "key": "59", "slot": 0 }
+1789889762.036	профиль_место	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				Место 2, вершин 0, режим зоны 4, новое
+1789889762.038	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		14953	{ "folder": "profile", "view": "browse", "items": 9, "total": 9, "page": 1, "pages": 1 }
+1789889762.039	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		14954	{ "do": "profile", "view": "browse", "folder": "profile", "action": "profile_place" }
+1789889762.041	active	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		14956	{ "key": "59", "slot": 0 }
+1789889762.654	профиль_место	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				Место 3, вершин 0, режим зоны 4, новое
+1789889762.656	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		15571	{ "folder": "profile", "view": "browse", "items": 9, "total": 9, "page": 1, "pages": 1 }
+1789889762.656	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		15571	{ "do": "profile", "view": "browse", "folder": "profile", "action": "profile_place" }
+1789889762.663	active	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		15578	{ "key": "59", "slot": 0 }
+1789889763.852	профиль_глаза	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				замер начат
+1789889763.852	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		16767	{ "do": "profile", "view": "browse", "folder": "profile", "action": "profile_eye" }
+1789889764.641	профиль_глаза	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				замер начат
+1789889764.641	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		17556	{ "do": "profile", "view": "browse", "folder": "profile", "action": "profile_eye" }
+1789889766.597	active	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		19512	{ "key": "43", "slot": 1 }
+1789889766.655	профиль_глаза	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				1.55 м, размах 0.02 м
+1789889766.657	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		19572	{ "folder": "profile", "view": "browse", "items": 9, "total": 9, "page": 1, "pages": 1 }
+1789889766.657	active	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		19572	{ "key": "43", "slot": 0 }
+1789889768.075	active	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		20990	{ "key": "44", "slot": 4 }
+1789889768.630	active	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		21545	{ "key": "59", "slot": 5 }
+1789889769.263	active	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		22178	{ "key": "57", "slot": 1 }
+1789889769.397	active	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		22312	{ "key": "25", "slot": -1 }
+1789889769.941	active	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		22856	{ "key": "43", "slot": 0 }
+1789889770.041	active	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		22956	{ "key": "42", "slot": 3 }
+1789889770.875	active	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		23790	{ "key": "43", "slot": 0 }
+1789889771.553	active	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		24468	{ "key": "57", "slot": 1 }
+1789889773.599	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile	scene_draft2		26514	{ "do": "profile", "view": "browse", "folder": "profile", "action": "profile_height" }
+1789889777.265	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				профиль: cancel
+1789889778.388	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings	scene_draft2		31303	{ "folder": "settings", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789889778.388	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings	scene_draft2		31303	{ "do": "reload", "view": "browse", "folder": "settings" }
+1789889778.398	active	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings	scene_draft2		31313	{ "key": "57", "slot": 0 }
+1789889779.732	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e		scene_draft2		32647	{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789889779.732	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e		scene_draft2		32647	{ "do": "reload", "view": "browse", "folder": "" }
+1789889779.742	active	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e		scene_draft2		32657	{ "key": "57", "slot": 0 }
+1789889782.121	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e		scene_draft2		35036	{ "do": "exit", "view": "browse", "folder": "" }
+1789889782.126	выход	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					выгрузка в /storage/emulated/0/Download/VRGE/2026-09-20_12-36-22

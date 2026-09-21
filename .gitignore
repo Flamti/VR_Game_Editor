@@ -67,3 +67,7 @@ tools/local.env
 # OAuth-клиент Google для входа по коду устройства (ADR-0011 п. 5): попадает в APK
 # (include_filter пресета), но не в репозиторий.
 projects/sphere_menu/secrets/
+
+# Профили из выгрузок сессий: в profile.cfg лежат соль и хеш PIN, а PIN из четырёх цифр по такому
+# файлу перебирается офлайн (ADR-0011). Сами секреты (secrets.enc) выгрузка и так не берёт.
+docs/measurements/**/profiles/

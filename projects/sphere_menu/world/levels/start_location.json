@@ -1,0 +1,1000 @@
+{
+ "format": 1,
+ "name": "Стартовая локация",
+ "objects": [
+  {
+   "uuid": "floor",
+   "type": "box",
+   "pos": [
+    0,
+    -0.1,
+    0
+   ],
+   "size": [
+    20,
+    0.2,
+    20
+   ],
+   "color": "#6c7280"
+  },
+  {
+   "uuid": "plat04",
+   "type": "box",
+   "pos": [
+    -4,
+    0.2,
+    -3
+   ],
+   "size": [
+    3,
+    0.4,
+    3
+   ],
+   "color": "#8a93a6",
+   "tags": [
+    "teleport_target"
+   ]
+  },
+  {
+   "uuid": "plat09",
+   "type": "box",
+   "pos": [
+    -7,
+    0.45,
+    -6
+   ],
+   "size": [
+    3,
+    0.9,
+    3
+   ],
+   "color": "#8a93a6",
+   "tags": [
+    "teleport_target"
+   ]
+  },
+  {
+   "uuid": "plat16",
+   "type": "box",
+   "pos": [
+    4.5,
+    0.8,
+    -6.5
+   ],
+   "size": [
+    3.5,
+    1.6,
+    3.5
+   ],
+   "color": "#8a93a6",
+   "tags": [
+    "teleport_target"
+   ]
+  },
+  {
+   "uuid": "ramp",
+   "type": "box",
+   "pos": [
+    -4,
+    0.2,
+    -0.9
+   ],
+   "size": [
+    3,
+    0.12,
+    2.4
+   ],
+   "rot": [
+    -9.5,
+    0,
+    0
+   ],
+   "color": "#7d8a72"
+  },
+  {
+   "uuid": "stairs",
+   "type": "stairs",
+   "pos": [
+    -7,
+    0,
+    -4.0
+   ],
+   "size": [
+    2.4,
+    0.9,
+    1.5
+   ],
+   "color": "#7d8a72",
+   "rise": 0.18,
+   "run": 0.3
+  },
+  {
+   "uuid": "table",
+   "type": "box",
+   "pos": [
+    1.5,
+    0.7,
+    1.5
+   ],
+   "size": [
+    1.6,
+    0.08,
+    0.8
+   ],
+   "color": "#9a7b52"
+  },
+  {
+   "uuid": "leg0",
+   "type": "box",
+   "pos": [
+    1.0,
+    0.35,
+    1.5
+   ],
+   "size": [
+    0.08,
+    0.7,
+    0.08
+   ],
+   "color": "#9a7b52"
+  },
+  {
+   "uuid": "leg1",
+   "type": "box",
+   "pos": [
+    2.0,
+    0.35,
+    1.5
+   ],
+   "size": [
+    0.08,
+    0.7,
+    0.08
+   ],
+   "color": "#9a7b52"
+  },
+  {
+   "uuid": "post1",
+   "type": "box",
+   "pos": [
+    3.2,
+    0.5,
+    1.2
+   ],
+   "size": [
+    0.1,
+    1.0,
+    0.1
+   ],
+   "color": "#d8d2c0"
+  },
+  {
+   "uuid": "post2",
+   "type": "box",
+   "pos": [
+    3.6,
+    1.0,
+    1.2
+   ],
+   "size": [
+    0.1,
+    2.0,
+    0.1
+   ],
+   "color": "#d8d2c0"
+  },
+  {
+   "uuid": "mark0",
+   "type": "box",
+   "pos": [
+    3.2,
+    0.5,
+    1.2
+   ],
+   "size": [
+    0.16,
+    0.02,
+    0.16
+   ],
+   "color": "#c4693f",
+   "body": "none"
+  },
+  {
+   "uuid": "mark1",
+   "type": "box",
+   "pos": [
+    3.2,
+    1.0,
+    1.2
+   ],
+   "size": [
+    0.16,
+    0.02,
+    0.16
+   ],
+   "color": "#c4693f",
+   "body": "none"
+  },
+  {
+   "uuid": "mark2",
+   "type": "box",
+   "pos": [
+    3.2,
+    1.5,
+    1.2
+   ],
+   "size": [
+    0.16,
+    0.02,
+    0.16
+   ],
+   "color": "#c4693f",
+   "body": "none"
+  },
+  {
+   "uuid": "mark3",
+   "type": "box",
+   "pos": [
+    3.2,
+    2.0,
+    1.2
+   ],
+   "size": [
+    0.16,
+    0.02,
+    0.16
+   ],
+   "color": "#c4693f",
+   "body": "none"
+  },
+  {
+   "uuid": "fix0",
+   "type": "box",
+   "pos": [
+    1.0,
+    0.1,
+    -1.6
+   ],
+   "size": [
+    0.2,
+    0.2,
+    0.2
+   ],
+   "color": "#8a93a6"
+  },
+  {
+   "uuid": "fix1",
+   "type": "box",
+   "pos": [
+    1.35,
+    0.1,
+    -1.6
+   ],
+   "size": [
+    0.2,
+    0.2,
+    0.2
+   ],
+   "color": "#8a93a6"
+  },
+  {
+   "uuid": "fix2",
+   "type": "box",
+   "pos": [
+    1.7,
+    0.1,
+    -1.6
+   ],
+   "size": [
+    0.2,
+    0.2,
+    0.2
+   ],
+   "color": "#8a93a6"
+  },
+  {
+   "uuid": "fix3",
+   "type": "box",
+   "pos": [
+    2.05,
+    0.1,
+    -1.6
+   ],
+   "size": [
+    0.2,
+    0.2,
+    0.2
+   ],
+   "color": "#8a93a6"
+  },
+  {
+   "uuid": "fix4",
+   "type": "box",
+   "pos": [
+    2.4,
+    0.1,
+    -1.6
+   ],
+   "size": [
+    0.2,
+    0.2,
+    0.2
+   ],
+   "color": "#8a93a6"
+  },
+  {
+   "uuid": "fix5",
+   "type": "box",
+   "pos": [
+    2.75,
+    0.1,
+    -1.6
+   ],
+   "size": [
+    0.2,
+    0.2,
+    0.2
+   ],
+   "color": "#8a93a6"
+  },
+  {
+   "uuid": "grab0",
+   "type": "box",
+   "pos": [
+    1.2,
+    0.82,
+    1.5
+   ],
+   "size": [
+    0.12,
+    0.12,
+    0.12
+   ],
+   "color": "#c4693f",
+   "body": "grab"
+  },
+  {
+   "uuid": "grab1",
+   "type": "box",
+   "pos": [
+    1.5,
+    0.82,
+    1.5
+   ],
+   "size": [
+    0.12,
+    0.12,
+    0.12
+   ],
+   "color": "#c4693f",
+   "body": "grab"
+  },
+  {
+   "uuid": "grab2",
+   "type": "box",
+   "pos": [
+    1.8,
+    0.82,
+    1.5
+   ],
+   "size": [
+    0.12,
+    0.12,
+    0.12
+   ],
+   "color": "#c4693f",
+   "body": "grab"
+  },
+  {
+   "uuid": "grab3",
+   "type": "box",
+   "pos": [
+    2.1,
+    0.82,
+    1.5
+   ],
+   "size": [
+    0.12,
+    0.12,
+    0.12
+   ],
+   "color": "#c4693f",
+   "body": "grab"
+  },
+  {
+   "uuid": "grab4",
+   "type": "box",
+   "pos": [
+    2.4,
+    0.82,
+    1.5
+   ],
+   "size": [
+    0.12,
+    0.12,
+    0.12
+   ],
+   "color": "#c4693f",
+   "body": "grab"
+  },
+  {
+   "uuid": "ledge",
+   "type": "box",
+   "pos": [
+    7.5,
+    0.3,
+    0
+   ],
+   "size": [
+    0.5,
+    0.6,
+    6
+   ],
+   "color": "#8a93a6",
+   "tags": [
+    "teleport_target"
+   ]
+  },
+  {
+   "uuid": "pad0",
+   "type": "box",
+   "pos": [
+    -2,
+    0.02,
+    5
+   ],
+   "size": [
+    1.0,
+    0.04,
+    1.0
+   ],
+   "color": "#3f7fc4",
+   "tags": [
+    "teleport_target"
+   ]
+  },
+  {
+   "uuid": "pad1",
+   "type": "box",
+   "pos": [
+    0,
+    0.02,
+    6.5
+   ],
+   "size": [
+    1.0,
+    0.04,
+    1.0
+   ],
+   "color": "#3f7fc4",
+   "tags": [
+    "teleport_target"
+   ]
+  },
+  {
+   "uuid": "pad2",
+   "type": "box",
+   "pos": [
+    2,
+    0.02,
+    5
+   ],
+   "size": [
+    1.0,
+    0.04,
+    1.0
+   ],
+   "color": "#3f7fc4",
+   "tags": [
+    "teleport_target"
+   ]
+  },
+  {
+   "uuid": "room_w1",
+   "type": "box",
+   "pos": [
+    -6,
+    1.4,
+    6.5
+   ],
+   "size": [
+    5,
+    2.8,
+    0.2
+   ],
+   "color": "#5c6170"
+  },
+  {
+   "uuid": "room_w2",
+   "type": "box",
+   "pos": [
+    -8.4,
+    1.4,
+    4.6
+   ],
+   "size": [
+    0.2,
+    2.8,
+    4
+   ],
+   "color": "#5c6170"
+  },
+  {
+   "uuid": "room_w3",
+   "type": "box",
+   "pos": [
+    -3.6,
+    1.4,
+    4.6
+   ],
+   "size": [
+    0.2,
+    2.8,
+    4
+   ],
+   "color": "#5c6170"
+  },
+  {
+   "uuid": "room_w4a",
+   "type": "box",
+   "pos": [
+    -7.6,
+    1.4,
+    2.7
+   ],
+   "size": [
+    2.2,
+    2.8,
+    0.2
+   ],
+   "color": "#5c6170"
+  },
+  {
+   "uuid": "room_w4b",
+   "type": "box",
+   "pos": [
+    -4.4,
+    1.4,
+    2.7
+   ],
+   "size": [
+    2.2,
+    2.8,
+    0.2
+   ],
+   "color": "#5c6170"
+  },
+  {
+   "uuid": "room_ceil",
+   "type": "box",
+   "pos": [
+    -6,
+    2.85,
+    4.6
+   ],
+   "size": [
+    5,
+    0.1,
+    4
+   ],
+   "color": "#5c6170"
+  },
+  {
+   "uuid": "room_enter",
+   "type": "trigger",
+   "pos": [
+    -6,
+    1.0,
+    4.6
+   ],
+   "size": [
+    4.4,
+    2.0,
+    3.6
+   ],
+   "loads": "res://world/levels/start_interior.json"
+  },
+  {
+   "uuid": "spawn",
+   "type": "spawn",
+   "pos": [
+    0,
+    0,
+    3
+   ],
+   "yaw": 180
+  },
+  {
+   "uuid": "sign_ramp",
+   "type": "sign",
+   "pos": [
+    -4,
+    1.6,
+    -0.9
+   ],
+   "text": "Пандус ~10°\nпройти ногами и телепортом",
+   "size": 0.1
+  },
+  {
+   "uuid": "sign_stairs",
+   "type": "sign",
+   "pos": [
+    -7,
+    1.7,
+    -4.2
+   ],
+   "text": "Ступени 0.18 м\nтело поднимается само",
+   "size": 0.1
+  },
+  {
+   "uuid": "sign_room",
+   "type": "sign",
+   "pos": [
+    -6,
+    2.1,
+    2.9
+   ],
+   "text": "Помещение: интерьер грузится\nпри входе и выгружается при выходе",
+   "size": 0.1
+  },
+  {
+   "uuid": "sign_table",
+   "type": "sign",
+   "pos": [
+    1.5,
+    1.3,
+    1.5
+   ],
+   "text": "Верстак 0.74 м\nкубы берутся грипом",
+   "size": 0.1
+  },
+  {
+   "uuid": "sign_ledge",
+   "type": "sign",
+   "pos": [
+    7.5,
+    1.4,
+    0
+   ],
+   "text": "Узкий уступ — точность луча",
+   "size": 0.1
+  },
+  {
+   "uuid": "sign_posts",
+   "type": "sign",
+   "pos": [
+    3.4,
+    1.5,
+    1.2
+   ],
+   "text": "Столбы 1 и 2 м — метки масштаба",
+   "size": 0.1
+  },
+  {
+   "uuid": "climbwall",
+   "type": "box",
+   "pos": [
+    4.5,
+    1.7,
+    -4.75
+   ],
+   "size": [
+    3.0,
+    3.4,
+    0.3
+   ],
+   "color": "#6e6a60"
+  },
+  {
+   "uuid": "climb0",
+   "type": "box",
+   "pos": [
+    3.85,
+    0.5,
+    -4.55
+   ],
+   "size": [
+    0.5,
+    0.09,
+    0.12
+   ],
+   "color": "#9a7b52",
+   "tags": [
+    "climb"
+   ]
+  },
+  {
+   "uuid": "climb1",
+   "type": "box",
+   "pos": [
+    5.15,
+    0.5,
+    -4.55
+   ],
+   "size": [
+    0.5,
+    0.09,
+    0.12
+   ],
+   "color": "#9a7b52",
+   "tags": [
+    "climb"
+   ]
+  },
+  {
+   "uuid": "climb2",
+   "type": "box",
+   "pos": [
+    3.85,
+    0.95,
+    -4.55
+   ],
+   "size": [
+    0.5,
+    0.09,
+    0.12
+   ],
+   "color": "#9a7b52",
+   "tags": [
+    "climb"
+   ]
+  },
+  {
+   "uuid": "climb3",
+   "type": "box",
+   "pos": [
+    5.15,
+    0.95,
+    -4.55
+   ],
+   "size": [
+    0.5,
+    0.09,
+    0.12
+   ],
+   "color": "#9a7b52",
+   "tags": [
+    "climb"
+   ]
+  },
+  {
+   "uuid": "climb4",
+   "type": "box",
+   "pos": [
+    3.85,
+    1.4,
+    -4.55
+   ],
+   "size": [
+    0.5,
+    0.09,
+    0.12
+   ],
+   "color": "#9a7b52",
+   "tags": [
+    "climb"
+   ]
+  },
+  {
+   "uuid": "climb5",
+   "type": "box",
+   "pos": [
+    5.15,
+    1.4,
+    -4.55
+   ],
+   "size": [
+    0.5,
+    0.09,
+    0.12
+   ],
+   "color": "#9a7b52",
+   "tags": [
+    "climb"
+   ]
+  },
+  {
+   "uuid": "climb6",
+   "type": "box",
+   "pos": [
+    3.85,
+    1.85,
+    -4.55
+   ],
+   "size": [
+    0.5,
+    0.09,
+    0.12
+   ],
+   "color": "#9a7b52",
+   "tags": [
+    "climb"
+   ]
+  },
+  {
+   "uuid": "climb7",
+   "type": "box",
+   "pos": [
+    5.15,
+    1.85,
+    -4.55
+   ],
+   "size": [
+    0.5,
+    0.09,
+    0.12
+   ],
+   "color": "#9a7b52",
+   "tags": [
+    "climb"
+   ]
+  },
+  {
+   "uuid": "climb8",
+   "type": "box",
+   "pos": [
+    3.85,
+    2.3,
+    -4.55
+   ],
+   "size": [
+    0.5,
+    0.09,
+    0.12
+   ],
+   "color": "#9a7b52",
+   "tags": [
+    "climb"
+   ]
+  },
+  {
+   "uuid": "climb9",
+   "type": "box",
+   "pos": [
+    5.15,
+    2.3,
+    -4.55
+   ],
+   "size": [
+    0.5,
+    0.09,
+    0.12
+   ],
+   "color": "#9a7b52",
+   "tags": [
+    "climb"
+   ]
+  },
+  {
+   "uuid": "climb10",
+   "type": "box",
+   "pos": [
+    3.85,
+    2.75,
+    -4.55
+   ],
+   "size": [
+    0.5,
+    0.09,
+    0.12
+   ],
+   "color": "#9a7b52",
+   "tags": [
+    "climb"
+   ]
+  },
+  {
+   "uuid": "climb11",
+   "type": "box",
+   "pos": [
+    5.15,
+    2.75,
+    -4.55
+   ],
+   "size": [
+    0.5,
+    0.09,
+    0.12
+   ],
+   "color": "#9a7b52",
+   "tags": [
+    "climb"
+   ]
+  },
+  {
+   "uuid": "climb12",
+   "type": "box",
+   "pos": [
+    3.85,
+    3.2,
+    -4.55
+   ],
+   "size": [
+    0.5,
+    0.09,
+    0.12
+   ],
+   "color": "#9a7b52",
+   "tags": [
+    "climb"
+   ]
+  },
+  {
+   "uuid": "climb13",
+   "type": "box",
+   "pos": [
+    5.15,
+    3.2,
+    -4.55
+   ],
+   "size": [
+    0.5,
+    0.09,
+    0.12
+   ],
+   "color": "#9a7b52",
+   "tags": [
+    "climb"
+   ]
+  },
+  {
+   "uuid": "sign_climb",
+   "type": "sign",
+   "pos": [
+    4.5,
+    3.9,
+    -4.4
+   ],
+   "text": "Стена 3.4 м — грип у бруска, перехват руками",
+   "size": 0.1
+  },
+  {
+   "uuid": "climbtop",
+   "type": "box",
+   "pos": [
+    4.5,
+    3.25,
+    -5.85
+   ],
+   "size": [
+    3.0,
+    0.3,
+    2.5
+   ],
+   "color": "#8a93a6",
+   "tags": [
+    "teleport_target"
+   ]
+  },
+  {
+   "uuid": "sign_top",
+   "type": "sign",
+   "pos": [
+    4.5,
+    4.2,
+    -5.85
+   ],
+   "text": "Верх стены: долез — подтянись и перевались",
+   "size": 0.1
+  },
+  {
+   "uuid": "ledge_wall",
+   "type": "ledge",
+   "pos": [
+    4.5,
+    3.4,
+    -4.62
+   ],
+   "size": [
+    3.0,
+    0.5,
+    0.6
+   ],
+   "target": [
+    4.5,
+    3.4,
+    -5.4
+   ]
+  }
+ ]
+}

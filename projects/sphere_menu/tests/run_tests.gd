@@ -59,7 +59,44 @@ extends SceneTree
 ##   --falsify=shotlimit  порог места сравнивается в мегабайтах, сумма — в байтах — краснеет только
 ##                        «место под скриншоты»;
 ##   --falsify=chordone   скриншот от одного стика — краснеет только «оба стика»;
-##   --falsify=scenarioorder «Раньше» засчитывается без «Дальше» — краснеет только «сценарий теста».
+##   --falsify=scenarioorder «Раньше» засчитывается без «Дальше» — краснеет только «сценарий теста»;
+##   --falsify=nobuffer   строки, записанные до открытия журнала, снова теряются молча (в сессии 15
+##                        так пропала запись «уровень») — краснеет только «журнал до открытия»;
+##   --falsify=helpstale  подсказка не зависит от состояния шара (текст сессии 16, где про
+##                        перемещение не сказано нигде) — краснеет только «подсказка по состоянию
+##                        шара»;
+##   --falsify=signblind  подсказка в мире принимается без текста — краснеет только «подсказка в мире»;
+##   --falsify=onehand    настройки руки не действуют, движение прибито к левому стику, поворот к
+##                        правому — краснеет только «рука движения и поворота»;
+##   --falsify=crouchquiet про присед в подсказке не сказано — краснеет только «подсказка по
+##                        состоянию шара»;
+##   --falsify=mantleease перевал снова идёт с ускорением (камера разгоняется — в VR запрещено) —
+##                        краснеет только «перевал через край»;
+##   --falsify=mantleeager намерение засчитывается без высоты головы — краснеет только «перевал
+##                        через край»;
+##   --falsify=ledgeany   кромка принимается без точки приземления — краснеет только «кромка в
+##                        данных»;
+##   --falsify=mantleany  перевал начинается при любой находке — человека затаскивает на наклонные
+##                        стены и на то, что выше головы; краснеет только «перевал через край»;
+##   --falsify=pullwide   конус призыва раскрыт до 90° — притягивается что попало; краснеет только
+##                        «призыв предмета»;
+##   --falsify=pullflick  рывком кисти считается любое движение — краснеет только «призыв предмета»;
+##   --falsify=crouchtall капсула не укорачивается при приседании — краснеет только «присед и
+##                        виньетка по ускорению»;
+##   --falsify=vigspeed   виньетка «по ускорению» считается по скорости — краснеет только «присед и
+##                        виньетка по ускорению»;
+##   --falsify=scenariolist  сценарий снова показывает весь список оставшихся шагов вместо текущего —
+##                        краснеет только «сценарий теста»;
+##   --falsify=actionorphan  пункт-действие получает имя с неизвестным навигатору префиксом —
+##                        краснеет только «действия меню адресованы»;
+##   --falsify=climbdrift точка захвата снова плывёт за рукой — лазанье теряет силу (дефект
+##                        сессии 17); краснеет только «лазанье»;
+##   --falsify=nobreak    хват не срывается, как бы далеко рука ни ушла, — краснеет только «лазанье»;
+##   --falsify=signbillboard таблички снова разворачиваются билбордом Godot, то есть следуют за
+##                        поворотом шлема, а не смотрят на него — краснеет только «подсказка
+##                        смотрит на человека»;
+##   --falsify=keeploaded выход из зоны не начинает отсчёт выгрузки — часть уровня остаётся навсегда
+##                        (поведение сессии 17); краснеет только «подгрузка и выгрузка по зоне».
 
 const Report := preload("res://probe_report.gd")
 const Goldberg := preload("res://menu/goldberg.gd")
@@ -114,7 +151,29 @@ const EyeMeasureRes := preload("res://world/eye_measure.gd")
 const SpaceRes := preload("res://world/space.gd")
 ## Этап Ф3: пространство.
 const SPACE_CHECKS := ["высота глаз окном", "сброс пространства"]
+const TeleportRes := preload("res://locomotion/teleport.gd")
+const TurnRes := preload("res://locomotion/turn.gd")
+const ContinuousRes := preload("res://locomotion/continuous.gd")
+const ClimbRes := preload("res://locomotion/climb.gd")
+const VignetteRes := preload("res://locomotion/vignette.gd")
+const PlayerBodyRes := preload("res://locomotion/player_body.gd")
+const LevelRes := preload("res://world/level_loader.gd")
+const GrabRes := preload("res://world/grab.gd")
+## Этап Ф3, часть 2: перемещение и уровень.
+const MOVE_CHECKS := ["дуга телепорта", "перенос и рывок", "повороты", "непрерывное движение",
+		"виньетка", "лазанье", "разбор уровня", "подсказка в мире",
+		"подгрузка и выгрузка по зоне", "подсказка смотрит на человека",
+		"призыв предмета", "курс при телепорте", "присед и виньетка по ускорению",
+		"перевал через край", "кромка в данных", "столкновения возвращаются сами"]
+const MantleRes := preload("res://locomotion/mantle.gd")
+const PullRes := preload("res://world/pull.gd")
+const SignFaceRes := preload("res://world/sign_face.gd")
+const LevelStreamRes := preload("res://world/level_stream.gd")
 const ProjectsRes := preload("res://profile/projects.gd")
+const JournalRes := preload("res://session/journal.gd")
+const HelpTextRes := preload("res://session/help_text.gd")
+## Журнал сессии: строки до открытия файла; подсказка по состоянию шара.
+const SESSION_CHECKS := ["журнал до открытия", "подсказка по состоянию шара"]
 const ScenarioRes := preload("res://session/scenario.gd")
 
 ## Уровни икосаэдра под проверками поверхностей: там O(n²) поиски, крупные ничего не добавляют.
@@ -137,7 +196,7 @@ const GAP_LEVELS := [0, 1, 2, 3, 5, 8]
 const RING_RADII := [1, 2, 3, 4]
 const STATE_CHECKS := ["стек и прокрутка", "назад на корне", "переход и обрезка"]
 const CATALOG_CHECKS := ["состав", "представление"]
-const MODEL_CHECKS := ["короткое и удержание", "трекбол", "настройки", "мастер", "шар действий",
+const MODEL_CHECKS := ["действия меню адресованы", "короткое и удержание", "трекбол", "настройки", "мастер", "шар действий",
 		"действие по умолчанию", "изменения и отмена", "множественный выбор", "сортировка и переходы",
 		"опасное без удержания", "стик", "видимость панели", "вращение рукой", "лицом к шлему устойчиво",
 		"вращение и мир", "сглаживание руки", "встряхивание", "взмах влево", "правка значения", "демонстрации",
@@ -178,6 +237,16 @@ func _init() -> void:
 	_projects_check()
 	_account_checks()
 	_space_checks()
+	_move_checks()
+	_session_checks()
+	_help_text_check()
+	_sign_face_check()
+	_pull_checks()
+	_teleport_extras_check()
+	_crouch_vignette_check()
+	_mantle_check()
+	_ledge_check()
+	_collision_guard_check()
 
 	var total := r.executed()
 	r.note("")
@@ -203,7 +272,9 @@ func _expected() -> int:
 		+ HAND_CHECKS.size() \
 		+ PROFILE_CHECKS.size() \
 		+ ACCOUNT_CHECKS.size() \
-		+ SPACE_CHECKS.size()
+		+ SPACE_CHECKS.size() \
+		+ MOVE_CHECKS.size() \
+		+ SESSION_CHECKS.size()
 
 
 const SURFACE_CHECKS := ["ячейка под направлением", "шаг вращения", "раздача глобуса",
@@ -981,6 +1052,7 @@ static func _local_dir_for_q(q: Vector2, a: float, x: Vector3, z: Vector3) -> Ve
 # --- модель файлового менеджера -----------------------------------------------------
 
 func _model() -> void:
+	_menu_actions_check()
 	r.note("")
 	r.note("--- Модель ---")
 
@@ -2014,8 +2086,39 @@ func _home_checks() -> void:
 		sc_bad.append("выбор без «Готово» клавиатуры засчитал поиск")
 	sc.event("keyboard", {"state": "enter"}, {"folder": ""})
 	sc.event("select", {}, {"folder": ""})
+	# Шаги, добавленные после сессии 14: сброс пространства и ОТКАЗ замера высоты (именно отказ
+	# доказывает, что окно отбрасывает движение).
+	sc.event("space_reset", {}, {"folder": ""})
+	sc.event("профиль_глаза", {}, {"folder": ""})
+	if sc.result.has("eye_move"):
+		sc_bad.append("шаг замера засчитан не отказом")
+	sc.event("eye_rejected", {}, {"folder": ""})
+	# Шаги, добавленные после сессии 19: гравиперчатка обоими способами, поимка и перевал через край.
+	# Способ призыва различается по самой строке, иначе два шага засчитались бы одним действием.
+	sc.event("pull", {"mode": "gesture"}, {"folder": ""})
+	if sc.result.has("pull_instant"):
+		sc_bad.append("призыв жестом засчитал и шаг «сразу»")
+	sc.event("pull", {"mode": "instant"}, {"folder": ""})
+	sc.event("pull_catch", {}, {"folder": ""})
+	sc.event("mantle", {}, {"folder": ""})
+	# Перед лицом — ОДИН текущий шаг, а не список: сессия 20, «как будто сплошной список».
+	var sc_show := ScenarioRes.new()
+	sc_show.falsify_list = falsify == "scenariolist"
+	sc_show.start()
+	var shown := sc_show.text()
+	var bullets := shown.count("•")
+	if bullets > 0 or not shown.contains(str(ScenarioRes.STEPS[0]["text"])):
+		sc_bad.append("показан не один шаг: маркеров %d, текст «%s»" % [bullets, shown.replace("\n", " | ")])
+	if not shown.begins_with("Шаг 1 из %d" % ScenarioRes.STEPS.size()):
+		sc_bad.append("нет номера шага: «%s»" % shown.get_slice("\n", 0))
+	# Подпись пункта меню говорит, идёт тест или нет.
+	if sc_show.menu_title() == ScenarioRes.new().menu_title():
+		sc_bad.append("подпись пункта одинакова при включённом и выключенном тесте")
 	var skipped: String = sc.skip()
-	if skipped != "labels" or not sc.done() or sc.active or sc.result != {"screenshot": "да", "pages": "да", "search": "да", "labels": "пропущен"}:
+	var want_result := {"screenshot": "да", "pages": "да", "search": "да", "space_reset": "да",
+			"eye_move": "да", "pull_gesture": "да", "pull_instant": "да", "pull_catch": "да",
+			"mantle": "да", "labels": "пропущен"}
+	if skipped != "labels" or not sc.done() or sc.active or sc.result != want_result:
 		sc_bad.append("итог %s, пропущен «%s», завершён %s" % [sc.result, skipped, sc.done()])
 	if not sc.start() or not sc.result.is_empty():
 		sc_bad.append("после прохождения включение не начало заново")
@@ -2606,20 +2709,31 @@ func _profile_checks() -> void:
 	for p in room:
 		jitter.append(p + Vector3(0.02, 0, -0.015))
 	var other := PackedVector3Array([Vector3(-2, 0, -2), Vector3(2, 0, -2), Vector3(2, 0, 2), Vector3(-2, 0, 2)])
-	if upl.find_place(jitter) != 0 or upl.find_place(other) != -1 or upl.find_place(PackedVector3Array()) != -1:
+	# Пустая зона без ключа комнаты — «узнавать нечем»: берётся последнее место (иначе повтор плодил
+	# бы копии, сессия 14).
+	if upl.find_place(jitter) != 0 or upl.find_place(other) != -1 or upl.find_place(PackedVector3Array()) != 0:
 		pl_bad.append("узнавание: та же %d, другая %d, пустая %d" % [upl.find_place(jitter), upl.find_place(other),
 				upl.find_place(PackedVector3Array())])
 	upl.remember_place("Кабинет у окна", jitter, Transform3D(), 0.72)
 	if upl.places.size() != 1 or upl.places[0]["anchors"] != ["uuid-1"] or upl.places[0]["name"] != "Кабинет у окна":
 		pl_bad.append("повтор: мест %d, %s" % [upl.places.size(), upl.places[0]])
-	# Сессия 13: у выключенной границы Quest зоны не отдаёт. Место всё равно запоминается — просто
-	# не узнаётся само.
+	# Сессия 14: границы у владельца нет вовсе («вершин 0»), и каждое нажатие плодило новое место.
+	# Без зоны и без ключа комнаты повтор ОБНОВЛЯЕТ последнее место.
 	upl.remember_place("Без границы", PackedVector3Array(), Transform3D(Basis(), Vector3(0, 0, 1)))
-	if upl.places.size() != 2 or upl.places[1]["area"].size() != 0 or upl.find_place(PackedVector3Array()) != -1:
-		pl_bad.append("без зоны: мест %d, %s" % [upl.places.size(), upl.places[1]])
+	upl.remember_place("Без границы 2", PackedVector3Array(), Transform3D())
+	if upl.places.size() != 1 or upl.places[0]["name"] != "Без границы 2":
+		pl_bad.append("без зоны: мест %d, последнее %s" % [upl.places.size(), upl.places[0].get("name", "")])
+	# Ключ комнаты от шлема (world/room.gd) узнаёт место и без зоны — и различает разные комнаты.
+	var upr := UserProfileRes.new()
+	upr.remember_place("Кабинет", PackedVector3Array(), Transform3D(), 0.0, "room-A")
+	upr.remember_place("Кухня", PackedVector3Array(), Transform3D(), 0.0, "room-B")
+	upr.remember_place("Кабинет снова", PackedVector3Array(), Transform3D(), 0.0, "room-A")
+	if upr.places.size() != 2 or upr.find_place(PackedVector3Array(), "room-A") != 0 \
+			or upr.places[0]["name"] != "Кабинет снова" or upr.find_place(PackedVector3Array(), "room-C") != -1:
+		pl_bad.append("ключ комнаты: мест %d, %s" % [upr.places.size(), upr.places])
 	UserProfileRes.falsify_place_any = false
 	if pl_bad.is_empty():
-		r.pass_("места: зона с дрожью вершин 2 см узнана (допуск %.2f м), другая и пустая — нет, повтор обновил место с якорями, место без границы запомнено и само не узнаётся" % UserProfileRes.PLACE_TOLERANCE_M)
+		r.pass_("места: зона с дрожью вершин 2 см узнана (допуск %.2f м), другая — нет, повтор обновил место с якорями; без зоны повтор обновляет последнее, а ключ комнаты от шлема узнаёт место и различает комнаты" % UserProfileRes.PLACE_TOLERANCE_M)
 	else:
 		r.fail("места: %s" % "; ".join(pl_bad))
 
@@ -2839,3 +2953,717 @@ func _space_checks() -> void:
 		r.pass_("сброс пространства: режим зоны → stage, положение сброшено (center_on_hmd), высота глаз измеряется заново; в журнал — «%s»" % detail)
 	else:
 		r.fail("сброс пространства: %s" % "; ".join(sp_bad))
+
+
+# --- перемещение и уровень (этап Ф3, часть 2) ----------------------------------------
+
+func _move_checks() -> void:
+	var dt := 1.0 / 90.0
+
+	# 1. Дуга телепорта: падает вниз, не длиннее дальности, площадка годится по наклону.
+	TeleportRes.falsify_any_slope = falsify == "teleportslope"
+	var arc_bad: Array[String] = []
+	var pts := TeleportRes.arc(Vector3(0, 1.2, 0), Vector3(0, 0, -1), 8.0)
+	var falls: bool = pts[pts.size() - 1].y < pts[0].y
+	var length: float = pts[0].distance_to(pts[pts.size() - 1])
+	var short_arc := TeleportRes.arc(Vector3(0, 1.2, 0), Vector3(0, 0, -1), 3.0)
+	if not falls or length > 8.6 or short_arc.size() >= pts.size():
+		arc_bad.append("дуга: падает %s, длина %.1f, короткая %d из %d точек" % [falls, length, short_arc.size(), pts.size()])
+	var slopes := [TeleportRes.landing_ok(Vector3.UP), TeleportRes.landing_ok(Vector3(0.5, 0.86, 0).normalized()),
+			TeleportRes.landing_ok(Vector3(1, 0.2, 0).normalized()), TeleportRes.landing_ok(Vector3.DOWN)]
+	if slopes != [true, true, false, false]:
+		arc_bad.append("наклоны (0°, 30°, 79°, потолок): %s" % [slopes])
+	TeleportRes.falsify_any_slope = false
+	if arc_bad.is_empty():
+		r.pass_("дуга телепорта: падает вниз, дальность держится, площадка до %.0f° годится, круче и потолок — нет" % TeleportRes.MAX_SLOPE_DEG)
+	else:
+		r.fail("дуга телепорта: %s" % "; ".join(arc_bad))
+
+	# 2. Мигание: затемнение до конца, перенос в темноте, возврат света. Рывок: без затемнения,
+	# путь за SHIFT_S.
+	var tp_bad: Array[String] = []
+	var tp := TeleportRes.new()
+	var a := Vector3(0, 0, 0)
+	var b := Vector3(4, 0, -3)
+	tp.start(a, b, "blink")
+	var mid := {}
+	var moved_at_fade := false
+	var steps := 0
+	while tp.phase != "" and steps < 200:
+		var res := tp.tick(dt)
+		if res["fade"] > 0.99 and mid.is_empty():
+			mid = res
+		if res["fade"] < 0.5 and res["pos"].distance_to(b) < 0.01 and not moved_at_fade:
+			moved_at_fade = res["done"]
+		steps += 1
+	if mid.is_empty() or mid["pos"].distance_to(b) > 0.01 or steps < 15:
+		tp_bad.append("мигание: в темноте %s, кадров %d" % [mid, steps])
+	var tp2 := TeleportRes.new()
+	tp2.start(a, b, "shift")
+	var max_fade := 0.0
+	var frames := 0
+	var last := a
+	while tp2.phase != "" and frames < 200:
+		var res2 := tp2.tick(dt)
+		max_fade = maxf(max_fade, res2["fade"])
+		last = res2["pos"]
+		frames += 1
+	var expect := int(TeleportRes.SHIFT_S / dt)
+	if max_fade > 0.01 or last.distance_to(b) > 0.01 or absi(frames - expect) > 2:
+		tp_bad.append("рывок: затемнение %.2f, конец %s, кадров %d вместо %d" % [max_fade, last, frames, expect])
+	if tp_bad.is_empty():
+		r.pass_("перенос и рывок: мигание переносит в темноте и возвращает свет (%d кадров), рывок — без затемнения за %.2f с" % [steps, TeleportRes.SHIFT_S])
+	else:
+		r.fail("перенос и рывок: %s" % "; ".join(tp_bad))
+
+	# 3. Повороты: щелчок один на отклонение стика (удержание не крутит), угол кратен настройке,
+	# пауза между щелчками; плавный — угол за секунду.
+	var turn_bad: Array[String] = []
+	var tn := TurnRes.new()
+	tn.falsify_repeat = falsify == "turnhold"
+	var snaps := 0
+	for i in 90:
+		if not is_zero_approx(tn.snap(1.0, 45.0, dt)):
+			snaps += 1
+	var after_release := 0
+	tn.snap(0.0, 45.0, dt)
+	for i in 30:
+		if not is_zero_approx(tn.snap(1.0, 45.0, dt)):
+			after_release += 1
+	var angle := tn.snap(0.0, 45.0, dt)
+	tn.snap(-1.0, 30.0, dt)
+	var left_turn := tn.snap(-1.0, 30.0, 1.0)
+	var smooth_deg := 0.0
+	for i in 90:
+		smooth_deg += TurnRes.smooth(1.0, 90.0, dt)
+	if snaps != 1 or after_release != 1 or absf(smooth_deg - 90.0) > 1.0:
+		turn_bad.append("щелчков за удержание %d, после отпускания %d, плавный за секунду %.1f°" % [snaps, after_release, smooth_deg])
+	if not is_zero_approx(TurnRes.smooth(0.1, 90.0, dt)):
+		turn_bad.append("плавный крутит от дрожи стика")
+	if turn_bad.is_empty():
+		r.pass_("повороты: удержание стика — один щелчок, после отпускания снова один, пауза %.2f с; плавный — 90°/с" % TurnRes.SNAP_COOLDOWN_S)
+	else:
+		r.fail("повороты: %s" % "; ".join(turn_bad))
+
+	# 4. Непрерывное движение: только по горизонтали (наклон головы не поднимает), мёртвая зона,
+	# скорость из настройки.
+	ContinuousRes.falsify_vertical = falsify == "movevertical"
+	var cont_bad: Array[String] = []
+	var looking_down := Basis(Vector3.RIGHT, deg_to_rad(-60.0))
+	var v := ContinuousRes.velocity(Vector2(0, 1), looking_down, 1.4)
+	if absf(v.y) > 0.001 or absf(v.length() - 1.4) > 0.01:
+		cont_bad.append("взгляд вниз: %s" % v)
+	if ContinuousRes.velocity(Vector2(0.05, 0.05), Basis(), 1.4) != Vector3.ZERO:
+		cont_bad.append("дрожь стика двигает")
+	var side := ContinuousRes.velocity(Vector2(1, 0), Basis(), 1.4)
+	if absf(side.x - 1.4) > 0.01:
+		cont_bad.append("вбок: %s" % side)
+	ContinuousRes.falsify_vertical = false
+	if cont_bad.is_empty():
+		r.pass_("непрерывное движение: взгляд вниз не поднимает, дрожь стика не двигает, скорость 1,4 м/с по горизонтали")
+	else:
+		r.fail("непрерывное движение: %s" % "; ".join(cont_bad))
+
+	# 5. Виньетка: в покое ноль, на скорости ходьбы — полная по уровню настройки, выключенная — ноль.
+	VignetteRes.falsify_always = falsify == "vignettealways"
+	var vg_bad: Array[String] = []
+	var vg := VignetteRes.new()
+	for i in 60:
+		vg.update(0.0, 0.0, "light", dt)
+	var at_rest := vg.value
+	for i in 60:
+		vg.update(1.4, 0.0, "light", dt)
+	var walking := vg.value
+	var vg2 := VignetteRes.new()
+	for i in 60:
+		vg2.update(1.4, 0.0, "off", dt)
+	var turning := VignetteRes.new()
+	for i in 60:
+		turning.update(0.0, 90.0, "strong", dt)
+	if at_rest > 0.02 or absf(walking - VignetteRes.LEVELS["light"]) > 0.05 or vg2.value > 0.01 \
+			or absf(turning.value - VignetteRes.LEVELS["strong"]) > 0.05:
+		vg_bad.append("покой %.2f, ходьба %.2f, выкл %.2f, поворот %.2f" % [at_rest, walking, vg2.value, turning.value])
+	VignetteRes.falsify_always = false
+	if vg_bad.is_empty():
+		r.pass_("виньетка: покой 0, ходьба 1,4 м/с — %.2f (лёгкая), поворот 90°/с — %.2f (сильная), «выкл» — ноль" % [walking, turning.value])
+	else:
+		r.fail("виньетка: %s" % "; ".join(vg_bad))
+
+	# 6. Лазанье: точка захвата ФИКСИРОВАНА на зацепе, ведёт последняя схватившая рука, рука далеко
+	# от зацепа — срыв, при отпускании инерция плюс отталкивание. Сессия 17: мир ехал за дельтой
+	# руки, точка захвата плыла, и двенадцать захватов дали ноль сантиметров вверх.
+	var cl_bad: Array[String] = []
+	var cl := ClimbRes.new()
+	cl.falsify_no_clamp = falsify == "climbjump"
+	cl.falsify_drift = falsify == "climbdrift"
+	cl.falsify_no_break = falsify == "nobreak"
+	cl.grab("right", Vector3(0, 1.5, 0))
+	var moved := cl.update({"right": Vector3(0, 1.8, 0)}, dt)
+	if moved.distance_to(Vector3(0, -0.3, 0)) > 0.001:
+		cl_bad.append("рука вверх на 30 см → %s (ждали −0.3 по Y)" % moved)
+	# Рука осталась на месте, а тело ещё не двинулось: смещение обязано повториться целиком —
+	# именно этим фиксированная точка отличается от «дельты за кадр», которая дала бы ноль.
+	var again := cl.update({"right": Vector3(0, 1.8, 0)}, dt)
+	if again.distance_to(Vector3(0, -0.3, 0)) > 0.001:
+		cl_bad.append("точка захвата уехала за рукой: повтор дал %s вместо −0.3 по Y" % again)
+	var jump := cl.update({"right": Vector3(0, 4.0, 0)}, dt)
+	if jump.length() > ClimbRes.MAX_STEP_M + 0.001:
+		cl_bad.append("скачок трекинга не отсечён: %s" % jump)
+	# Срыв: рука ушла от зацепа дальше предела.
+	var far := cl.overreached({"right": Vector3(0, 1.5 + ClimbRes.BREAK_M + 0.1, 0)})
+	var near := cl.overreached({"right": Vector3(0, 1.5 + ClimbRes.BREAK_M - 0.1, 0)})
+	if far != ["right"] or not near.is_empty():
+		cl_bad.append("срыв: далеко %s, близко %s" % [far, near])
+	cl.release("right")
+	if cl.velocity.length() < 0.5 or cl.active:
+		cl_bad.append("после отпускания скорость %s, держит %s" % [cl.velocity, cl.active])
+	# Отталкивание по взгляду добавляется к инерции.
+	var fly := cl.release_velocity(Vector3(0, 0, -1))
+	if fly.z > -ClimbRes.FORWARD_PUSH * 0.9:
+		cl_bad.append("нет отталкивания по взгляду: %s" % fly)
+	# Полёт ограничен: сессия 19 дала 21 м/с при каждом отпускании — подтяжка первого кадра уходила
+	# в окно скорости, и человека выстреливало со стены.
+	var wild := ClimbRes.new()
+	wild.grab("right", Vector3(0, 1.5, 0))
+	wild.update({"right": Vector3(0, 1.5 + ClimbRes.MAX_STEP_M, 0)}, dt)
+	wild.release("right")
+	if wild.release_velocity(Vector3(0, 0, -1)).length() > ClimbRes.MAX_FLING_MS + ClimbRes.FORWARD_PUSH + 0.01:
+		cl_bad.append("полёт не ограничен: %.1f м/с" % wild.release_velocity(Vector3(0, 0, -1)).length())
+	# Ведёт последняя схватившая; отпустил её — ведение возвращается первой.
+	var two := ClimbRes.new()
+	two.grab("left", Vector3(-0.2, 1.4, 0))
+	two.grab("right", Vector3(0.2, 1.4, 0))
+	if two.dominant != "right":
+		cl_bad.append("ведёт %s вместо последней схватившей" % two.dominant)
+	var led := two.update({"left": Vector3(-0.2, 1.4, 1.0), "right": Vector3(0.2, 1.4, 0.3)}, dt)
+	if absf(led.z + 0.3) > 0.001:
+		cl_bad.append("ведущая рука не ведёт: %s (ждали −0.3 по Z от правой)" % led)
+	two.release("right")
+	if two.dominant != "left" or not two.active:
+		cl_bad.append("после отпускания ведущей ведёт %s, держит %s" % [two.dominant, two.active])
+	# Тяга мира «за воздух» обеими руками — среднее: там ведущей руки нет.
+	var pull_two := ClimbRes.new()
+	pull_two.grab("left", Vector3(-0.2, 1.4, 0), "pull")
+	pull_two.grab("right", Vector3(0.2, 1.4, 0), "pull")
+	var pull := pull_two.update({"left": Vector3(-0.2, 1.4, 0.1), "right": Vector3(0.2, 1.4, 0.3)}, dt)
+	if absf(pull.z + 0.2) > 0.001:
+		cl_bad.append("тяга двумя руками: %s (ждали среднее −0.2 по Z)" % pull)
+	if cl_bad.is_empty():
+		r.pass_("лазанье: точка захвата держится на зацепе, ведёт последняя схватившая рука, срыв дальше %.2f м, при отпускании инерция и отталкивание; тяга мира — среднее по рукам" % ClimbRes.BREAK_M)
+	else:
+		r.fail("лазанье: %s" % "; ".join(cl_bad))
+
+	# 7. Разбор уровня: версия формата, неизвестный тип и нулевой размер отвергаются; стартовая
+	# локация читается и содержит нужное.
+	LevelRes.falsify_any = falsify == "levelany"
+	var lv_bad: Array[String] = []
+	var bad_cases := {
+		"не JSON": "[1,2,3]",
+		"версия": '{"format": 2, "objects": []}',
+		"нет объектов": '{"format": 1}',
+		"тип": '{"format": 1, "objects": [{"type": "dragon", "pos": [0,0,0], "size": [1,1,1]}]}',
+		"размер": '{"format": 1, "objects": [{"type": "box", "pos": [0,0,0], "size": [1,0,1]}]}',
+	}
+	for name in bad_cases:
+		if LevelRes.parse(bad_cases[name])["ok"]:
+			lv_bad.append("принят битый случай «%s»" % name)
+	var text := FileAccess.get_file_as_string("res://world/levels/start_location.json")
+	var parsed := LevelRes.parse(text)
+	if not parsed["ok"]:
+		lv_bad.append("стартовая локация: %s" % parsed["error"])
+	else:
+		var types := {}
+		var tags := {}
+		for o in parsed["data"]["objects"]:
+			types[o["type"]] = int(types.get(o["type"], 0)) + 1
+			for t in o.get("tags", []):
+				tags[t] = int(tags.get(t, 0)) + 1
+		if types.get("spawn", 0) != 1 or types.get("stairs", 0) < 1 or types.get("trigger", 0) < 1 \
+				or tags.get("climb", 0) < 3 or tags.get("teleport_target", 0) < 3:
+			lv_bad.append("состав локации: типы %s, метки %s" % [types, tags])
+	LevelRes.falsify_any = false
+	if lv_bad.is_empty():
+		r.pass_("разбор уровня: пять битых случаев отвергнуты; стартовая локация читается — точка старта, ступени, триггер, зацепы и цели телепорта на месте")
+	else:
+		r.fail("разбор уровня: %s" % "; ".join(lv_bad))
+
+	# 8. Подсказка в мире (тип «sign», просьба владельца после сессии 17): билборд с фиксированным
+	# местом. Текст обязателен — подсказка без текста это невидимый узел, который молча ничего не
+	# делает; положение обязательно, иначе она встанет в нуле мира.
+	LevelRes.falsify_any = falsify == "signblind"
+	var sign_bad: Array[String] = []
+	var good := LevelRes.parse('{"format":1,"objects":[{"uuid":"s1","type":"sign","pos":[1,1.5,2],"text":"Пандус"}]}')
+	if not good["ok"]:
+		sign_bad.append("правильная подсказка отвергнута: %s" % good["error"])
+	for bad in [['{"format":1,"objects":[{"uuid":"s1","type":"sign","pos":[1,1.5,2]}]}', "без текста"],
+			['{"format":1,"objects":[{"uuid":"s1","type":"sign","text":"Пандус"}]}', "без положения"]]:
+		if LevelRes.parse(bad[0])["ok"]:
+			sign_bad.append("принята подсказка %s" % bad[1])
+	if good["ok"]:
+		var root := Node3D.new()
+		LevelRes.build(root, good["data"])
+		var lbl := root.get_child(0) as Label3D
+		# position, а не global_position: узел вне дерева сцены отдаёт мировое (0,0,0) при любом
+		# положении, и проверка краснела бы на верном коде.
+		# Группа «sign» — по ней таблички каждый кадр разворачиваются лицом к человеку
+		# (world/sign_face.gd); билборда Godot у них нет намеренно (сессия 18).
+		if lbl == null or lbl.text != "Пандус" or not lbl.is_in_group("sign") \
+				or not lbl.position.is_equal_approx(Vector3(1, 1.5, 2)):
+			sign_bad.append("построена не подсказка: %s" % ("нет узла" if lbl == null else
+					"«%s», в группе %s, %s" % [lbl.text, lbl.is_in_group("sign"), lbl.position]))
+		root.free()
+	LevelRes.falsify_any = false
+	if sign_bad.is_empty():
+		r.pass_("подсказка в мире: текст и положение обязательны, строится на своём месте и попадает в группу разворота")
+	else:
+		r.fail("подсказка в мире: %s" % "; ".join(sign_bad))
+
+	# 9. Подгрузка и выгрузка по зоне (world/level_stream.gd). Сессия 17: интерьер подгрузился и не
+	# выгрузился — body_exited не был подключён нигде. Выгрузка отложенная: шаг через проём
+	# туда-обратно не должен давать мигание загрузки.
+	var stream: LevelStreamRes = LevelStreamRes.new()
+	stream.falsify_never_unload = falsify == "keeploaded"
+	var st_bad: Array[String] = []
+	var file := "res://world/levels/start_interior.json"
+	stream.add(file, [1, 2, 3])
+	if not stream.is_loaded(file):
+		st_bad.append("файл не считается загруженным")
+	# Вышел и сразу вернулся — выгрузки быть не должно вовсе.
+	stream.exit(file)
+	stream.tick(LevelStreamRes.UNLOAD_DELAY_S * 0.5)
+	stream.enter(file)
+	if not stream.tick(LevelStreamRes.UNLOAD_DELAY_S * 2.0).is_empty():
+		st_bad.append("возвращение не отменило отсчёт")
+	# Вышел и не вернулся — выгрузка ровно по истечении задержки, не раньше.
+	stream.exit(file)
+	if not stream.tick(LevelStreamRes.UNLOAD_DELAY_S * 0.9).is_empty():
+		st_bad.append("выгрузил раньше задержки")
+	var due := stream.tick(LevelStreamRes.UNLOAD_DELAY_S * 0.2)
+	if due != [file]:
+		st_bad.append("после задержки к выгрузке %s" % [due])
+	if stream.take(file) != [1, 2, 3] or stream.is_loaded(file):
+		st_bad.append("узлы не отданы или учёт не очищен")
+	# Незагруженный файл отсчёта не заводит.
+	stream.exit("res://нет.json")
+	if not stream.tick(LevelStreamRes.UNLOAD_DELAY_S * 2.0).is_empty():
+		st_bad.append("завёл отсчёт на файл, который не грузился")
+	if st_bad.is_empty():
+		r.pass_("подгрузка и выгрузка по зоне: возвращение отменяет отсчёт, выгрузка ровно через %.1f с, узлы отданы вызывающему" % LevelStreamRes.UNLOAD_DELAY_S)
+	else:
+		r.fail("подгрузка и выгрузка по зоне: %s" % "; ".join(st_bad))
+
+
+# --- журнал сессии ----------------------------------------------------------------
+
+## Строка, записанная до открытия файла, обязана дойти до диска и встать ПЕРЕД более поздними.
+## Сессия 15: `_load_level` звал журнал раньше `journal.open()`, запись молча пропадала, и
+## отсутствие строки «уровень» выглядело как несостоявшаяся загрузка уровня — при 44 построенных
+## объектах. Проверка пишет в свой файл, журнал сессии не трогает.
+func _session_checks() -> void:
+	var path := "user://test_journal.tsv"
+	var abs_path := ProjectSettings.globalize_path(path)
+	DirAccess.remove_absolute(abs_path)
+	JournalRes.falsify_drop_early = falsify == "nobuffer"
+	var j: JournalRes = JournalRes.new()
+	j.log("уровень", {"input": "controllers"}, "", "", -1, "start_location.json: узлов 44")
+	j.log("комната", {}, "", "", -1, "ранняя вторая")
+	var opened: bool = j.open(path)
+	j.log("ввод_готов", {}, "", "", -1, "поздняя")
+	var text := FileAccess.get_file_as_string(path)
+	DirAccess.remove_absolute(abs_path)
+	JournalRes.falsify_drop_early = false
+	var early := text.contains("узлов 44") and text.contains("ранняя вторая")
+	var late := text.contains("поздняя")
+	var order := early and late and text.find("узлов 44") < text.find("ранняя вторая") \
+			and text.find("ранняя вторая") < text.find("поздняя")
+	if opened and early and late and order and j.rows == 3:
+		r.pass_("журнал до открытия: две строки до open() дошли до файла в своём порядке, перед поздней; строк %d" % j.rows)
+	else:
+		r.fail("журнал до открытия: открыт %s, ранние %s, поздняя %s, порядок %s, строк %d" % [
+				opened, early, late, order, j.rows])
+
+
+## Подсказка обязана говорить разное при открытом и закрытом шаре: при открытом — что шар надо
+## закрыть, чтобы идти; при закрытом — чем именно идти, с текущими настройками по именам.
+## Сессия 16: текст был один на оба состояния, шар простоял открытым 408 с, и перемещение не
+## испытали ни разу, хотя все его настройки перебрали.
+func _help_text_check() -> void:
+	HelpTextRes.falsify_stale = falsify == "helpstale"
+	HelpTextRes.falsify_no_crouch = falsify == "crouchquiet"
+	var bad: Array = []
+	for hands in [false, true]:
+		var opened: String = HelpTextRes.text(hands, true, "blink", "snap", 45.0, 90.0)
+		var closed: String = HelpTextRes.text(hands, false, "blink", "snap", 45.0, 90.0)
+		var close_word: String = "кулак левой" if hands else "Y"
+		if not opened.contains("закрыть шар"):
+			bad.append("открытый шар (%s) не зовёт закрыть" % ("руки" if hands else "контроллеры"))
+		if not opened.contains(close_word):
+			bad.append("открытый шар (%s) не называет, чем закрыть" % ("руки" if hands else "контроллеры"))
+		if not closed.contains("перемещение") or not closed.contains("телепорт"):
+			bad.append("закрытый шар (%s) молчит о перемещении" % ("руки" if hands else "контроллеры"))
+		if opened == closed:
+			bad.append("текст одинаков в обоих состояниях (%s)" % ("руки" if hands else "контроллеры"))
+	# Присед назван в подсказке: сессия 21 — кнопку никто не нашёл, потому что про неё нигде не
+	# говорилось (и висела она на нажатии стика).
+	if not HelpTextRes.text(false, false, "blink", "snap", 45.0, 90.0).contains("присесть"):
+		bad.append("про присед в подсказке не сказано")
+	# Настройки названы по имени: способ и угол щелчка меняются в тексте вместе со значением.
+	var walk: String = HelpTextRes.text(false, false, "head", "smooth", 45.0, 120.0)
+	if not walk.contains("по взгляду") or not walk.contains("120"):
+		bad.append("закрытый шар не называет текущие настройки: «%s»" % walk)
+	if HelpTextRes.text(false, false, "blink", "snap", 30.0, 90.0).contains("45"):
+		bad.append("угол щелчка в тексте не следует за настройкой")
+	HelpTextRes.falsify_stale = false
+	HelpTextRes.falsify_no_crouch = false
+	if bad.is_empty():
+		r.pass_("подсказка по состоянию шара: открытый зовёт закрыть (Y и кулак левой), закрытый называет способ и угол — и у рук свой текст")
+	else:
+		r.fail("подсказка по состоянию шара: %s" % "; ".join(bad))
+
+
+
+## Табличка смотрит НА ЧЕЛОВЕКА, а не вдоль его взгляда. Сессия 18: билборд Godot держит надпись
+## параллельно плоскости экрана — табличка сбоку оказывалась повёрнутой «как экран», и владелец это
+## увидел сразу: «вращаются в соответствии с вращением шлема, а должны всегда смотреть лицевой
+## стороной к шлему». Вертикаль при развороте не заваливается.
+func _sign_face_check() -> void:
+	SignFaceRes.falsify_billboard = falsify == "signbillboard"
+	var bad: Array[String] = []
+	var at := Vector3(2.0, 1.5, 0.0)
+	for head in [Vector3(0, 1.6, 0), Vector3(2.0, 1.6, 5.0), Vector3(-3.0, 1.6, -4.0)]:
+		var b := SignFaceRes.basis_towards(at, head)
+		# Лицевая сторона Label3D — +Z: она должна указывать на голову по горизонтали.
+		var to_head: Vector3 = head - at
+		to_head.y = 0.0
+		var face := b.z
+		if face.angle_to(to_head.normalized()) > deg_to_rad(0.5):
+			bad.append("из %s лицо смотрит в %s вместо %s" % [head, face, to_head.normalized()])
+		if absf(b.y.dot(Vector3.UP) - 1.0) > 0.001:
+			bad.append("вертикаль завалилась: y = %s" % b.y)
+	# Наклон головы на табличку не переносится: важна ТОЧКА, а не поза. Голова выше и ниже даёт
+	# один и тот же разворот.
+	var high := SignFaceRes.basis_towards(at, Vector3(0, 3.0, 0))
+	var low := SignFaceRes.basis_towards(at, Vector3(0, 0.2, 0))
+	if not high.z.is_equal_approx(low.z):
+		bad.append("высота головы меняет разворот: %s против %s" % [high.z, low.z])
+	# Разворачиваются все узлы группы и только живые.
+	var signs: Array = []
+	for i in 3:
+		var n := Node3D.new()
+		n.position = Vector3(float(i), 1.5, 0.0)
+		signs.append(n)
+	var faced := SignFaceRes.face_all(signs, Vector3(0, 1.6, 5.0))
+	if faced != 3:
+		bad.append("развёрнуто %d табличек из 3" % faced)
+	for n in signs:
+		(n as Node3D).free()
+	SignFaceRes.falsify_billboard = false
+	if bad.is_empty():
+		r.pass_("подсказка смотрит на человека: лицо направлено в точку головы с любой стороны, вертикаль держится, наклон головы разворот не меняет")
+	else:
+		r.fail("подсказка смотрит на человека: %s" % "; ".join(bad))
+
+
+## Призыв предмета — «гравиперчатки» (HL:A). Цель берётся узким конусом вокруг оси ладони, рывком
+## считается только быстрое движение кисти К СЕБЕ, предмет летит по дуге и приходит точно в ладонь.
+func _pull_checks() -> void:
+	PullRes.falsify_wide = falsify == "pullwide"
+	PullRes.falsify_any_flick = falsify == "pullflick"
+	var bad: Array[String] = []
+	var places := [Vector3(0, 1.2, -3.0), Vector3(1.5, 1.2, -3.0), Vector3(0, 1.2, -20.0)]
+	var hand := Vector3(0, 1.4, 0)
+	var aim := PullRes.target_index(places, hand, Vector3(0, -0.07, -1.0))
+	if aim != 0:
+		bad.append("наведение взяло предмет %d вместо того, на который навели" % aim)
+	# Предмет в 27° от оси — мимо конуса; предмет за дальностью — тоже мимо.
+	if PullRes.target_index([places[1]], hand, Vector3(0, -0.07, -1.0)) >= 0:
+		bad.append("предмет вне конуса всё равно взят")
+	if PullRes.target_index([places[2]], hand, Vector3(0, -0.01, -1.0)) >= 0:
+		bad.append("предмет за дальностью %.0f м всё равно взят" % PullRes.RANGE_M)
+	# Рывок: к себе быстро — да; к себе медленно и от себя быстро — нет.
+	var to_head := Vector3(0, 0.2, 1.0)
+	var quick := to_head.normalized() * (PullRes.FLICK_SPEED * 2.0)
+	var slow := to_head.normalized() * (PullRes.FLICK_SPEED * 0.3)
+	if not PullRes.is_flick(quick, to_head):
+		bad.append("быстрый рывок к себе не распознан")
+	if PullRes.is_flick(slow, to_head) or PullRes.is_flick(-quick, to_head):
+		bad.append("медленное или обратное движение принято за рывок")
+	# Полёт: начало и конец точные, середина поднята дугой.
+	var from := Vector3(0, 0.1, -3.0)
+	var to := Vector3(0, 1.4, 0.0)
+	if not PullRes.fly_point(from, to, 0.0).is_equal_approx(from) or not PullRes.fly_point(from, to, 1.0).is_equal_approx(to):
+		bad.append("полёт не начинается и не кончается в точке")
+	var mid := PullRes.fly_point(from, to, 0.5)
+	if mid.y <= from.lerp(to, 0.5).y + 0.05:
+		bad.append("дуга не поднимается: середина %s" % mid)
+	PullRes.falsify_wide = false
+	PullRes.falsify_any_flick = false
+	# Нить от ладони к предмету: провисает, начинается и кончается точно (сессия 20 — видимой связи
+	# не было вовсе, и какая рука держит цель, понять было нельзя).
+	var thread := PullRes.thread(Vector3(0, 1.2, 0), Vector3(0, 1.2, -3.0))
+	if thread.size() < 6:
+		bad.append("нить из %d точек" % thread.size())
+	elif not thread[0].is_equal_approx(Vector3(0, 1.2, 0)) or not thread[thread.size() - 1].is_equal_approx(Vector3(0, 1.2, -3.0)):
+		bad.append("нить не привязана к концам: %s → %s" % [thread[0], thread[thread.size() - 1]])
+	else:
+		var sag: float = 1.2 - thread[thread.size() / 2].y
+		if sag < 0.05 or sag > 0.5:
+			bad.append("провисание %.2f м — нить прямая или лежит на полу" % sag)
+	if bad.is_empty():
+		r.pass_("призыв предмета: конус %.0f° выбирает наведённое, дальше %.0f м не берёт, рывком считается только движение к себе быстрее %.1f м/с, полёт идёт дугой в ладонь, нить провисает" % [
+				PullRes.CONE_DEG, PullRes.RANGE_M, PullRes.FLICK_SPEED])
+	else:
+		r.fail("призыв предмета: %s" % "; ".join(bad))
+
+
+## Курс при телепорте: пока целишься дугой, стик вбок задаёт, куда смотреть после переноса
+## (HL:A, «orientation on teleport» у Meta). Сессия 20: отклонение стика крутило человека НА МЕСТЕ,
+## потому что поворот не знал о прицеливании, а сам угол был всегда ровно ±90°.
+func _teleport_extras_check() -> void:
+	var bad: Array[String] = []
+	# Мёртвая зона: лёгкое касание стика курс не задаёт — человек смотрит туда же, куда смотрел.
+	if not is_nan(TeleportRes.aim_yaw(TeleportRes.AIM_DEADZONE * 0.9, 30.0)):
+		bad.append("касание стика в мёртвой зоне уже задаёт курс")
+	# Угол пропорционален отклонению: до предела на краю и вдвое меньше на середине хода.
+	var full := TeleportRes.aim_yaw(1.0, 30.0)
+	var half := TeleportRes.aim_yaw((1.0 + TeleportRes.AIM_DEADZONE) * 0.5, 30.0)
+	if not is_equal_approx(full, 30.0 + TeleportRes.MAX_AIM_TURN):
+		bad.append("полное отклонение даёт %.0f вместо %.0f" % [full, 30.0 + TeleportRes.MAX_AIM_TURN])
+	if absf(half - (30.0 + TeleportRes.MAX_AIM_TURN * 0.5)) > 1.0:
+		bad.append("половина хода даёт %.0f вместо %.0f" % [half, 30.0 + TeleportRes.MAX_AIM_TURN * 0.5])
+	# Влево — в другую сторону, на тот же угол.
+	if not is_equal_approx(TeleportRes.aim_yaw(-1.0, 0.0), -TeleportRes.MAX_AIM_TURN):
+		bad.append("влево курс не зеркален: %.0f" % TeleportRes.aim_yaw(-1.0, 0.0))
+	# Курс считается ОТ взгляда: та же ручка при другом повороте головы даёт другой курс.
+	if is_equal_approx(TeleportRes.aim_yaw(1.0, 0.0), TeleportRes.aim_yaw(1.0, 90.0)):
+		bad.append("курс не зависит от того, куда смотрит человек")
+	if bad.is_empty():
+		r.pass_("курс при телепорте: мёртвая зона %.2f, угол пропорционален отклонению до %.0f°, считается от взгляда" % [
+				TeleportRes.AIM_DEADZONE, TeleportRes.MAX_AIM_TURN])
+	else:
+		r.fail("курс при телепорте: %s" % "; ".join(bad))
+
+
+## Присед кнопкой и виньетка «по ускорению». Присев, человек становится ниже — и капсула тоже,
+## иначе он упрётся макушкой в то, подо что заглядывает. Виньетка «по ускорению» (рекомендация Meta)
+## темнеет только на разгоне и торможении: на ровном ходу край чист, и сцену видно.
+func _crouch_vignette_check() -> void:
+	var bad: Array[String] = []
+	var body: PlayerBodyRes = PlayerBodyRes.new()
+	var origin := XROrigin3D.new()
+	var head_node := Node3D.new()
+	root.add_child(body)
+	body.add_child(origin)
+	origin.add_child(head_node)
+	head_node.position = Vector3(0, 1.6, 0)
+	body.setup(origin, head_node)
+	body.set_eye_height(1.6)
+	var tall := body.capsule.height
+	body.set_crouch(0.5 if falsify != "crouchtall" else 0.0)
+	if body.capsule.height > tall - 0.45:
+		bad.append("капсула не укоротилась: %.2f при росте %.2f" % [body.capsule.height, tall])
+	if absf(origin.position.y + 0.5) > 0.001 and falsify != "crouchtall":
+		bad.append("взгляд не опустился: origin.y = %.2f" % origin.position.y)
+	body.set_crouch(0.0)
+	if absf(body.capsule.height - tall) > 0.001 or absf(origin.position.y) > 0.001:
+		bad.append("встать обратно не получилось: высота %.2f, origin.y %.2f" % [body.capsule.height, origin.position.y])
+	root.remove_child(body)
+	body.free()
+
+	VignetteRes.falsify_speed_not_accel = falsify == "vigspeed"
+	var vg: VignetteRes = VignetteRes.new()
+	var dt := 1.0 / 90.0
+	# Разгон с нуля до скорости ходьбы за кадр — виньетка должна появиться...
+	vg.update(0.0, 0.0, "accel", dt)
+	var on_accel := vg.update(1.4, 0.0, "accel", dt)
+	# ...а на ровном ходу (скорость та же кадр за кадром) — уйти.
+	var steady := on_accel
+	for i in 40:
+		steady = vg.update(1.4, 0.0, "accel", dt)
+	if on_accel < 0.05:
+		bad.append("на разгоне виньетка не появилась: %.2f" % on_accel)
+	if steady > 0.05:
+		bad.append("на ровном ходу виньетка не ушла: %.2f" % steady)
+	VignetteRes.falsify_speed_not_accel = false
+	if bad.is_empty():
+		r.pass_("присед и виньетка по ускорению: присед на 0.5 м опускает взгляд и укорачивает капсулу, встать возвращает; «по ускорению» темнеет на разгоне (%.2f) и чиста на ровном ходу (%.2f)" % [on_accel, steady])
+	else:
+		r.fail("присед и виньетка по ускорению: %s" % "; ".join(bad))
+
+
+## Перевал через край — Assisted Mantle. Сессия 21: до верха стены владелец так и не перевалился
+## («забрался наверх при помощи телепорта»), потому что прежний порог требовал поднять глаза на
+## 15 см выше кромки — при верхнем зацепе на 3.2 и кромке на 3.4 это значит подтянуться почти на
+## полный рост.
+func _mantle_check() -> void:
+	MantleRes.falsify_any = falsify == "mantleany"
+	MantleRes.falsify_ease = falsify == "mantleease"
+	MantleRes.falsify_eager = falsify == "mantleeager"
+	var bad: Array[String] = []
+	# Годится: горизонтальная площадка ниже головы. Не годится: выше головы, вровень, наклонная.
+	if not MantleRes.fits(3.5, 3.0, Vector3.UP):
+		bad.append("не берёт площадку под головой")
+	if MantleRes.fits(3.0, 3.5, Vector3.UP):
+		bad.append("берёт площадку ВЫШЕ головы")
+	if MantleRes.fits(3.5, 3.0, Vector3(0.8, 0.6, 0).normalized()):
+		bad.append("берёт наклонную поверхность")
+	# Намерение: высота обязательна, а дальше — рывок ИЛИ удержание.
+	var above := 3.4 + MantleRes.HEAD_ABOVE_M + 0.02
+	if MantleRes.intent(3.40, 3.4, -1.0, 1.0):
+		bad.append("перевал начинается, когда глаза на уровне кромки")
+	if MantleRes.intent(above, 3.4, 0.0, MantleRes.INTENT_HOLD_S * 0.5):
+		bad.append("перевал начинается без рывка и без удержания")
+	if not MantleRes.intent(above, 3.4, -MantleRes.FLICK_DOWN_MS * 1.5, 0.0):
+		bad.append("рывок рукой вниз не запускает перевал")
+	if not MantleRes.intent(above, 3.4, 0.0, MantleRes.INTENT_HOLD_S + 0.01):
+		bad.append("удержание у кромки не запускает перевал")
+	# Траектория: строго линейно и в два этапа. Ускорение камеры в VR запрещено (схема владельца).
+	var from := Vector3(0, 1.0, 0)
+	var to := Vector3(0, 3.4, -1.0)
+	var step := 0.05
+	var ups: Array[float] = []
+	var fwds: Array[float] = []
+	var prev := MantleRes.rise_point(from, to, 0.0)
+	var k := step
+	while k <= 1.0001:
+		var p := MantleRes.rise_point(from, to, k)
+		# На подъёме высота только растёт; на выносе допустимо снижение на запас CLEAR_M — это
+		# ноги опускаются на площадку, пройдя кромку.
+		var allow: float = 0.001 if k <= MantleRes.UP_PART else MantleRes.CLEAR_M + 0.001
+		if p.y < prev.y - allow:
+			bad.append("высота убывает на t = %.2f" % k)
+			break
+		# Внутри своего этапа шаг постоянный: копим шаги подъёма и шаги выноса отдельно.
+		if k <= MantleRes.UP_PART:
+			ups.append(p.y - prev.y)
+		elif k > MantleRes.UP_PART + 0.06:
+			# Первый шаг после смены этапа сравнивать не с чем: он захватывает конец подъёма.
+			fwds.append(absf(p.z - prev.z))
+		prev = p
+		k += step
+	for pair in [["подъём", ups], ["вынос", fwds]]:
+		var arr: Array[float] = pair[1]
+		if arr.size() < 3:
+			bad.append("%s: шагов %d — этап слишком короткий" % [pair[0], arr.size()])
+			continue
+		var lo: float = arr.min()
+		var hi: float = arr.max()
+		if hi > lo * 1.05 + 0.0005:
+			bad.append("%s идёт с ускорением: шаг от %.4f до %.4f" % [pair[0], lo, hi])
+	if not MantleRes.rise_point(from, to, 1.0).is_equal_approx(to):
+		bad.append("конец траектории не в точке приземления")
+	# Длительность — в окне комфорта 0.2…0.4 с.
+	if MantleRes.RISE_S < 0.2 or MantleRes.RISE_S > 0.4:
+		bad.append("перенос длится %.2f с — вне окна 0.2…0.4" % MantleRes.RISE_S)
+	MantleRes.falsify_any = false
+	MantleRes.falsify_ease = false
+	MantleRes.falsify_eager = false
+	if bad.is_empty():
+		r.pass_("перевал через край: намерение — глаза выше кромки на %.2f м плюс рывок или удержание %.2f с; перенос %.2f с строго линейный, сначала вверх, потом вперёд" % [
+				MantleRes.HEAD_ABOVE_M, MantleRes.INTENT_HOLD_S, MantleRes.RISE_S])
+	else:
+		r.fail("перевал через край: %s" % "; ".join(bad))
+
+
+## Кромка в данных уровня (тип «ledge»): зона захвата и ТОЧКА ПРИЗЕМЛЕНИЯ. Без неё зона бесполезна —
+## человека некуда ставить, поэтому это отказ разбора, а не умолчание.
+func _ledge_check() -> void:
+	LevelRes.falsify_any = falsify == "ledgeany"
+	var bad: Array[String] = []
+	var good := LevelRes.parse('{"format":1,"objects":[{"uuid":"l1","type":"ledge","pos":[4.5,3.4,-4.6],"size":[3,0.5,0.6],"target":[4.5,3.4,-5.4]}]}')
+	if not good["ok"]:
+		bad.append("правильная кромка отвергнута: %s" % good["error"])
+	for case in [['{"format":1,"objects":[{"uuid":"l1","type":"ledge","pos":[0,3,0],"size":[3,0.5,0.6]}]}', "без точки приземления"],
+			['{"format":1,"objects":[{"uuid":"l1","type":"ledge","size":[3,0.5,0.6],"target":[0,3,-1]}]}', "без положения"],
+			['{"format":1,"objects":[{"uuid":"l1","type":"ledge","pos":[0,3,0],"size":[3,0,0.6],"target":[0,3,-1]}]}', "с нулевым размером"]]:
+		if LevelRes.parse(case[0])["ok"]:
+			bad.append("принята кромка %s" % case[1])
+	if good["ok"]:
+		var root := Node3D.new()
+		LevelRes.build(root, good["data"])
+		var area := root.get_child(0) as Area3D
+		if area == null or not area.is_in_group("ledge"):
+			bad.append("кромка построена не зоной или не в группе")
+		elif not (area.get_meta("target") as Vector3).is_equal_approx(Vector3(4.5, 3.4, -5.4)):
+			bad.append("точка приземления потерялась: %s" % area.get_meta("target"))
+		root.free()
+	LevelRes.falsify_any = false
+	if bad.is_empty():
+		r.pass_("кромка в данных: зона строится с точкой приземления в метаданных; без target, положения или размера — отказ разбора")
+	else:
+		r.fail("кромка в данных: %s" % "; ".join(bad))
+
+
+
+
+
+## У каждого пункта-действия есть адресат. Навигатор рассылает действия ПО ПРЕФИКСУ
+## (`profile_*`, `space_*`) плюс несколько имён разбирает сам; всё прочее уходит в `{"do": "none"}`
+## и молча не делает ничего. Сессии 18–20: пункт «Вернуться в стартовую точку» назывался `respawn`,
+## не подходил ни под один префикс, и в журнале нет ни одного возврата из меню — при том, что
+## обработчик был на месте.
+func _menu_actions_check() -> void:
+	var known := ["wizard", "search", "pick", "exit"]
+	var prefixes := ["profile_", "space_"]
+	var cat := Catalog.new()
+	var bad: Array[String] = []
+	var seen := 0
+	for id in cat.items:
+		var it: Item = cat.items[id]
+		if it.kind != Item.Kind.ACTION or it.action == "":
+			continue
+		seen += 1
+		var name: String = it.action
+		if falsify == "actionorphan" and id == "move_respawn":
+			name = "respawn"
+		var ok := name in known
+		for p in prefixes:
+			if name.begins_with(p):
+				ok = true
+		if not ok:
+			bad.append("«%s» (%s) никому не адресовано" % [it.title, name])
+	if seen < 5:
+		bad.append("пунктов-действий найдено всего %d — каталог не построился" % seen)
+	if bad.is_empty():
+		r.pass_("действия меню адресованы: все %d пунктов-действий попадают навигатору — по имени или по префиксу" % seen)
+	else:
+		r.fail("действия меню адресованы: %s" % "; ".join(bad))
+
+
+## Столкновения, снятые на время перевала, возвращаются САМИ, чем бы перенос ни кончился.
+## Сессия 24: после перевала маска осталась нулевой, тело провалилось сквозь пол, и человек уехал
+## на −2.44 м — «ушёл вниз, глаза на уровне пола». Возврат в стартовую точку это вылечил, но сам
+## провал не должен был случиться.
+func _collision_guard_check() -> void:
+	var bad: Array[String] = []
+	var body: PlayerBodyRes = PlayerBodyRes.new()
+	var origin := XROrigin3D.new()
+	var head_node := Node3D.new()
+	root.add_child(body)
+	body.add_child(origin)
+	origin.add_child(head_node)
+	head_node.position = Vector3(0, 1.6, 0)
+	body.setup(origin, head_node)
+	var mask := body.collision_mask
+	if mask == 0:
+		bad.append("у тела изначально нет маски столкновений — проверять нечего")
+	body.hold_collisions()
+	if body.collision_mask != 0:
+		bad.append("маска не снялась на время перевала")
+	# Перенос «прервался»: перевал больше не идёт, а release никто не позвал.
+	body.mantling = false
+	body._physics_process(1.0 / 60.0)
+	if body.collision_mask != mask:
+		bad.append("маска не вернулась сама: %d вместо %d" % [body.collision_mask, mask])
+	# Повторное снятие и возврат не портят запомненное значение.
+	body.hold_collisions()
+	body.hold_collisions()
+	body.release_collisions()
+	if body.collision_mask != mask:
+		bad.append("двойное снятие потеряло маску: %d вместо %d" % [body.collision_mask, mask])
+	root.remove_child(body)
+	body.free()
+	if bad.is_empty():
+		r.pass_("столкновения возвращаются сами: снятая на перевал маска восстанавливается первым же тактом после переноса, двойное снятие её не теряет")
+	else:
+		r.fail("столкновения возвращаются сами: %s" % "; ".join(bad))

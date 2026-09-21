@@ -32,7 +32,7 @@ var pin_fail_unix_ms := 0
 ## Корень ключа секретов после верного PIN (или при его задании) — только в памяти, не сохраняется.
 var unlocked_root := PackedByteArray()
 ## Места: {name, area: PackedVector2Array (x, z игровой зоны в stage), work: Transform3D, desk_m,
-## anchors: Array — UUID якорей, Ф3}.
+## room: ключ комнаты от шлема (UUID пола, world/room.gd) — надёжнее зоны, anchors: Array}.
 var places: Array = []
 ## Проекты (этап E) и аккаунты (этап D) — метаданные, без секретов.
 var projects: Array = []
@@ -87,12 +87,13 @@ func pin_wait_ms(now_unix_ms: int) -> int:
 
 
 ## Запомнить место. area — вершины игровой зоны (XRInterface.get_play_area(), координаты stage).
-func remember_place(place_name: String, area: PackedVector3Array, work: Transform3D, desk_m: float = 0.0) -> int:
+func remember_place(place_name: String, area: PackedVector3Array, work: Transform3D, desk_m: float = 0.0,
+		room: String = "") -> int:
 	var flat := PackedVector2Array()
 	for p in area:
 		flat.append(Vector2(p.x, p.z))
-	var i := find_place(area)
-	var rec := {"name": place_name, "area": flat, "work": work, "desk_m": desk_m, "anchors": []}
+	var i := find_place(area, room)
+	var rec := {"name": place_name, "area": flat, "work": work, "desk_m": desk_m, "room": room, "anchors": []}
 	if i >= 0:
 		rec["anchors"] = places[i].get("anchors", [])
 		places[i] = rec
@@ -101,11 +102,18 @@ func remember_place(place_name: String, area: PackedVector3Array, work: Transfor
 	return places.size() - 1
 
 
-## Место с той же игровой зоной; -1 — такого нет. Зона без вершин (рантайм её не отдал) не совпадает
-## ни с чем: иначе любые два места без зоны считались бы одним.
-func find_place(area: PackedVector3Array) -> int:
-	if area.is_empty():
+## Место этой комнаты. Сначала — по ключу комнаты от шлема (UUID пола): он устойчив и не зависит от
+## того, отдаёт ли рантайм игровую зону. Потом — по форме зоны. Ни того, ни другого нет (сессия 14:
+## «вершин 0») — берётся ПОСЛЕДНЕЕ место: иначе каждое нажатие плодило бы копию.
+func find_place(area: PackedVector3Array, room: String = "") -> int:
+	if room != "":
+		for i in places.size():
+			if places[i].get("room", "") == room:
+				return i
+		# Комната названа, но такой ещё нет — это НОВОЕ место. Иначе «Кухня» затирала бы «Кабинет».
 		return -1
+	if area.is_empty():
+		return places.size() - 1 if not places.is_empty() else -1
 	for i in places.size():
 		var pts: PackedVector2Array = places[i]["area"]
 		if pts.size() != area.size():

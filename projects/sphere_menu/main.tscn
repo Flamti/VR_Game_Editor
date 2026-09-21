@@ -1,20 +1,28 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://menu/warm.tscn" id="2_warm"]
+[ext_resource type="Script" path="res://locomotion/player_body.gd" id="3_player"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
 
-[node name="XROrigin3D" type="XROrigin3D" parent="."]
+[node name="Player" type="CharacterBody3D" parent="."]
+script = ExtResource("3_player")
 
-[node name="XRCamera3D" type="XRCamera3D" parent="XROrigin3D"]
+[node name="XROrigin3D" type="XROrigin3D" parent="Player"]
 
-[node name="LeftHand" type="XRController3D" parent="XROrigin3D"]
+[node name="XRCamera3D" type="XRCamera3D" parent="Player/XROrigin3D"]
+
+[node name="LeftHand" type="XRController3D" parent="Player/XROrigin3D"]
 tracker = &"left_hand"
 pose = &"grip"
 
-[node name="RightHand" type="XRController3D" parent="XROrigin3D"]
+[node name="LeftAim" type="XRController3D" parent="Player/XROrigin3D"]
+tracker = &"left_hand"
+pose = &"aim"
+
+[node name="RightHand" type="XRController3D" parent="Player/XROrigin3D"]
 tracker = &"right_hand"
 pose = &"aim"
 

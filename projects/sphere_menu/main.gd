@@ -17,11 +17,20 @@ const HttpTransport := preload("res://accounts/http_transport.gd")
 const WorldEnv := preload("res://world/environment.gd")
 const FloorGrid := preload("res://world/floor_grid.gd")
 const Space := preload("res://world/space.gd")
+const Room := preload("res://world/room.gd")
+const LevelLoader := preload("res://world/level_loader.gd")
+const LevelStream := preload("res://world/level_stream.gd")
+const SignFace := preload("res://world/sign_face.gd")
+const Locomotion := preload("res://locomotion/locomotion.gd")
+const Grab := preload("res://world/grab.gd")
+const Pull := preload("res://world/pull.gd")
+const PullView := preload("res://world/pull_view.gd")
 const Screenshot := preload("res://session/screenshot.gd")
 const Scenario := preload("res://session/scenario.gd")
 ## Сколько висит сообщение о скриншоте, мс.
 const NOTICE_MS := 4000
 const Journal := preload("res://session/journal.gd")
+const HelpText := preload("res://session/help_text.gd")
 const SelfCheck := preload("res://session/selfcheck.gd")
 const Item := preload("res://menu/item.gd")
 const Settings := preload("res://menu/settings.gd")
@@ -39,10 +48,14 @@ const HANDS_NEXT_S := 2.5
 ## Задания мастера: на каждом шаге — что найти, чтобы почувствовать настройку.
 const WIZARD_TASKS := ["Дуб", "Карта", "Замок", "Фонарь", "Таймер", "Небо", "Пещера", "Мост", "Горы", "Дверь"]
 
-@onready var origin: XROrigin3D = $XROrigin3D
-@onready var camera: XRCamera3D = $XROrigin3D/XRCamera3D
-@onready var left: XRController3D = $XROrigin3D/LeftHand
-@onready var right: XRController3D = $XROrigin3D/RightHand
+@onready var player: CharacterBody3D = $Player
+@onready var origin: XROrigin3D = $Player/XROrigin3D
+@onready var camera: XRCamera3D = $Player/XROrigin3D/XRCamera3D
+@onready var left: XRController3D = $Player/XROrigin3D/LeftHand
+## Прицельная поза левой руки: у LeftHand поза grip (шар лежит в ладони), и её −Z смотрит вдоль
+## рукоятки вниз — призывать предмет ею нельзя, луч уходит в пол (сессия 19).
+@onready var left_aim: XRController3D = $Player/XROrigin3D/LeftAim
+@onready var right: XRController3D = $Player/XROrigin3D/RightHand
 
 var menu: Menu
 var panel: UiPanel
@@ -62,6 +75,21 @@ var accounts: AccountService
 var world_env: WorldEnv = WorldEnv.new()
 var floor_grid: FloorGrid = FloorGrid.new()
 var space: Space = Space.new()
+## Пространственные данные шлема: комната, пол, столы (этап Ф3).
+var room: Room = Room.new()
+## Стартовая локация, перемещение и предметы в руке (этап Ф3).
+var level: Node3D
+var locomotion: Locomotion
+var grab: Grab = Grab.new()
+## Призыв предметов: рука → подсвеченная цель, рука → летящий предмет, где была кисть в прошлом кадре.
+var _pull_aimed: Dictionary = {}
+var _flying: Dictionary = {}
+var _hand_was: Dictionary = {}
+var pull_view: PullView = PullView.new()
+## Учёт загруженных частей уровня и отложенной выгрузки (world/level_stream.gd).
+var stream: LevelStream = LevelStream.new()
+## Куда возвращает «в стартовую точку» и падение: положение И поворот при загрузке уровня.
+var spawn_xf := Transform3D()
 var journal: Journal = Journal.new()
 var task_label: Label3D
 ## Сообщение о скриншоте перед лицом — видно и при закрытом шаре (тост панели — только при открытом).
@@ -73,6 +101,9 @@ var _step_ms := 0
 ## Подсказка сценария следует за взглядом (сессия 9: поставленная один раз, она уходила из виду
 ## и срезалась сверху). Скорость догона — доля пути за кадр при 90 Гц.
 const TASK_FOLLOW := 0.08
+## Ширина подсказки перед лицом, пикселей текста (pixel_size 0.001 → метры). 1.3 м на 1.5 м от глаз —
+## около 50° по горизонтали, влезает в поле зрения и в снимок (сессия 14: строка обрезалась).
+const TASK_WIDTH_PX := 1300.0
 var wizard: Wizard = null
 var _tasks: Array = []
 var _task_id := ""
@@ -91,7 +122,18 @@ func _ready() -> void:
 
 	# Свет и окружение — до меню: в сессии 13 сцена была пуста, и кнопок на контроллерах не было видно.
 	world_env.setup(self)
-	floor_grid.setup(origin, camera)
+	# Сетка — в МИРЕ, не под origin: с появлением тела игрока origin поехал вместе с человеком, и
+	# сетка уезжала с ним, в том числе вверх на платформы (сессия 17).
+	floor_grid.setup(self, camera)
+	room.setup(origin)
+	# Видимая связь при призыве: подсветка предмета и нить от ладони к нему (world/pull_view.gd).
+	pull_view.setup(self)
+	level = Node3D.new()
+	level.name = "Level"
+	add_child(level)
+	player.setup(origin, camera)
+	locomotion = Locomotion.new()
+	add_child(locomotion)
 
 	menu = Menu.new()
 	menu.head = camera
@@ -143,7 +185,22 @@ func _ready() -> void:
 	profile_ui.logged.connect(func(ev: String, detail: String): journal.log(ev, menu.params(), "", "", -1, detail))
 	menu.profile_action.connect(profile_ui.on_action)
 	menu.space_action.connect(_on_space_action)
-	space.reset_done.connect(func(detail: String): journal.log("пространство_сброс", menu.params(), "", "", -1, detail))
+	space.reset_done.connect(func(detail: String):
+		journal.log("пространство_сброс", menu.params(), "", "", -1, detail)
+		_scenario_event("space_reset", {}))
+	room.room_known.connect(func(detail: String): journal.log("комната", menu.params(), "", "", -1, detail))
+	profile_ui.room_key = room.place_key
+	# Уровень — ПОСЛЕ меню и журнала: запись о загрузке просит у меню параметры (сессия 15: уровень
+	# грузился раньше, и запись обращалась к пустому меню).
+	_load_level("res://world/levels/start_location.json")
+	locomotion.setup(player, origin, camera, menu, left, right)
+	locomotion.moved.connect(func(kind: String, detail: String):
+		journal.log("перемещение", menu.params(), "", "", -1, "%s: %s" % [kind, detail])
+		if kind == "перевал":
+			_scenario_event("mantle", {}))
+	# Упал со сцены (сессия 17: за краем площадки можно падать вечно) — возврат в стартовую точку.
+	player.fell.connect(func(depth: float): respawn("падение с %.0f м" % depth))
+	profile_ui.eye_rejected.connect(func(): _scenario_event("eye_rejected", {}))
 	_apply_world()
 	var http := HttpTransport.new()
 	add_child(http)
@@ -162,6 +219,9 @@ func _ready() -> void:
 	notice.pixel_size = 0.001
 	notice.outline_size = 10
 	notice.no_depth_test = true
+	# Билборд: сообщение ставится один раз и держится лицом к человеку, сколько бы он ни
+	# поворачивался (сессия 17: подсказку видно было с изнанки, текст читался зеркально).
+	notice.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
 	notice.visible = false
 	add_child(notice)
 
@@ -170,7 +230,15 @@ func _ready() -> void:
 	task_label.pixel_size = 0.001
 	task_label.outline_size = 12
 	task_label.no_depth_test = true
+	# Подсказка висит в мире и за головой не следует. Сессия 17: человек повернулся (125 поворотов
+	# щелчком) и увидел её изнанку — текст зеркальный. Билборд по вертикали держит её лицом к
+	# человеку, не заваливая строки при наклоне головы.
+	task_label.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
 	task_label.modulate = Color(1, 1, 0.7)
+	# Перенос по словам: в сессии 14 длинная подсказка уходила за край кадра. Ширина — в пикселях
+	# текста, при pixel_size 0.001 это метры сцены.
+	task_label.width = TASK_WIDTH_PX
+	task_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(task_label)
 	task_label.text = "Самопроверка…"
 	_place_task_label()
@@ -200,18 +268,22 @@ func _ready() -> void:
 	profile_ui.start(router.set_ready)
 	journal.log("ввод_готов", menu.params(), "", "", -1, "%s%s" % [router.current(),
 			", ждёт PIN" if profile_ui.active() else ""])
+	player.set_eye_height(profiles.profile.eye_m if profiles.profile.eye_m > 0.0 else 1.6)
 	if had_settings:
 		_show_help()
 	else:
 		start_wizard()
 
 
+## Подсказка пересобирается при каждом переключении шара: при открытом шаре перемещение заперто
+## (ADR-0013 п. 6), и человеку надо сказать, что для ходьбы шар закрывают (сессия 16 — текст этого
+## не говорил, и перемещение не испытали за всю сессию).
 func _show_help() -> void:
-	if router.current() == Arbiter.HANDS:
-		task_label.text = "руки: кулак левой — шар · коснуться ячейки кончиком правого — открыть · удержать касание — действия\nпровести пальцем по шару — вращать · щипок правой — нажать на панели лучом ладони · встряхнуть — верхний уровень\nвзять контроллер — управление вернётся к контроллерам"
-		_place_task_label()
+	if scenario.active or _task_id != "":
 		return
-	task_label.text = "Y — шар · курок — открыть · удержание — действия · X — назад · встряхнуть — верхний уровень · оба стика — скриншот\nправый: луч или касание + курок · касание + грип — вращать · B — отменить · стик — прокрутка панели\nнастройки — лучом по панели: ползунок, кнопки, цифры"
+	task_label.text = HelpText.text(router.current() == Arbiter.HANDS, menu.is_open(),
+			str(menu.settings.get_value("move_mode")), str(menu.settings.get_value("turn_mode")),
+			float(menu.settings.get_value("snap_angle")), float(menu.settings.get_value("turn_speed")))
 	_place_task_label()
 
 
@@ -241,6 +313,31 @@ func _warm_in_xr() -> void:
 	router.controllers.ray.visible = false
 
 
+## Подпись пункта «Запуск теста»: по переключателю не видно, идёт тест или нет, и в сессии 20
+## владелец выключил его вторым нажатием, не заметив, — дальше ни один шаг не засчитывался.
+func _refresh_tasks_item() -> void:
+	var it: Item = menu.catalog.items.get("set_tasks", null)
+	if it == null:
+		return
+	it.title = scenario.menu_title()
+	it.short = "Тест %d/%d" % [scenario.result.size(), Scenario.STEPS.size()] if scenario.active else "Тест"
+	menu.refresh_list()
+
+
+## Сообщение перед лицом на NOTICE_MS: скриншот, возврат в стартовую точку и прочее, о чём человек
+## должен узнать, даже когда шар закрыт.
+##
+## Над меню, а не посреди взгляда: в сессии 8 надпись пересекалась с шаром и панелью. 0.55 м вверх
+## на 1.5 м — около 20° над осью взгляда; шар и панель держат ниже неё.
+func _show_notice(text: String, color: Color) -> void:
+	notice.text = text
+	notice.modulate = color
+	var fwd := -camera.global_basis.z
+	notice.global_position = camera.global_position + fwd * 1.5 + camera.global_basis.y * 0.55
+	notice.visible = true
+	_notice_until = Time.get_ticks_msec() + NOTICE_MS
+
+
 ## Скриншот: снимок — до сообщения, чтобы сообщение не попало в кадр.
 func _take_screenshot() -> void:
 	if _shooting:
@@ -250,15 +347,8 @@ func _take_screenshot() -> void:
 	var dir := Screenshot.folder(OS.get_system_dir(OS.SYSTEM_DIR_DOWNLOADS))
 	var res: Dictionary = await Screenshot.capture(self, camera.global_transform, dir)
 	_shooting = false
-	notice.text = Screenshot.notice(res)
-	notice.modulate = Color(1.0, 0.55, 0.45) if res["over_limit"] or not res["ok"] else Color(0.8, 1.0, 0.8)
-	# Над меню, а не посреди взгляда: в сессии 8 надпись пересекалась с шаром и панелью. 0.55 м вверх
-	# на 1.5 м — около 20° над осью взгляда; шар и панель держат ниже неё.
-	var fwd := -camera.global_basis.z
-	notice.global_position = camera.global_position + fwd * 1.5 + camera.global_basis.y * 0.55
-	notice.look_at(notice.global_position + fwd, camera.global_basis.y)
-	notice.visible = true
-	_notice_until = Time.get_ticks_msec() + NOTICE_MS
+	_show_notice(Screenshot.notice(res),
+			Color(1.0, 0.55, 0.45) if res["over_limit"] or not res["ok"] else Color(0.8, 1.0, 0.8))
 	journal.log("скриншот", menu.params(), "", "да" if res["ok"] else "нет", -1,
 			"%s, %d×%d, %d байт, всего %d (%s), %d мс%s%s" % [res["name"], res["width"], res["height"], res["bytes"],
 			res["total_bytes"], res["how"], res["ms"], ", ПРЕДЕЛ" if res["over_limit"] else "",
@@ -269,6 +359,9 @@ func _take_screenshot() -> void:
 
 func _process(_delta: float) -> void:
 	floor_grid.follow()
+	SignFace.face_all(get_tree().get_nodes_in_group("sign"), camera.global_position)
+	_unload_frame(_delta)
+	_grab_frame(_delta)
 	profile_ui.tick_eye(_delta)
 	if notice != null and notice.visible and Time.get_ticks_msec() > _notice_until:
 		notice.visible = false
@@ -278,7 +371,6 @@ func _process(_delta: float) -> void:
 		fwd = fwd.normalized() if fwd.length() > 0.01 else Vector3.FORWARD
 		var target := camera.global_position + fwd * 1.5 + Vector3(0, 0.3, 0)
 		task_label.global_position = task_label.global_position.lerp(target, TASK_FOLLOW)
-		task_label.look_at(task_label.global_position + fwd, Vector3.UP)
 
 
 func _place_task_label() -> void:
@@ -286,7 +378,6 @@ func _place_task_label() -> void:
 	fwd.y = 0.0
 	fwd = fwd.normalized() if fwd.length() > 0.01 else Vector3.FORWARD
 	task_label.global_position = camera.global_position + fwd * 1.5 + Vector3(0, 0.25, 0)
-	task_label.look_at(task_label.global_position + fwd, Vector3.UP)
 
 
 # --- источник ввода --------------------------------------------------------------
@@ -304,6 +395,177 @@ func _on_hand_gesture(name: String, data: Dictionary) -> void:
 	journal.log("рука_" + name, menu.params(), "", "", -1, str(data))
 
 
+## Загрузить уровень или его часть из данных (world/level_loader.gd). Файл, уже загруженный,
+## второй раз не строится: триггер помещения срабатывает при каждом входе.
+func _load_level(path: String) -> Dictionary:
+	if stream.is_loaded(path):
+		return {}
+	var res := LevelLoader.parse(FileAccess.get_file_as_string(path))
+	if not res["ok"]:
+		journal.log("уровень", menu.params(), "", "FAIL", -1, "%s: %s" % [path, res["error"]])
+		push_warning("уровень %s: %s" % [path, res["error"]])
+		return {}
+	var built := LevelLoader.build(level, res["data"])
+	stream.add(path, built["nodes"])
+	for t in built["triggers"]:
+		var file: String = t["file"]
+		var area := t["area"] as Area3D
+		area.body_entered.connect(func(node: Node3D):
+			if node != player:
+				return
+			# Вернулся раньше, чем истёк отсчёт, — выгрузку отменяем.
+			stream.enter(file)
+			var more := _load_level(file)
+			if not more.is_empty():
+				journal.log("уровень", menu.params(), "", "", -1,
+						"подгружено по триггеру: %s, узлов %d" % [file.get_file(), more["nodes"].size()]))
+		# Выход из зоны — отсчёт, а не выгрузка сразу: шаг туда-обратно у проёма иначе давал бы
+		# мигание загрузки (сессия 17: интерьер не выгружался вовсе, body_exited не был подключён).
+		area.body_exited.connect(func(node: Node3D):
+			if node == player:
+				stream.exit(file))
+	journal.log("уровень", menu.params(), "", "", -1, "%s: узлов %d, материалов %d" % [path.get_file(),
+			built["nodes"].size(), built["colors"]])
+	if built["spawn"] != Transform3D():
+		spawn_xf = built["spawn"]
+		player.global_transform = spawn_xf
+	return built
+
+
+## Откуда целится рука: у левой поза grip смотрит вдоль рукоятки, поэтому берём её прицельную позу.
+func _aim_of(hand: String) -> XRController3D:
+	return left_aim if hand == "left" else right
+
+
+## Призыв предмета (world/pull.gd): «гравиперчатки». Прицеливание — когда рука пуста и грип не
+## нажат: ближайший к оси ладони предмет подсвечивается.
+func _pull_aim(hand: String, ctrl: XRController3D) -> void:
+	if str(menu.settings.get_value("pull_mode")) == "off":
+		_pull_aimed[hand] = null
+		pull_view.show_link(hand, null, Vector3.ZERO, false)
+		return
+	var aim_node := _aim_of(hand)
+	var target := Pull.target(get_tree().get_nodes_in_group("grab"),
+			aim_node.global_position, -aim_node.global_basis.z)
+	_pull_aimed[hand] = target
+	pull_view.show_link(hand, target, aim_node.global_position, ctrl.is_button_pressed("grip_click"))
+
+
+## Грип зажат на пустой руке: «сразу» тянет цель тут же, «жестом» ждёт рывка кистью к себе.
+func _pull_frame(hand: String, ctrl: XRController3D, dt: float) -> void:
+	var mode := str(menu.settings.get_value("pull_mode"))
+	if mode == "off" or _flying.has(hand):
+		return
+	var aim: Node3D = _pull_aimed.get(hand, null)
+	if aim == null or not is_instance_valid(aim):
+		_pull_aim(hand, ctrl)
+		aim = _pull_aimed.get(hand, null)
+		if aim == null:
+			return
+	# Скорость кисти по окну: один кадр дрожи не должен считаться рывком.
+	var prev: Vector3 = _hand_was.get(hand, ctrl.global_position)
+	var hand_v := (ctrl.global_position - prev) / maxf(dt, 0.001)
+	_hand_was[hand] = ctrl.global_position
+	if mode == "instant" or Pull.is_flick(hand_v, camera.global_position - ctrl.global_position):
+		_pull_aimed[hand] = null
+		pull_view.show_link(hand, null, Vector3.ZERO, false)
+		_flying[hand] = {"node": aim, "from": aim.global_position, "t": 0.0}
+		if aim is RigidBody3D:
+			(aim as RigidBody3D).freeze = true
+		journal.log("предмет", menu.params(), "", "", -1, "призван %s рукой %s (%s)" % [aim.name, hand, mode])
+		_scenario_event("pull", {"mode": mode})
+
+
+## Кадр полёта: предмет идёт по дуге в ладонь, у ладони переходит в обычное взятие.
+func _pull_fly(dt: float) -> void:
+	for hand in _flying.keys():
+		var f: Dictionary = _flying[hand]
+		var node := f["node"] as Node3D
+		var ctrl: XRController3D = left if hand == "left" else right
+		if not is_instance_valid(node):
+			_flying.erase(hand)
+			continue
+		f["t"] = float(f["t"]) + dt / Pull.FLY_S
+		node.global_position = Pull.fly_point(f["from"], ctrl.global_position, f["t"])
+		# Нить тянется за летящим предметом и гаснет, когда он оказался в руке.
+		pull_view.show_link(hand, node, ctrl.global_position, true)
+		if f["t"] < 1.0:
+			continue
+		# Прилетел — ждёт у ладони: после рывка кистью грип успевает разжаться, и требовать его
+		# ровно в момент прилёта значит терять две трети призывов (сессия 20).
+		f["wait"] = float(f.get("wait", 0.0)) + dt
+		node.global_position = ctrl.global_position
+		if ctrl.is_button_pressed("grip_click"):
+			_flying.erase(hand)
+			pull_view.show_link(hand, null, Vector3.ZERO, false)
+			grab.grab(hand, node, ctrl.global_transform)
+			journal.log("предмет", menu.params(), "", "", -1, "прилетел в руку %s: %s" % [hand, node.name])
+			_scenario_event("pull_catch", {})
+		elif float(f["wait"]) > Pull.CATCH_WINDOW_S:
+			_flying.erase(hand)
+			pull_view.show_link(hand, null, Vector3.ZERO, false)
+			if node is RigidBody3D:
+				(node as RigidBody3D).freeze = false
+			journal.log("предмет", menu.params(), "", "", -1, "не пойман рукой %s: %s" % [hand, node.name])
+
+
+## Кадр выгрузки: файл, из зоны которого человек вышел и не вернулся, снимается со сцены.
+func _unload_frame(dt: float) -> void:
+	for file in stream.tick(dt):
+		var nodes: Array = stream.take(file)
+		for n in nodes:
+			if is_instance_valid(n):
+				(n as Node).queue_free()
+		journal.log("уровень", menu.params(), "", "", -1,
+				"выгружено по триггеру: %s, узлов %d" % [file.get_file(), nodes.size()])
+
+
+## Вернуть человека в стартовую точку уровня — положение И поворот (пункт меню, падение со сцены).
+func respawn(why: String) -> void:
+	if spawn_xf == Transform3D():
+		return
+	var was := camera.global_position.y
+	player.global_transform = spawn_xf
+	player.velocity = Vector3.ZERO
+	# origin внутри тела мог уехать от компенсации следования — возвращаем и его.
+	origin.transform = Transform3D()
+	# И приседание: иначе тело «помнит» его и держит взгляд ниже (сессия 23 — «респавн не сбросил
+	# высоту, всё ещё глаза на уровне пола»).
+	player.set_crouch(0.0)
+	player.mantling = false
+	player.release_collisions()
+	journal.log("перемещение", menu.params(), "", "", -1,
+			"возврат в стартовую точку: %s, глаза %.2f → %.2f м" % [why, was, camera.global_position.y])
+	# Молча переносить человека нельзя: он не понимает, что произошло (просьба владельца, сессия 18).
+	_show_notice("Вы в стартовой точке уровня — %s" % why, Color(0.8, 1.0, 0.8))
+
+
+## Кадр предметов в руке: грип контроллера берёт и отпускает куб из группы «grab».
+func _grab_frame(dt: float) -> void:
+	if locomotion == null or not locomotion.input_free():
+		return
+	for pair in [["left", left], ["right", right]]:
+		var hand: String = pair[0]
+		var ctrl: XRController3D = pair[1]
+		var holding: bool = ctrl.is_button_pressed("grip_click")
+		if holding and not grab.held.has(hand):
+			var near := Grab.nearest(get_tree().get_nodes_in_group("grab"), ctrl.global_position)
+			if near != null:
+				grab.grab(hand, near, ctrl.global_transform)
+				journal.log("предмет", menu.params(), "", "", -1, "взят %s рукой %s" % [near.name, hand])
+			else:
+				_pull_frame(hand, ctrl, dt)
+		elif holding:
+			grab.update(hand, ctrl.global_transform, dt)
+			_pull_frame(hand, ctrl, dt)
+		elif grab.held.has(hand):
+			var v := grab.release(hand)
+			journal.log("предмет", menu.params(), "", "", -1, "отпущен, скорость %.2f м/с" % v.length())
+		else:
+			_pull_aim(hand, ctrl)
+	_pull_fly(dt)
+
+
 ## Настройки пространства и света применяются к миру: они общие для пользователя (scope «user»).
 func _apply_world() -> void:
 	world_env.apply(menu.settings)
@@ -311,10 +573,18 @@ func _apply_world() -> void:
 
 
 func _on_space_action(action: String) -> void:
-	if action == "space_reset":
-		var detail := space.reset(profile_ui.measure_eye)
-		menu.nav.message = "Пространство сброшено к системным значениям"
-		print("пространство: %s" % detail)
+	match action:
+		"space_reset":
+			var detail := space.reset(profile_ui.measure_eye)
+			menu.nav.message = "Пространство сброшено к системным значениям"
+			print("пространство: %s" % detail)
+		"space_respawn":
+			respawn("пункт меню")
+			menu.nav.message = "Вы в стартовой точке уровня"
+		"space_capture":
+			var asked := room.request_capture()
+			menu.nav.message = "Открываю разметку пространства" if asked else "Шлем не отдаёт разметку: %s" % room.brief()
+			journal.log("комната", menu.params(), "", "", -1, "запрос разметки: %s, %s" % [asked, room.brief()])
 
 
 func _on_controller_models(kind: String) -> void:
@@ -527,6 +797,7 @@ func _exit_app() -> void:
 # --- задания ---------------------------------------------------------------------
 
 func _on_tasks(on: bool) -> void:
+	_refresh_tasks_item()
 	router.controllers.tasks_on = on
 	if on:
 		var fresh := scenario.start()
@@ -552,6 +823,10 @@ func _scenario_event(name: String, data: Dictionary) -> void:
 	if id != "":
 		journal.log("сценарий_шаг", menu.params(), id, "да", Time.get_ticks_msec() - _step_ms)
 		_step_ms = Time.get_ticks_msec()
+		# Человек должен видеть, что шаг зачтён: иначе непонятно, засчиталось ли сделанное.
+		_show_notice("Шаг пройден: %d из %d" % [scenario.result.size(), Scenario.STEPS.size()],
+				Color(0.8, 1.0, 0.8))
+		_refresh_tasks_item()
 		_show_scenario()
 
 
@@ -618,6 +893,10 @@ func _on_menu_event(name: String, data: Dictionary) -> void:
 			return
 		if name == "select":
 			hit = "нет"
+	# Шар переключили или поправили способ перемещения — подсказка пересобирается под новое
+	# состояние: она называет текущий способ и угол поворота.
+	if name == "toggle" or data.get("setting", "") in Settings.MOVE:
+		_show_help()
 	if name == "active" and _task_id == "":
 		return
 	journal.log(name, menu.params(), _task_id, hit, since, str(data))

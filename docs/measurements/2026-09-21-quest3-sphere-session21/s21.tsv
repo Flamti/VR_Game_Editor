@@ -1,0 +1,646 @@
+# сессия 2026-09-21T06:42:36
+1789954956.319	уровень	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					start_location.json: узлов 65, материалов 9
+1789954956.346	профиль_открыт	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					Flamti
+1789954956.418	сессия_openxr	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					session_begun кадр 0
+1789954956.672	модели_контроллеров	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					FB
+1789954956.771	сессия_openxr	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					session_visible кадр 1
+1789954956.771	сессия_openxr	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					session_focussed кадр 1
+1789954957.156	folder	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789954957.157	toggle	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					{ "open": true }
+1789954961.544	folder	globe	20.0	15.0	15.07	1	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789954966.055	folder	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789954970.565	folder	globe_hex	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789954975.164	folder	octa	20.0	1.5	3.65	21	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789954979.771	folder	rings	20.0	1.5	3.29	16	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789954984.379	folder	fib	20.0	1.5	3.47	27	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789954988.938	folder	fib	8.0	1.5	1.49	26	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789954988.938	настройка_значение	fib	8.0	1.5	1.49	26	face	controllers	p18fd0f41789e					radius_cm=8.0
+1789954988.961	folder	fib	17.5	1.5	3.04	27	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789954988.961	настройка_значение	fib	17.5	1.5	3.04	27	face	controllers	p18fd0f41789e					radius_cm=17.5
+1789954988.978	folder	fib	20.0	1.5	3.47	27	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789954989.058	folder	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789955024.367	folder	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789955024.368	intent	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789955024.379	folder	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789955024.379	intent	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789955028.900	folder	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789955028.901	folder	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789955028.901	intent	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789955028.902	folder	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789955028.903	intent	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "browse", "folder": "" }
+1789955028.903	folder	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789955028.904	intent	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789955028.913	folder	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789955028.914	intent	lens	20.0	1.5	1.5	13	face	controllers	p18fd0f41789e	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789955033.439	folder	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789955033.440	folder	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789955033.441	intent	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789955033.441	folder	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789955033.442	intent	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "browse", "folder": "" }
+1789955033.445	клавиатура	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					show
+1789955033.466	toggle	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					{ "open": false }
+1789955040.948	перемещение	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					телепорт: blink на 7.1 м
+1789955042.115	перемещение	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					поворот: snap 45°
+1789955042.381	перемещение	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e					поворот: snap 45°
+1789955042.620	самопроверка	globe	20.0	1.5	3.52	13	face	controllers	p18fd0f41789e			PASS		{ "глобус уровень 13, 632 ячеек, вращение": { "gpu95": 3.32200002670288, "cpu95": 0.24099999666214, "proc95": 2.983, "over": 0 }, "глобус крупный: уровень 1, 32 ячеек, радиус 20.0 см, вращение": { "gpu95": 3.00300002098083, "cpu95": 0.23700000345707, "proc95": 4.119, "over": 0 }, "линза α=0.037, 700 ячеек, вращение": { "gpu95": 4.94799995422363, "cpu95": 0.41899999976158, "proc95": 6.821, "over": 0 }, "world": { "gpu_off": 3.19300007820129, "gpu_on": 3.99399995803833, "cpu_on": 6.40299997472763 }, "pin_ms": 49.261 }
+1789955042.622	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789955042.622	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "open": true }
+1789955042.624	ввод_готов	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					controllers, ждёт PIN
+1789955047.056	профиль_pin_проверка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					Flamti: ok
+1789955047.059	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789955047.059	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					профиль: done
+1789955048.393	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "open": false }
+1789955049.947	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					телепорт: blink на 4.4 м, курс 176°
+1789955050.214	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					поворот: snap 45°
+1789955052.482	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					поворот: snap 45°
+1789955055.025	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					телепорт: blink на 3.3 м, курс 182°
+1789955055.292	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					поворот: snap 45°
+1789955056.349	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					поворот: snap -45°
+1789955056.626	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					поворот: snap -45°
+1789955056.892	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					поворот: snap -45°
+1789955058.281	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					телепорт: площадка не годится
+1789955058.293	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					поворот: snap 45°
+1789955059.681	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					поворот: snap -45°
+1789955060.114	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					поворот: snap -45°
+1789955063.470	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					призван Obj_grab2 рукой right (instant)
+1789955064.060	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					взят Obj_grab2 рукой right
+1789955064.061	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					прилетел в руку right: Obj_grab2
+1789955064.550	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					призван Obj_grab3 рукой right (instant)
+1789955064.561	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					отпущен, скорость 1.04 м/с
+1789955065.126	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					взят Obj_grab3 рукой right
+1789955065.127	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					прилетел в руку right: Obj_grab3
+1789955065.136	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					призван Obj_grab1 рукой right (instant)
+1789955065.527	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					прилетел в руку right: Obj_grab1
+1789955065.537	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					призван Obj_grab0 рукой right (instant)
+1789955065.582	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					отпущен, скорость 0.18 м/с
+1789955066.416	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					не пойман рукой right: Obj_grab0
+1789955067.282	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					взят Obj_grab1 рукой right
+1789955067.426	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					призван Obj_grab4 рукой right (instant)
+1789955067.582	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					отпущен, скорость 1.24 м/с
+1789955068.302	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					не пойман рукой right: Obj_grab4
+1789955068.336	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					взят Obj_grab4 рукой right
+1789955068.693	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					отпущен, скорость 0.40 м/с
+1789955069.383	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					призван Obj_grab0 рукой right (instant)
+1789955070.259	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					не пойман рукой right: Obj_grab0
+1789955070.415	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					взят Obj_grab0 рукой right
+1789955070.559	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					отпущен, скорость 3.13 м/с
+1789955071.749	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					телепорт: blink на 5.1 м
+1789955072.449	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					телепорт: blink на 6.8 м, курс -46°
+1789955072.826	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					поворот: snap -45°
+1789955073.093	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					поворот: snap -45°
+1789955073.426	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					поворот: snap -45°
+1789955077.327	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					телепорт: blink на 4.1 м
+1789955081.049	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					телепорт: blink на 3.1 м
+1789955083.195	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					призван Obj_grab0 рукой right (instant)
+1789955084.072	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					не пойман рукой right: Obj_grab0
+1789955084.838	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					призван Obj_grab2 рукой right (instant)
+1789955085.716	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					не пойман рукой right: Obj_grab2
+1789955085.816	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					взят Obj_grab2 рукой right
+1789955085.961	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					отпущен, скорость 0.05 м/с
+1789955088.028	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					телепорт: blink на 3.0 м
+1789955088.795	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					призван Obj_grab4 рукой right (instant)
+1789955089.528	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					взят Obj_grab4 рукой right
+1789955089.529	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					прилетел в руку right: Obj_grab4
+1789955089.538	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					призван Obj_grab1 рукой right (instant)
+1789955089.672	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					отпущен, скорость 0.07 м/с
+1789955090.250	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					взят Obj_grab1 рукой right
+1789955090.250	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					прилетел в руку right: Obj_grab1
+1789955090.261	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					призван Obj_grab3 рукой right (instant)
+1789955090.439	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					отпущен, скорость 0.02 м/с
+1789955091.038	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					взят Obj_grab3 рукой right
+1789955091.039	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					прилетел в руку right: Obj_grab3
+1789955091.205	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					отпущен, скорость 0.86 м/с
+1789955092.330	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789955092.330	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "open": true }
+1789955095.334	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "folder": "settings", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789955095.334	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789955097.022	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "folder": "settings_move", "view": "browse", "items": 13, "total": 13, "page": 1, "pages": 1 }
+1789955097.022	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "do": "reload", "view": "browse", "folder": "settings_move" }
+1789955104.988	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				pull_mode
+1789955104.988	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "do": "edit", "view": "browse", "folder": "settings_move", "setting": "pull_mode" }
+1789955106.374	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				pull_mode=gesture
+1789955107.596	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				done
+1789955107.602	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				pull_mode=gesture
+1789955109.073	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "open": false }
+1789955110.773	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				призван Obj_grab3 рукой right (gesture)
+1789955111.205	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				взят Obj_grab3 рукой right
+1789955111.207	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				прилетел в руку right: Obj_grab3
+1789955111.574	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				отпущен, скорость 1.10 м/с
+1789955112.273	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				призван Obj_grab1 рукой right (gesture)
+1789955112.530	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				взят Obj_grab1 рукой right
+1789955112.663	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				прилетел в руку right: Obj_grab1
+1789955112.830	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				отпущен, скорость 0.15 м/с
+1789955114.374	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				призван Obj_grab4 рукой right (gesture)
+1789955114.607	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				взят Obj_grab4 рукой right
+1789955114.697	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				отпущен, скорость 6.00 м/с
+1789955114.907	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				взят Obj_grab4 рукой right
+1789955114.908	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				прилетел в руку right: Obj_grab4
+1789955115.064	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				отпущен, скорость 5.51 м/с
+1789955115.630	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955115.896	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955116.630	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				призван Obj_grab1 рукой right (gesture)
+1789955117.507	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				не пойман рукой right: Obj_grab1
+1789955119.497	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				призван Obj_grab3 рукой right (gesture)
+1789955120.085	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				взят Obj_grab3 рукой right
+1789955120.086	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				прилетел в руку right: Obj_grab3
+1789955120.208	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				отпущен, скорость 0.08 м/с
+1789955120.664	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				взят Obj_grab3 рукой right
+1789955120.841	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				отпущен, скорость 0.29 м/с
+1789955122.853	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				призван Obj_grab0 рукой right (gesture)
+1789955123.241	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				взят Obj_grab0 рукой right
+1789955123.241	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				прилетел в руку right: Obj_grab0
+1789955123.431	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				отпущен, скорость 0.03 м/с
+1789955124.807	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				призван Obj_grab2 рукой right (gesture)
+1789955125.363	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				взят Obj_grab2 рукой right
+1789955125.364	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				прилетел в руку right: Obj_grab2
+1789955125.609	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				отпущен, скорость 0.10 м/с
+1789955127.286	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 6.0 м
+1789955128.032	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955128.298	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955128.565	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955132.468	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "folder": "settings_move", "view": "browse", "items": 13, "total": 13, "page": 1, "pages": 1 }
+1789955132.468	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "open": true }
+1789955135.310	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "open": false }
+1789955135.765	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955136.031	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955137.154	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 6.7 м
+1789955139.187	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 2.6 м
+1789955139.732	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955139.998	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955140.598	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся right за Obj_climb5
+1789955141.318	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся left за Obj_climb7 (ведёт он)
+1789955141.453	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: отпустил right, ведёт left
+1789955141.920	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся right за Obj_climb9 (ведёт он)
+1789955142.152	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: отпустил left, ведёт right
+1789955142.586	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся left за Obj_climb11 (ведёт он)
+1789955142.731	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: отпустил right, ведёт left
+1789955143.165	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся right за Obj_climb13 (ведёт он)
+1789955143.398	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: отпустил left, ведёт right
+1789955143.899	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				перевал: на площадку 3.25 м (голова была на 3.71)
+1789955144.367	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				перевал: встал на площадке, глаза на 4.77 м
+1789955146.521	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся right за Obj_climb3
+1789955146.564	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				перевал: на площадку 1.00 м (голова была на 1.38)
+1789955147.033	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				перевал: встал на площадке, глаза на 2.40 м
+1789955147.055	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся right за Obj_climb7
+1789955147.056	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				перевал: на площадку 1.60 м (голова была на 2.40)
+1789955147.521	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				перевал: встал на площадке, глаза на 3.00 м
+1789955148.456	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955148.888	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955149.221	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955149.788	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955150.054	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955151.421	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 6.5 м
+1789955152.066	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955152.332	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955153.655	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 2.6 м
+1789955154.088	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955154.355	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955154.622	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955155.822	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 2.6 м
+1789955157.355	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся right за Obj_climb2
+1789955158.165	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				перевал: на площадку 1.44 м (голова была на 1.67)
+1789955158.633	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				перевал: встал на площадке, глаза на 2.96 м
+1789955158.656	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся left за Obj_climb8
+1789955158.900	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: отпустил left: 0.64 м (вверх 0.03) за 0.2 с, полёт 1.10 м/с
+1789955159.289	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся right за Obj_climb6
+1789955159.422	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: отпустил right: 0.02 м (вверх -0.00) за 0.1 с, полёт 0.91 м/с
+1789955160.589	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся left за Obj_climb4
+1789955161.654	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся right за Obj_climb7 (ведёт он)
+1789955161.898	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: отпустил left, ведёт right
+1789955162.700	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся left за Obj_climb9 (ведёт он)
+1789955162.956	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: отпустил right, ведёт left
+1789955163.090	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				перевал: на площадку 2.35 м (голова была на 2.50)
+1789955163.557	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				перевал: встал на площадке, глаза на 3.89 м
+1789955166.423	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955166.823	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955167.267	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955167.467	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 2.4 м
+1789955167.989	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955168.256	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955168.523	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955168.967	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955169.790	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 7.1 м
+1789955170.969	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955171.236	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955171.501	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955171.901	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955172.956	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 5.2 м
+1789955174.023	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955174.290	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955175.223	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 4.3 м
+1789955175.857	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955176.123	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955176.390	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955176.657	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955177.768	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 3.0 м
+1789955179.023	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: площадка не годится
+1789955180.057	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: площадка не годится
+1789955181.371	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "folder": "settings_move", "view": "browse", "items": 13, "total": 13, "page": 1, "pages": 1 }
+1789955181.372	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "open": true }
+1789955183.495	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				move_mode
+1789955183.496	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "do": "edit", "view": "browse", "folder": "settings_move", "setting": "move_mode" }
+1789955185.557	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				move_mode=head
+1789955186.257	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				done
+1789955186.262	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				move_mode=head
+1789955187.169	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "open": false }
+1789955187.646	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955188.966	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 1.70 м за 1.3 с, средняя 1.29 м/с
+1789955189.199	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955189.210	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955189.399	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.18 м за 0.2 с, средняя 0.92 м/с
+1789955190.002	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся right за Obj_climb5
+1789955190.646	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся left за Obj_climb7 (ведёт он)
+1789955190.812	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: отпустил right, ведёт left
+1789955191.235	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				перевал: на площадку 1.89 м (голова была на 2.26)
+1789955191.703	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				перевал: встал на площадке, глаза на 3.46 м
+1789955193.434	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся right за Obj_climb7
+1789955194.333	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся left за Obj_climb9 (ведёт он)
+1789955194.546	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: отпустил right, ведёт left
+1789955195.135	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся right за Obj_climb11 (ведёт он)
+1789955195.569	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: отпустил left, ведёт right
+1789955196.047	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся left за Obj_climb13 (ведёт он)
+1789955196.382	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: отпустил right, ведёт left
+1789955196.736	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				перевал: на площадку 3.25 м (голова была на 3.79)
+1789955197.203	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				перевал: встал на площадке, глаза на 4.73 м
+1789955199.502	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся right за Obj_climb5
+1789955200.001	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				перевал: на площадку 1.44 м (голова была на 1.60)
+1789955200.470	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				перевал: встал на площадке, глаза на 2.87 м
+1789955200.703	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся left за Obj_climb9
+1789955200.815	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				перевал: на площадку 1.60 м (голова была на 2.61)
+1789955201.281	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				перевал: встал на площадке, глаза на 2.98 м
+1789955202.248	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955202.349	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955202.548	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.03 м за 0.3 с, средняя 0.11 м/с
+1789955202.748	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955202.770	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955202.937	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.05 м за 0.2 с, средняя 0.26 м/с
+1789955203.136	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955203.148	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955203.315	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.05 м за 0.2 с, средняя 0.27 м/с
+1789955203.402	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955203.414	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955203.534	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.04 м за 0.1 с, средняя 0.31 м/с
+1789955203.568	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955203.680	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955204.569	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.04 м за 1.0 с, средняя 0.04 м/с
+1789955204.714	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955205.069	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.00 м за 0.4 с, средняя 0.00 м/с
+1789955205.214	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955205.469	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.00 м за 0.3 с, средняя 0.00 м/с
+1789955205.548	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955206.169	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955206.381	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.05 м за 0.8 с, средняя 0.07 м/с
+1789955206.401	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955206.447	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955207.036	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.03 м за 0.6 с, средняя 0.04 м/с
+1789955207.048	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955207.236	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.00 м за 0.2 с, средняя 0.00 м/с
+1789955207.403	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955207.403	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955207.548	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.04 м за 0.1 с, средняя 0.30 м/с
+1789955207.603	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955207.670	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955207.736	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.03 м за 0.1 с, средняя 0.19 м/с
+1789955207.768	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955207.935	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955207.969	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.06 м за 0.2 с, средняя 0.28 м/с
+1789955208.395	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "folder": "settings_move", "view": "browse", "items": 13, "total": 13, "page": 1, "pages": 1 }
+1789955208.395	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "open": true }
+1789955211.364	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				move_mode
+1789955211.364	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "do": "edit", "view": "browse", "folder": "settings_move", "setting": "move_mode" }
+1789955212.248	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				move_mode=blink
+1789955213.004	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				done
+1789955213.006	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				move_mode=blink
+1789955213.860	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "open": false }
+1789955214.704	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: площадка не годится
+1789955215.582	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 5.9 м
+1789955216.104	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 3.3 м
+1789955217.150	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 3.3 м
+1789955217.905	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955218.171	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955218.971	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 4.5 м
+1789955219.739	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 4.3 м
+1789955220.538	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 3.9 м
+1789955220.709	уровень	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				start_interior.json: узлов 13, материалов 3
+1789955220.709	уровень	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				подгружено по триггеру: start_interior.json, узлов 13
+1789955221.138	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955221.416	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955221.682	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955222.717	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 3.8 м
+1789955223.184	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955223.449	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955224.205	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 2.6 м
+1789955224.884	уровень	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				выгружено по триггеру: start_interior.json, узлов 13
+1789955225.705	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 5.2 м
+1789955226.950	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 7.1 м
+1789955227.639	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955227.905	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955228.572	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955229.017	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955230.005	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 4.3 м
+1789955230.750	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 2.3 м
+1789955233.872	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955234.139	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955234.406	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955234.739	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955243.107	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 4.5 м
+1789955244.206	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 2.4 м
+1789955245.738	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся left за Obj_climb5
+1789955246.707	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся right за Obj_climb7 (ведёт он)
+1789955246.873	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: отпустил left, ведёт right
+1789955247.385	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				перевал: на площадку 1.89 м (голова была на 2.22)
+1789955247.853	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				перевал: встал на площадке, глаза на 3.37 м
+1789955250.219	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955250.640	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955250.907	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955251.173	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955252.774	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: площадка не годится
+1789955254.841	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: площадка не годится
+1789955255.940	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: площадка не годится
+1789955256.685	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 6.1 м
+1789955257.153	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 4.2 м
+1789955257.553	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955257.841	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955258.108	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955258.941	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 3.3 м
+1789955261.221	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 6.5 м
+1789955261.975	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955263.486	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 2.8 м
+1789955264.254	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955266.509	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 6.2 м
+1789955268.709	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955269.009	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955269.275	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955272.275	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 5.8 м
+1789955272.942	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955273.253	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955273.687	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955274.641	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				телепорт: blink на 2.4 м
+1789955275.475	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся right за Obj_climb5
+1789955276.187	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся left за Obj_climb7 (ведёт он)
+1789955276.476	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: отпустил right, ведёт left
+1789955277.109	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся right за Obj_climb9 (ведёт он)
+1789955277.320	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: отпустил left, ведёт right
+1789955277.920	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся left за Obj_climb11 (ведёт он)
+1789955278.277	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: отпустил right, ведёт left
+1789955278.876	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся right за Obj_climb13 (ведёт он)
+1789955279.076	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: отпустил left, ведёт right
+1789955279.955	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				перевал: на площадку 3.25 м (голова была на 3.68)
+1789955280.422	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				перевал: встал на площадке, глаза на 5.00 м
+1789955281.887	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955282.510	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955282.777	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955284.058	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "folder": "settings_move", "view": "browse", "items": 13, "total": 13, "page": 1, "pages": 1 }
+1789955284.058	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "open": true }
+1789955288.913	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "folder": "settings", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789955288.913	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789955290.212	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789955290.212	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "browse", "folder": "" }
+1789955291.746	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789955291.746	сценарий_начат	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					10 шагов, осталось 10
+1789955291.750	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "tasks", "view": "browse", "folder": "" }
+1789955295.557	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789955295.558	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789955296.730	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 70, "total": 128, "page": 1, "pages": 2 }
+1789955296.731	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789955300.079	сценарий_шаг	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk	labels	да	8333	
+1789955300.084	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 70, "total": 128, "page": 1, "pages": 2 }
+1789955305.814	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789955305.814	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789955307.402	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789955307.402	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "browse", "folder": "" }
+1789955309.147	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "folder": "settings", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789955309.147	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789955310.639	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789955310.639	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789955316.660	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				cell_cm
+1789955316.660	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				{ "do": "edit", "view": "browse", "folder": "settings_sphere", "setting": "cell_cm" }
+1789955321.268	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				done
+1789955321.274	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				cell_cm=7.9
+1789955322.792	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "folder": "settings", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789955322.793	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789955323.692	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789955323.692	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "browse", "folder": "" }
+1789955324.638	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789955324.638	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789955325.353	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 70, "total": 128, "page": 1, "pages": 2 }
+1789955325.353	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789955327.324	page	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "from": 71, "to": 128, "total": 128, "page": 2, "pages": 2 }
+1789955327.329	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 58, "total": 128, "page": 2, "pages": 2 }
+1789955327.329	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789955328.302	сценарий_шаг	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk	pages	да	28223	
+1789955328.308	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 70, "total": 128, "page": 1, "pages": 2 }
+1789955328.308	page	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "from": 1, "to": 70, "total": 128, "page": 1, "pages": 2 }
+1789955328.313	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "folder": "bulk", "view": "browse", "items": 70, "total": 128, "page": 1, "pages": 2 }
+1789955328.314	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789955330.982	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789955330.982	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789955332.426	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789955332.426	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "browse", "folder": "" }
+1789955333.616	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "search", "items": 1, "total": 0, "page": 1, "pages": 1 }
+1789955333.619	клавиатура	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					show
+1789955333.619	поиск_открыт	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					
+1789955333.619	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "search", "view": "search", "folder": "" }
+1789955334.107	сессия_openxr	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					session_visible кадр 33878
+1789955336.470	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "search", "items": 50, "total": 49, "page": 1, "pages": 1 }
+1789955336.470	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "search", "folder": "" }
+1789955336.470	поиск_запрос	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					и → 49
+1789955340.430	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "search", "items": 5, "total": 4, "page": 1, "pages": 1 }
+1789955340.430	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "search", "folder": "" }
+1789955340.430	поиск_запрос	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					ис → 4
+1789955340.951	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "search", "items": 3, "total": 2, "page": 1, "pages": 1 }
+1789955340.951	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "search", "folder": "" }
+1789955340.951	поиск_запрос	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					ист → 2
+1789955342.594	клавиатура	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					hide
+1789955342.594	клавиатура	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					enter
+1789955342.641	сессия_openxr	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					session_focussed кадр 34644
+1789955344.338	клавиатура	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere_adv				hide
+1789955344.340	сценарий_шаг	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere_adv	search	да	16038	
+1789955344.342	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere_adv				{ "folder": "settings_sphere_adv", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789955344.342	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere_adv				{ "folder": "settings_sphere_adv", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789955344.346	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere_adv				input_source
+1789955344.346	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere_adv				{ "do": "edit", "view": "browse", "folder": "settings_sphere_adv", "setting": "input_source" }
+1789955346.671	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere_adv				done
+1789955346.673	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere_adv				input_source=auto
+1789955348.618	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				{ "folder": "settings_sphere", "view": "browse", "items": 11, "total": 11, "page": 1, "pages": 1 }
+1789955348.618	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_sphere				{ "do": "reload", "view": "browse", "folder": "settings_sphere" }
+1789955349.218	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "folder": "settings", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789955349.218	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789955351.251	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789955351.252	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "browse", "folder": "" }
+1789955354.057	скриншот	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e			да		screenshot_2026-09-21_06-49-13.583.png, 1920×1080, 374684 байт, всего 15310728 (листинг), 474 мс
+1789955354.057	сценарий_шаг	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e		screenshot	да	9717	
+1789955354.058	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789955360.062	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "folder": "settings", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789955360.062	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789955363.997	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "folder": "settings_space", "view": "browse", "items": 13, "total": 13, "page": 1, "pages": 1 }
+1789955363.997	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "reload", "view": "browse", "folder": "settings_space" }
+1789955365.362	профиль_глаза	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				замер начат
+1789955365.362	пространство_сброс	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				режим зоны 4 → 4 (stage true), положение сброшено true, высота глаз измеряется
+1789955365.362	сценарий_шаг	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space	space_reset	да	11305	
+1789955365.364	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "folder": "settings_space", "view": "browse", "items": 13, "total": 13, "page": 1, "pages": 1 }
+1789955365.364	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "do": "space", "view": "browse", "folder": "settings_space", "action": "space_reset" }
+1789955367.377	профиль_глаза	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				1.60 м, размах 0.06 м
+1789955367.379	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_space				{ "folder": "settings_space", "view": "browse", "items": 13, "total": 13, "page": 1, "pages": 1 }
+1789955381.363	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "folder": "settings", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789955381.364	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789955384.375	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				{ "folder": "profile", "view": "browse", "items": 9, "total": 9, "page": 1, "pages": 1 }
+1789955384.376	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				{ "do": "reload", "view": "browse", "folder": "profile" }
+1789955385.786	профиль_глаза	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				замер начат
+1789955385.786	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				{ "do": "profile", "view": "browse", "folder": "profile", "action": "profile_eye" }
+1789955387.731	профиль_глаза	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				замер начат
+1789955387.731	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				{ "do": "profile", "view": "browse", "folder": "profile", "action": "profile_eye" }
+1789955388.897	профиль_глаза	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				замер начат
+1789955388.898	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				{ "do": "profile", "view": "browse", "folder": "profile", "action": "profile_eye" }
+1789955389.988	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				{ "folder": "profile", "view": "actions", "items": 3, "total": 2, "page": 1, "pages": 1 }
+1789955389.989	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				{ "do": "reload", "view": "actions", "folder": "profile" }
+1789955390.912	профиль_глаза	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				1.59 м, размах 0.01 м
+1789955390.913	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				{ "folder": "profile", "view": "actions", "items": 3, "total": 2, "page": 1, "pages": 1 }
+1789955392.309	профиль_глаза	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				замер начат
+1789955392.309	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				{ "do": "profile", "view": "browse", "folder": "profile", "action": "profile_eye" }
+1789955393.071	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				{ "folder": "profile", "view": "actions", "items": 8, "total": 7, "page": 1, "pages": 1 }
+1789955393.071	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				{ "do": "reload", "view": "actions", "folder": "profile" }
+1789955394.322	профиль_глаза	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				1.57 м, размах 0.00 м
+1789955394.324	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				{ "folder": "profile", "view": "actions", "items": 8, "total": 7, "page": 1, "pages": 1 }
+1789955395.099	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				{ "folder": "profile", "view": "browse", "items": 9, "total": 9, "page": 1, "pages": 1 }
+1789955395.099	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	profile				{ "do": "reload", "view": "browse", "folder": "profile" }
+1789955396.521	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "folder": "settings", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789955396.521	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789955399.499	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789955399.499	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "browse", "folder": "" }
+1789955400.876	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "folder": "settings", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789955400.876	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789955402.087	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "do": "redraw", "view": "browse", "folder": "settings" }
+1789955402.789	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "folder": "settings", "view": "actions", "items": 5, "total": 4, "page": 1, "pages": 1 }
+1789955402.790	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "do": "reload", "view": "actions", "folder": "settings" }
+1789955403.554	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "folder": "settings", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789955403.555	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789955404.232	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "do": "redraw", "view": "browse", "folder": "settings" }
+1789955404.831	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "do": "redraw", "view": "browse", "folder": "settings" }
+1789955405.799	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "do": "redraw", "view": "browse", "folder": "settings" }
+1789955406.276	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "do": "redraw", "view": "browse", "folder": "settings" }
+1789955410.299	сценарий_шаг	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings	eye_move	нет	44937	пропущен
+1789955416.542	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "open": false }
+1789955417.253	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				телепорт: blink на 5.7 м
+1789955417.787	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				телепорт: blink на 5.2 м
+1789955419.441	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				призван Obj_grab4 рукой right (gesture)
+1789955419.442	сценарий_шаг	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings	pull_gesture	да	9143	
+1789955419.909	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				взят Obj_grab4 рукой right
+1789955419.909	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				прилетел в руку right: Obj_grab4
+1789955419.910	сценарий_шаг	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings	pull_catch	да	467	
+1789955420.855	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				отпущен, скорость 1.24 м/с
+1789955423.067	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "folder": "settings", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789955423.068	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "open": true }
+1789955426.202	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "folder": "settings_move", "view": "browse", "items": 13, "total": 13, "page": 1, "pages": 1 }
+1789955426.202	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "do": "reload", "view": "browse", "folder": "settings_move" }
+1789955432.060	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				pull_mode
+1789955432.060	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "do": "edit", "view": "browse", "folder": "settings_move", "setting": "pull_mode" }
+1789955433.177	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				pull_mode=instant
+1789955434.122	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				done
+1789955434.124	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				pull_mode=instant
+1789955434.844	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "open": false }
+1789955435.300	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				призван Obj_grab4 рукой right (instant)
+1789955435.300	сценарий_шаг	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move	pull_instant	да	15390	
+1789955435.599	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				взят Obj_grab4 рукой right
+1789955435.700	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				прилетел в руку right: Obj_grab4
+1789955436.023	предмет	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				отпущен, скорость 0.12 м/с
+1789955437.822	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955438.089	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955438.355	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955439.047	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "folder": "settings_move", "view": "browse", "items": 13, "total": 13, "page": 1, "pages": 1 }
+1789955439.047	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "open": true }
+1789955440.411	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "folder": "settings", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789955440.412	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789955442.113	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "folder": "settings_move", "view": "browse", "items": 13, "total": 13, "page": 1, "pages": 1 }
+1789955442.113	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "do": "reload", "view": "browse", "folder": "settings_move" }
+1789955448.906	настройка_открыта	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				move_mode
+1789955448.906	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "do": "edit", "view": "browse", "folder": "settings_move", "setting": "move_mode" }
+1789955449.878	настройка_значение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				move_mode=head
+1789955450.466	панель_кнопка	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				done
+1789955450.468	настройка_сохранена	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				move_mode=head
+1789955451.122	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "open": false }
+1789955451.500	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955458.246	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955459.700	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 10.59 м за 8.2 с, средняя 1.29 м/с
+1789955459.911	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся right за Obj_climb5
+1789955460.534	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: взялся left за Obj_climb7 (ведёт он)
+1789955460.667	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				лазанье: отпустил right, ведёт left
+1789955460.946	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				перевал: на площадку 1.89 м (голова была на 2.25)
+1789955460.946	сценарий_шаг	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move	mantle	да	25646	
+1789955461.412	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				перевал: встал на площадке, глаза на 3.54 м
+1789955463.036	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955463.048	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955463.235	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.15 м за 0.2 с, средняя 0.76 м/с
+1789955463.380	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955463.401	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955463.579	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.11 м за 0.2 с, средняя 0.57 м/с
+1789955463.668	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955463.679	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap -45°
+1789955463.902	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.04 м за 0.2 с, средняя 0.18 м/с
+1789955464.381	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955464.680	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.00 м за 0.3 с, средняя 0.00 м/с
+1789955464.935	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955464.935	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955465.114	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.00 м за 0.2 с, средняя 0.00 м/с
+1789955465.169	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955465.202	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955465.303	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.10 м за 0.1 с, средняя 0.70 м/с
+1789955465.503	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955465.503	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955465.647	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.00 м за 0.1 с, средняя 0.00 м/с
+1789955465.814	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955465.814	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955465.970	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.09 м за 0.2 с, средняя 0.57 м/с
+1789955466.068	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955466.081	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955466.202	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.00 м за 0.1 с, средняя 0.03 м/с
+1789955466.268	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955466.346	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955466.402	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.00 м за 0.1 с, средняя 0.03 м/с
+1789955466.435	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955466.579	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.00 м за 0.1 с, средняя 0.00 м/с
+1789955466.680	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955466.680	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955466.814	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.08 м за 0.1 с, средняя 0.63 м/с
+1789955466.881	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955466.947	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955467.035	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.00 м за 0.2 с, средняя 0.01 м/с
+1789955468.681	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955468.737	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				присед: 0.50 м
+1789955469.180	скриншот	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move		да		screenshot_2026-09-21_06-51-08.772.png, 1920×1080, 36895 байт, всего 15347623 (листинг), 409 мс
+1789955469.182	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.07 м за 0.5 с, средняя 0.13 м/с
+1789955469.182	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				присед: 0.00 м
+1789955469.824	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				присед: 0.50 м
+1789955470.230	скриншот	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move		да		screenshot_2026-09-21_06-51-09.826.png, 1920×1080, 26836 байт, всего 15374459 (листинг), 404 мс
+1789955470.236	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				присед: 0.00 м
+1789955470.714	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				присед: 0.50 м
+1789955471.163	скриншот	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move		да		screenshot_2026-09-21_06-51-10.726.png, 1920×1080, 27033 байт, всего 15401492 (листинг), 437 мс
+1789955471.168	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				присед: 0.00 м
+1789955472.182	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				присед: 0.50 м
+1789955472.313	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955472.335	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				присед: 0.00 м
+1789955472.369	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.00 м за 0.1 с, средняя 0.07 м/с
+1789955472.902	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				присед: 0.50 м
+1789955473.069	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				присед: 0.00 м
+1789955473.503	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955473.935	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.00 м за 0.4 с, средняя 0.00 м/с
+1789955473.969	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				поворот: snap 45°
+1789955473.969	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955474.102	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.01 м за 0.1 с, средняя 0.04 м/с
+1789955474.481	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				присед: 0.50 м
+1789955474.580	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: пошёл: head
+1789955474.636	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				ходьба: встал: head, 0.01 м за 0.1 с, средняя 0.20 м/с
+1789955474.636	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				присед: 0.00 м
+1789955475.294	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "folder": "settings_move", "view": "browse", "items": 13, "total": 13, "page": 1, "pages": 1 }
+1789955475.294	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "open": true }
+1789955481.970	перемещение	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				возврат в стартовую точку: пункт меню
+1789955481.971	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "do": "space", "view": "browse", "folder": "settings_move", "action": "space_respawn" }
+1789955486.338	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "open": false }
+1789955490.318	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "folder": "settings_move", "view": "browse", "items": 13, "total": 13, "page": 1, "pages": 1 }
+1789955490.318	toggle	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings_move				{ "open": true }
+1789955491.650	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "folder": "settings", "view": "browse", "items": 7, "total": 7, "page": 1, "pages": 1 }
+1789955491.650	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e	settings				{ "do": "reload", "view": "browse", "folder": "settings" }
+1789955492.450	folder	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789955492.450	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "reload", "view": "browse", "folder": "" }
+1789955493.760	intent	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					{ "do": "exit", "view": "browse", "folder": "" }
+1789955493.765	выход	globe	14.5	7.9	7.57	2	face	controllers	p18fd0f41789e					выгрузка в /storage/emulated/0/Download/VRGE/2026-09-21_06-51-33

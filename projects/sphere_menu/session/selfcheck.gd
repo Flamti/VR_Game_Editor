@@ -408,8 +408,12 @@ func _world_cost(host: Node, menu: Menu, rid: RID, budget: float) -> void:
 	var g_on: float = (on["gpu"] as ProbeStats).percentile(0.95)
 	var c_on: float = (on["cpu"] as ProbeStats).percentile(0.95) + (on["process"] as ProbeStats).percentile(0.95)
 	results["world"] = {"gpu_off": g_off, "gpu_on": g_on, "cpu_on": c_on}
-	var msg := "мир: свет (%s), сетка вокруг — GPU %.2f → %.2f мс (+%.2f), CPU+скрипты %.2f из %.2f" % [
-			env.brief(), g_off, g_on, g_on - g_off, c_on, budget]
+	var level_nodes := 0
+	var level = host.get("level")
+	if level != null:
+		level_nodes = (level as Node).get_child_count()
+	var msg := "мир: свет (%s), локация %d объектов, сетка вокруг — GPU %.2f → %.2f мс (+%.2f), CPU+скрипты %.2f из %.2f" % [
+			env.brief(), level_nodes, g_off, g_on, g_on - g_off, c_on, budget]
 	if maxf(g_on, c_on) <= budget:
 		r.pass_(msg)
 	else:

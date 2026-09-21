@@ -10,10 +10,13 @@ extends RefCounted
 const Settings := preload("res://menu/settings.gd")
 
 ## Яркость направленного света и ambient по режимам настройки «Освещение».
+## Фон от уровня света НЕ зависит (сессия 14: на «ярком» фон выцветал и сетка на нём бледнела).
+## Он один и тот же, меняются только свет и рассеянный свет.
+const BACKGROUND := Color(0.13, 0.14, 0.17)
 const LEVELS := {
-	"dim": {"light": 0.6, "ambient": 0.25, "sky": Color(0.10, 0.11, 0.14)},
-	"studio": {"light": 1.1, "ambient": 0.45, "sky": Color(0.16, 0.18, 0.22)},
-	"bright": {"light": 1.7, "ambient": 0.7, "sky": Color(0.24, 0.27, 0.32)},
+	"dim": {"light": 0.6, "ambient": 0.25},
+	"studio": {"light": 1.1, "ambient": 0.45},
+	"bright": {"light": 1.7, "ambient": 0.7},
 }
 ## Наклон света: сверху и чуть сбоку — так на кнопках контроллера есть и свет, и тень.
 const LIGHT_ANGLES := Vector3(-55.0, -35.0, 0.0)
@@ -46,7 +49,7 @@ func apply(settings: Settings) -> void:
 	light.light_energy = 0.0 if falsify_dark else float(level["light"])
 	var env := world.environment
 	env.ambient_light_energy = 0.0 if falsify_dark else float(level["ambient"])
-	env.background_color = level["sky"]
+	env.background_color = BACKGROUND
 	env.glow_enabled = bool(settings.get_value("space_glow"))
 	env.glow_intensity = 0.6
 	env.glow_bloom = 0.1

@@ -46,6 +46,10 @@ var play_area_mode: Callable = func() -> int:
 	return int(xr.get_play_area_mode()) if xr != null else -1
 ## Кто ведёт меню сейчас — набор настроек открываемого профиля берётся для него.
 var current_input: Callable = func() -> String: return "controllers"
+## Ключ комнаты от шлема (world/room.gd): им место узнаётся надёжнее, чем формой игровой зоны.
+var room_key: Callable = func() -> String: return ""
+## Замер отброшен (движение) — шаг сценария.
+signal eye_rejected
 ## Время системы, мс: задержка после неверного PIN переживает перезапуск.
 var now_unix_ms: Callable = func() -> int: return int(Time.get_unix_time_from_system() * 1000.0)
 ## Какой ввод идёт на панели: "" | "new" | "name" | "height" | "pin_set" | "pin_check".
@@ -167,6 +171,7 @@ func tick_eye(dt: float) -> bool:
 	if not res["ok"]:
 		menu.nav.message = "Замер не вышел: голова двигалась на %s м — попробуйте снова" % String.num(res["spread_m"], 2).replace(".", ",")
 		logged.emit("профиль_глаза", "отброшен, размах %.2f м" % res["spread_m"])
+		eye_rejected.emit()
 		return false
 	profiles.profile.eye_m = res["eye_m"]
 	profiles.store.save_profile(profiles.profile)
@@ -190,16 +195,17 @@ func remember_place() -> void:
 	fwd.y = 0.0
 	fwd = fwd.normalized() if fwd.length() > 0.01 else Vector3.FORWARD
 	var work := Transform3D(Basis.looking_at(fwd, Vector3.UP), Vector3(local.origin.x, 0.0, local.origin.z))
-	var known := p.find_place(area)
+	var room: String = room_key.call()
+	var known := p.find_place(area, room)
 	var place_name: String = p.places[known]["name"] if known >= 0 else "Место %d" % (p.places.size() + 1)
-	p.remember_place(place_name, area, work)
+	p.remember_place(place_name, area, work, 0.0, room)
 	profiles.store.save_profile(p)
 	if area.is_empty():
 		menu.nav.message = "%s: границы нет, место не будет узнаваться само" % place_name
 	else:
 		menu.nav.message = "%s: %s" % ["Место обновлено" if known >= 0 else "Место запомнено", place_name]
-	logged.emit("профиль_место", "%s, вершин %d, режим зоны %d, %s" % [place_name, area.size(),
-			play_area_mode.call(), "обновлено" if known >= 0 else "новое"])
+	logged.emit("профиль_место", "%s, вершин %d, режим зоны %d, комната «%s», %s" % [place_name, area.size(),
+			play_area_mode.call(), room.substr(0, 8), "обновлено" if known >= 0 else "новое"])
 	rebuild()
 
 

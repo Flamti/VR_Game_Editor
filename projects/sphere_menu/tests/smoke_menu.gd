@@ -60,6 +60,41 @@ extends SceneTree
 ##   --falsify=nolight     свет и ambient выключены, как в пустой сцене сессии 13, — краснеет только
 ##                         «свет сцены»;
 ##   --falsify=gridfollow  сетка не едет за человеком — краснеет только «сетка пола»;
+##   --falsify=gridride    сетка снова берёт ЛОКАЛЬНУЮ позицию головы и едет вместе с origin (дефект
+##                         сессии 17) — краснеет только «сетка не едет с человеком»;
+##   --falsify=levelflat   у каждого объекта свой материал (вызовов отрисовки больше) — краснеет
+##                         только «уровень из данных»;
+##   --falsify=menustick   перемещение слушает стики и при открытом шаре — краснеет только «стики
+##                         принадлежат меню»;
+##   --falsify=walkquiet   непрерывное движение молчит в журнале (слепота сессии 17: двести секунд
+##                         ходьбы и ни одной строки) — краснеет только «журнал ходьбы»;
+##   --falsify=axisfree    оси стика не глушат друг друга — поворот снова тащит вперёд (дефект
+##                         сессии 24); краснеет только «рука движения и поворота»;
+##   --falsify=onehand     настройки руки не действуют: движение прибито к левому стику, поворот к
+##                         правому — краснеет только «рука движения и поворота»;
+##   --falsify=nofall      падение со сцены не ловится — краснеет только «падение и возврат в старт»;
+##   --falsify=headchase   origin не компенсирует шаг тела — тело гонится за собственной головой и
+##                         уносит человека (дефект сессии 15); краснеет только «тело игрока: голова
+##                         на месте»;
+##   --falsify=nostep      тело не пробует шаг вверх — краснеет только «тело игрока: ступень»;
+##   --falsify=ghost       тело перестаёт быть сплошным — краснеет только «тело игрока: стена»;
+##   --falsify=mantlefloor перевал срабатывает и у стоящего на полу — дефект сессии 23, когда захват
+##                         нижнего зацепа мгновенно уносил наверх; краснеет только «перевал не
+##                         хватает стоящего»;
+##   --falsify=mantlejump  origin обнуляется в конце перевала — вид скачком уезжает вбок на всё
+##                         накопленное смещение (дефект сессии 22); краснеет только «перевал без
+##                         скачка вида»;
+##   --falsify=mantlephys  физика тела во время перевала не выключается — человека роняет и тянет
+##                         обратно к стене (дефект сессии 20); краснеет только «перевал ставит в
+##                         полный рост»;
+##   --falsify=climbdrift  точка захвата снова плывёт за рукой — подъёма не получается (дефект
+##                         сессии 17); краснеет только «лазанье поднимает»;
+##   --falsify=pushlean    наклон у препятствия снова выталкивает человека (дефект сессии 17: «когда
+##                         наклоняюсь у стола, весь передвигаюсь от препятствия») — краснеет только
+##                         «тело игрока: наклон у стены»;
+##   --falsify=grabstick   предмет не отпускается — краснеет только «предмет в руке»;
+##   --falsify=pullnoline  нить от ладони к предмету не строится — краснеет только «связь при призыве»;
+##   --falsify=pullnohl    предмет не выделяется накладкой — краснеет только «связь при призыве»;
 ##   --falsify=handoff     отдача управления не бросает начатое касание — краснеет только
 ##                         «руки: отдача управления» (контроллер отпускает курок — выбор).
 ## Пол — по числу исполненных шагов; ошибки выполнения печатаются движком, их
@@ -84,6 +119,13 @@ const AccountService := preload("res://accounts/account_service.gd")
 const SecretBox := preload("res://accounts/secret_box.gd")
 const FloorGrid := preload("res://world/floor_grid.gd")
 const WorldEnv := preload("res://world/environment.gd")
+const LevelLoader := preload("res://world/level_loader.gd")
+const PlayerBody := preload("res://locomotion/player_body.gd")
+const PullViewRes := preload("res://world/pull_view.gd")
+const MantleRes := preload("res://locomotion/mantle.gd")
+const GrabRes := preload("res://world/grab.gd")
+const LocomotionRes := preload("res://locomotion/locomotion.gd")
+const RoomRes := preload("res://world/room.gd")
 const SynthHand := preload("res://tests/synth_hand.gd")
 
 const STEPS := ["открыть", "войти коротким", "действия удержанием", "копировать", "вставить",
@@ -95,7 +137,11 @@ const STEPS := ["открыть", "войти коротким", "действи
 		"ввод после самопроверки", "видно того, кто ведёт", "настройки того, кто ведёт", "смена пользователя",
 		"профиль: новый с именем", "профиль: PIN при запуске", "профиль: рост, глаза, место",
 		"аккаунт: ключ Claude", "аккаунт: Google по коду", "аккаунт: PIN перешифровывает",
-		"свет сцены", "сетка пола", "раскладки", "выход удержанием"]
+		"свет сцены", "сетка пола", "сетка не едет с человеком", "уровень из данных", "тело игрока: голова на месте",
+		"тело игрока: ступень", "тело игрока: стена",
+		"тело игрока: наклон у стены", "лазанье поднимает", "перевал ставит в полный рост",
+		"перевал без скачка вида", "перевал не хватает стоящего", "предмет в руке", "связь при призыве", "стики принадлежат меню", "журнал ходьбы", "рука движения и поворота",
+		"падение и возврат в старт", "комната от шлема", "раскладки", "выход удержанием"]
 
 var r: Report = Report.new()
 ## Фальсификатор дымового прогона: --falsify=scroll снимает ограничение хода прокрутки.
@@ -162,7 +208,8 @@ func _initialize() -> void:
 		[293, _edit_scroll_open], [296, _edit_scroll_move], [299, _edit_scroll_check],
 		[301, _panel_layout_open], [304, _panel_layout], [307, _panel_show], [307, _pages], [307, _big_folder_labels], [306, _gesture_choice], [308, _shake_root],
 		[309, _hands_fist_touch], [309, _hands_drag], [309, _hands_handoff],
-		[309, _router_ready], [309, _router_visuals], [309, _router_settings], [309, _router_done], [309, _profile_switch], [309, _pui_new], [309, _pui_pin], [309, _pui_body], [309, _acc_key], [309, _acc_google], [309, _acc_pin], [309, _pui_done], [310, _world_light], [310, _world_grid],
+		[309, _router_ready], [309, _router_visuals], [309, _router_settings], [309, _router_done], [309, _profile_switch], [309, _pui_new], [309, _pui_pin], [309, _pui_body], [309, _acc_key], [309, _acc_google], [309, _acc_pin], [309, _pui_done], [310, _world_light], [310, _world_grid], [310, _grid_fixed], [311, _level_build], [312, _phys_setup],
+		[330, _phys_head_prep], [360, _phys_head_check], [380, _phys_step], [470, _phys_wall], [500, _lean_prep], [520, _mantle_floor_check], [545, _lean_check], [556, _mantle_floor_result], [558, _climb_prep], [570, _climb_check], [572, _mantle_prep], [580, _grab_check], [580, _pull_link], [581, _stick_owner], [581, _walk_log], [581, _hand_choice], [582, _fall_home], [592, _fall_check], [600, _mantle_check], [601, _mantle_view_check], [582, _room_node],
 		[310, _layouts], [314, _exit_hold], [320, _finish],
 	]
 
@@ -174,6 +221,38 @@ const MAX_FRAMES := 1200
 
 func _process(_delta: float) -> bool:
 	_frame += 1
+	# Человек ИДЁТ, а не толкается раз: при столкновении скорость гасится, и шаг вверх пробуется,
+	# только пока движение продолжается (как и в приложении, где стик держат).
+	# Приземление копим по КАДРАМ, а не читаем в один момент: число физических тиков между шагами
+	# прибора не постоянно, и проверка «упало на пол» краснела примерно в каждом третьем прогоне,
+	# хотя код был верен (§2.7 — плавающая проверка хуже отсутствующей).
+	if _player != null and is_instance_valid(_player) and _phys.get("landing", false):
+		if _player.is_on_floor():
+			_phys["landed"] = true
+		_phys["floor_y"] = minf(float(_phys.get("floor_y", 9.0)), absf(_player.global_position.y))
+	# Стенд «перевал не хватает стоящего»: тактуем поиск перевала, пока тело стоит на полу.
+	if not _floor_t.is_empty() and is_instance_valid(_floor_t["body"]):
+		(_floor_t["loco"] as LocomotionRes)._try_mantle(1.0 / 90.0, {"right": _floor_t["hand"]})
+		_floor_t["ticks"] = int(_floor_t.get("ticks", 0)) + 1
+	# Перевал идёт кадрами, как в приложении: locomotion двигает тело, физика тела молчит.
+	if not _mantle_t.is_empty() and is_instance_valid(_mantle_t["body"]):
+		var mb: PlayerBody = _mantle_t["body"]
+		var mt: float = float(_mantle_t.get("t", 0.0)) + (1.0 / 90.0) / MantleRes.RISE_S
+		_mantle_t["t"] = mt
+		# Переносим, только пока тело отдано нам. Если физику не выключили (фальсификатор), телом
+		# распоряжается она: тяготение роняет, следование тянет назад — ровно дефект сессии 20.
+		if mb.mantling:
+			mb.global_position = MantleRes.rise_point(Vector3(4.5, 3.3, -4.2), _mantle_t["to"], mt)
+			_mantle_t_view.append((_mantle_t["head"] as Node3D).global_position)
+			if mt >= 1.0:
+				mb.mantling = false
+				mb.release_collisions()
+				# Дефект сессии 22: обнуление origin в конце — скачок вида на всё накопленное.
+				if falsify == "mantlejump":
+					(_mantle_t["origin"] as Node3D).position = Vector3(0, 0, 0)
+				_mantle_t_view.append((_mantle_t["head"] as Node3D).global_position)
+	if _player != null and is_instance_valid(_player) and _phys.get("walk", "") != "":
+		_player.velocity.z = -1.2 if _phys["walk"] == "stairs" else 1.5
 	if _frame > MAX_FRAMES and not _done:
 		r.note("ОТКАЗ ПРИБОРА: предел %d кадров, исполнено %d шагов из %d" % [MAX_FRAMES, r.executed(), STEPS.size()])
 		_done = true
@@ -1569,9 +1648,11 @@ func _pui_body() -> void:
 			break
 	pui.on_action("profile_place", "")
 	pui.on_action("profile_place", "")
-	# Граница выключена (сессия 13): зоны нет, но место всё равно запоминается.
+	# Граница выключена (сессии 13–14): зоны нет. Место запоминается, а повтор обновляет его, а не
+	# плодит копии.
 	pui.play_area = func() -> PackedVector3Array: return PackedVector3Array()
 	pui.play_area_mode = func() -> int: return 0
+	pui.on_action("profile_place", "")
 	pui.on_action("profile_place", "")
 	var p = pui.profiles.profile
 	var got := [p.height_cm, p.eye_m, p.places.size(), menu.catalog.items["pf_height"].title,
@@ -1588,10 +1669,10 @@ func _pui_body() -> void:
 	var deleted_name: String = p.name
 	pui.on_action("profile_delete", "")
 	var left := [pui.profiles.store.order.size(), pui.profiles.profile.name]
-	var want := [180.0, 1.62, 2, "Рост: 180 см", "Запомнить это место (мест: 2)", ["pf_projects_none"],
+	var want := [180.0, 1.62, 1, "Рост: 180 см", "Запомнить это место (мест: 1)", ["pf_projects_none"],
 			["pf_project_jtest"], "Проекты (1)"]
 	if got == want and left == [1, "Основной"]:
-		r.pass_("профиль: рост, глаза, место — 180 см, глаза 1,62 м от пола XR-пространства, место одно после двух «запомнить» и второе без границы, папка проектов честная; удалён «%s», активен «Основной»" % deleted_name)
+		r.pass_("профиль: рост, глаза, место — 180 см, глаза 1,62 м от пола XR-пространства, место одно после двух «запомнить» и повторов без границы, папка проектов честная; удалён «%s», активен «Основной»" % deleted_name)
 	else:
 		r.fail("профиль: рост, глаза, место: %s, ожидалось %s; после удаления %s" % [got, want, left])
 
@@ -1831,6 +1912,242 @@ func _world_grid() -> void:
 				uniforms, follows, pos, center, both_visible, hidden, scene_side])
 
 
+# --- уровень, тело игрока, предметы (этап Ф3, часть 2) --------------------------------
+
+var _level_root: Node3D
+var _level_built: Dictionary = {}
+var _player: PlayerBody
+var _fake_head: Node3D
+var _fake_origin: XROrigin3D
+var _phys: Dictionary = {}
+var _fall: Dictionary = {}
+var _lean: Dictionary = {}
+var _climb: Dictionary = {}
+var _mantle_t: Dictionary = {}
+## Где была голова на каждом кадре перевала — ищем скачок вида.
+var _mantle_t_view: Array = []
+var _floor_t: Dictionary = {}
+
+
+## Стартовая локация строится из своих данных: узлы, материалы на цвет, точка старта, группы.
+func _level_build() -> void:
+	LevelLoader.falsify_per_object_material = falsify == "levelflat"
+	_level_root = Node3D.new()
+	head.get_parent().add_child(_level_root)
+	var res := LevelLoader.parse(FileAccess.get_file_as_string("res://world/levels/start_location.json"))
+	if not res["ok"]:
+		r.fail("уровень из данных: %s" % res["error"])
+		return
+	_level_built = LevelLoader.build(_level_root, res["data"])
+	var nodes: int = (_level_built["nodes"] as Array).size()
+	var colors: int = _level_built["colors"]
+	var climb: int = get_nodes_in_group("climb").size()
+	var grabbable: int = get_nodes_in_group("grab").size()
+	var targets: int = get_nodes_in_group("teleport_target").size()
+	var spawn: Transform3D = _level_built["spawn"]
+	var triggers: int = (_level_built["triggers"] as Array).size()
+	# Материалов должно быть заметно меньше, чем объектов: цена отрисовки у нас по вызовам.
+	if nodes > 40 and colors <= 10 and colors < nodes / 3 and climb >= 3 and grabbable >= 5 \
+			and targets >= 3 and triggers >= 1 and spawn != Transform3D():
+		r.pass_("уровень из данных: %d узлов на %d материалов, зацепов %d, предметов в руку %d, целей телепорта %d, триггер подгрузки %d, точка старта есть" % [
+				nodes, colors, climb, grabbable, targets, triggers])
+	else:
+		r.fail("уровень из данных: узлов %d, материалов %d, зацепов %d, предметов %d, целей %d, триггеров %d, старт %s" % [
+				nodes, colors, climb, grabbable, targets, triggers, spawn])
+
+
+## Тело игрока над полом; дальше кадры физики делают своё дело.
+func _phys_setup() -> void:
+	_fake_origin = XROrigin3D.new()
+	_fake_head = Node3D.new()
+	_fake_head.position = Vector3(0, 1.6, 0)
+	_player = PlayerBody.new()
+	_player.falsify_no_step = falsify == "nostep"
+	_player.falsify_ghost = falsify == "ghost"
+	_player.falsify_head_chase = falsify == "headchase"
+	head.get_parent().add_child(_player)
+	_player.add_child(_fake_origin)
+	_fake_origin.add_child(_fake_head)
+	_player.setup(_fake_origin, _fake_head)
+	_player.set_eye_height(1.6)
+	# Над ровной площадкой стартовой локации, подальше от построек. Высота небольшая: падение с
+	# метра занимает почти полсекунды, и при плотном прогоне тактов физики до замера не хватало —
+	# проверка краснела на верном коде (плавающий отказ, §2.7).
+	_player.global_position = Vector3(0, 0.35, 8.0)
+	_phys["landing"] = true
+	_phys["landed"] = false
+	_phys["floor_y"] = 9.0
+
+
+## Человек физически шагнул в сторону: голова сместилась внутри origin. Тело обязано встать под неё
+## и ОСТАНОВИТЬСЯ. Сессия 15: тело гналось за собственной головой (origin — его ребёнок, шаг тела
+## уносил голову с собой), расстояние не сокращалось, и человека уносило со сцены. Прежний шаг этого
+## не видел: фальшивая голова стояла ровно над телом, и смещение было нулевым.
+func _phys_head_prep() -> void:
+	_phys["head_from"] = _fake_head.global_position
+	_phys["body_from"] = _player.global_position
+	_fake_head.position = Vector3(0.4, 1.6, 0.0)
+
+
+func _phys_head_check() -> void:
+	var head_from: Vector3 = _phys["head_from"]
+	var head_now: Vector3 = _fake_head.global_position
+	# Голова осталась там, где человек физически стоит (сдвиг на 0.4 задан вручную и в мир не идёт).
+	var head_drift := Vector2(head_now.x - head_from.x - 0.4, head_now.z - head_from.z).length()
+	# Тело встаёт не под глаза, а на EYE_FORWARD_OFFSET позади них: иначе наклон к столу выталкивает
+	# человека от препятствия (сессия 17). Значит цель следования — точка за головой.
+	var back: Vector3 = _fake_head.global_basis.z
+	back.y = 0.0
+	var want := head_now + back.normalized() * PlayerBody.EYE_FORWARD_OFFSET
+	var under := Vector2(_player.global_position.x - want.x, _player.global_position.z - want.z).length()
+	var body_run := Vector2(_player.global_position.x - (_phys["body_from"] as Vector3).x,
+			_player.global_position.z - (_phys["body_from"] as Vector3).z).length()
+	if head_drift < 0.05 and under < 0.05 and body_run < 0.6:
+		r.pass_("тело игрока: голова на месте — шаг 0.4 м, голова не уплыла (%.3f м), тело встало под точку за глазами (%.3f м) и прошло %.2f м" % [
+				head_drift, under, body_run])
+	else:
+		r.fail("тело игрока: голова на месте — голова уплыла на %.2f м, тело в %.2f м от неё, прошло %.2f м за 30 кадров" % [
+				head_drift, under, body_run])
+	# Вернуть исходное расположение, иначе фальсификатор утащит и следующие шаги.
+	_fake_origin.position = Vector3.ZERO
+	_fake_head.position = Vector3(0, 1.6, 0)
+
+
+## Через кадры физики: тело стоит на полу; голова уходит на ступень — тело поднимается.
+func _phys_step() -> void:
+	_phys["on_floor"] = bool(_phys.get("landed", false))
+	_phys["landing"] = false
+	# Лесенка стартовой локации: подходим к первой ступени (высота 0.18) и «идём» на неё.
+	_player.global_position = Vector3(-7.0, 0.05, -3.4)
+	_fake_head.position = Vector3(0, 1.6, 0)
+	_phys["walk"] = "stairs"
+
+
+func _phys_wall() -> void:
+	_phys["step_y"] = _player.global_position.y
+	# Стена помещения: идём в неё, тело не должно пройти насквозь.
+	_player.global_position = Vector3(-6.0, 0.05, 5.6)
+	_phys["walk"] = "wall"
+	_phys["wall_from"] = _player.global_position.z
+
+
+## Человек наклоняется к препятствию: голова уходит вперёд, капсула лезет в стену. Тело при этом
+## обязано остаться на месте — сессия 17: «когда наклоняюсь у стола или столба, весь передвигаюсь от
+## препятствия». Свидетель — МИРОВАЯ позиция головы: компенсация origin удерживает её там, где
+## человек физически стоит, а выталкивание её увозит.
+func _lean_prep() -> void:
+	# СВОЁ тело, а не общее: иначе «ghost» и «headchase» — фальсификаторы соседних шагов — роняли бы
+	# и этот, и ни один отказ не был бы точечным (§2.2).
+	var body := PlayerBody.new()
+	var origin := XROrigin3D.new()
+	var lean_head := Node3D.new()
+	head.get_parent().add_child(body)
+	body.add_child(origin)
+	origin.add_child(lean_head)
+	body.falsify_push_lean = falsify == "pushlean"
+	body.setup(origin, lean_head)
+	body.set_eye_height(1.6)
+	# Вплотную к стене помещения (она на z = 6.4), лицом к ней: «позади глаз» считается по взгляду,
+	# и голова, смотрящая в другую сторону, дала бы смещение В стену вместо от неё.
+	# По x — в стороне от общего тела предыдущего шага (оно стоит у той же стены на x = −6):
+	# два тела в одной точке расталкиваются физикой, и этот сдвиг выглядел бы как выталкивание.
+	body.global_position = Vector3(-7.4, 0.05, 6.1)
+	lean_head.rotation = Vector3(0, PI, 0)
+	# Наклон: голова уходит на четверть метра вперёд, в стену.
+	lean_head.position = Vector3(0, 1.4, 0.25)
+	_lean = {"body": body, "head": lean_head, "from": lean_head.global_position}
+
+
+func _lean_check() -> void:
+	var lean_head: Node3D = _lean["head"]
+	var from: Vector3 = _lean["from"]
+	var now: Vector3 = lean_head.global_position
+	var drift := Vector2(now.x - from.x, now.z - from.z).length()
+	_lean["body_end"] = (_lean["body"] as Node3D).global_position
+	_lean["origin_end"] = (lean_head.get_parent() as Node3D).position
+	(_lean["body"] as Node).queue_free()
+	if drift < 0.03:
+		r.pass_("тело игрока: наклон у стены — голова осталась на месте (%.3f м за 45 кадров), человека не вытолкнуло" % drift)
+	else:
+		r.fail("тело игрока: наклон у стены — человека увезло от препятствия на %.2f м (тело %s, origin %s)" % [
+				drift, (_lean["body_end"] as Vector3), (_lean["origin_end"] as Vector3)])
+
+
+## Проверка ступени и стены — и заодно предмет в руке.
+func _grab_check() -> void:
+	var stepped: bool = float(_phys.get("step_y", 0.0)) > 0.12
+	var wall_z: float = _player.global_position.z
+	var blocked: bool = wall_z < 6.3
+	var landed: bool = bool(_phys.get("on_floor", false)) and absf(float(_phys.get("floor_y", 9.0))) < 0.05
+	if landed and stepped:
+		r.pass_("тело игрока: ступень — упало на пол (y %.2f) и поднялось на ступень 18 см (y %.2f)" % [
+				_phys.get("floor_y", 0.0), _phys.get("step_y", 0.0)])
+	else:
+		r.fail("тело игрока: ступень — на полу %s (y %.2f), после ступени y %.2f" % [landed,
+				_phys.get("floor_y", 9.0), _phys.get("step_y", 0.0)])
+	if blocked:
+		r.pass_("тело игрока: стена — не прошло насквозь (z %.2f из 5.6 до стены на 6.4)" % wall_z)
+	else:
+		r.fail("тело игрока: стена — прошло насквозь до z %.2f" % wall_z)
+
+	_phys["walk"] = ""
+	var grab := GrabRes.new()
+	grab.falsify_sticky = falsify == "grabstick"
+	var cubes: Array = get_nodes_in_group("grab")
+	var cube: Node3D = GrabRes.nearest(cubes, (cubes[0] as Node3D).global_position + Vector3(0.05, 0, 0))
+	var hand := Transform3D(Basis(), (cubes[0] as Node3D).global_position)
+	grab.grab("right", cube, hand)
+	var held_frozen: bool = cube is RigidBody3D and (cube as RigidBody3D).freeze
+	for i in 9:
+		hand.origin += Vector3(0.02, 0, 0)
+		grab.update("right", hand, 1.0 / 90.0)
+	var moved_with_hand: bool = cube.global_position.distance_to(hand.origin) < 0.02
+	var thrown := grab.release("right")
+	var released: bool = not grab.held.has("right") and cube is RigidBody3D and not (cube as RigidBody3D).freeze
+	_level_root.queue_free()
+	_player.queue_free()
+	if held_frozen and moved_with_hand and released and thrown.length() > 0.5:
+		r.pass_("предмет в руке: взят (физика приостановлена), едет за рукой, отпущен со скоростью %.2f м/с" % thrown.length())
+	else:
+		r.fail("предмет в руке: заморожен %s, едет за рукой %s, отпущен %s, бросок %.2f" % [held_frozen,
+				moved_with_hand, released, thrown.length()])
+
+
+## Пока шар открыт, стики принадлежат меню (левый вращает шар, правый листает панель) — иначе
+## прокрутка спорила бы с ходьбой.
+func _stick_owner() -> void:
+	var loco := LocomotionRes.new()
+	loco.menu = menu
+	loco.falsify_ignore_menu = falsify == "menustick"
+	_to_root_open()
+	var while_open := loco.input_free()
+	menu.close()
+	var while_closed := loco.input_free()
+	loco.free()
+	if not while_open and while_closed:
+		r.pass_("стики принадлежат меню: при открытом шаре перемещение молчит, при закрытом — работает")
+	else:
+		r.fail("стики принадлежат меню: открыт — ввод свободен %s, закрыт — %s" % [while_open, while_closed])
+
+
+## Узел пространственных данных создаётся без ошибок типов: на шлеме в сессии 15 запуск уронило
+## присваивание OpenXRFbSceneManager (это Node, не Node3D). Класс есть и в редакторе — значит,
+## проверка ловит это на столе.
+func _room_node() -> void:
+	var root3d := head.get_parent()
+	var rm := RoomRes.new()
+	rm.setup(root3d)
+	var made: bool = rm.manager != null
+	var state: String = rm.state
+	var key_empty: bool = rm.place_key() == ""
+	if rm.manager != null:
+		rm.manager.queue_free()
+	if made and state == "ждём" and key_empty:
+		r.pass_("комната от шлема: узел менеджера создан, состояние «%s», ключ комнаты пуст до ответа рантайма" % state)
+	else:
+		r.fail("комната от шлема: узел %s, состояние «%s», ключ пуст %s" % [made, state, key_empty])
+
+
 ## «Выход»: короткое не выходит, удержание до конца кольца — сигнал выхода.
 func _exit_hold() -> void:
 	_to_root_open()
@@ -1852,3 +2169,394 @@ func _finish() -> void:
 	else:
 		r.note("пол: исполнено %d/%d шагов" % [total, STEPS.size()])
 	_done = true
+
+
+## Непрерывное движение обязано оставлять след в журнале: строку на старте и строку на остановке, с
+## пройденным путём. Сессия 17: телепорт и повороты записаны, а ходьба по взгляду и по руке — нет,
+## и работала ли она, сказать было нечем.
+func _walk_log() -> void:
+	var loco := LocomotionRes.new()
+	loco.falsify_quiet_walk = falsify == "walkquiet"
+	var b := PlayerBody.new()
+	head.get_parent().add_child(b)
+	b.global_position = Vector3.ZERO
+	loco.body = b
+	var got: Array = []
+	loco.moved.connect(func(kind: String, detail: String): got.append("%s|%s" % [kind, detail]))
+	loco._track_walk("head", true)
+	b.global_position = Vector3(3.0, 0.0, 4.0)
+	loco._track_walk("head", true)
+	loco._track_walk("head", false)
+	loco._track_walk("head", false)
+	b.queue_free()
+	loco.free()
+	var two: bool = got.size() == 2
+	var started: bool = two and got[0] == "ходьба|пошёл: head"
+	var stopped: bool = two and got[1].begins_with("ходьба|встал: head, 5.00 м")
+	if started and stopped:
+		r.pass_("журнал ходьбы: две строки на отрезок — «%s» и «%s»" % [got[0], got[1]])
+	else:
+		r.fail("журнал ходьбы: строк %d %s" % [got.size(), got])
+
+
+## Сетка не ездит вместе с человеком. Сессия 17: сетка была ребёнком XROrigin3D, тело игрока начало
+## двигать origin — и сетка поехала с человеком, поднимаясь с ним на платформы, то есть переставая
+## совпадать с полом уровня. Шаг ставит голову ВНУТРЬ смещённого origin: локальная позиция головы при
+## этом не меняется, и только мировая показывает, где человек на самом деле.
+func _grid_fixed() -> void:
+	var world := Node3D.new()
+	var origin := Node3D.new()
+	var fake_head := Node3D.new()
+	head.get_parent().add_child(world)
+	world.add_child(origin)
+	origin.add_child(fake_head)
+	fake_head.position = Vector3(0.3, 1.6, 0.4)
+	# Человек ушёл на 5 м и забрался на платформу 1.6 м — origin уехал вместе с телом.
+	origin.position = Vector3(5.0, 1.6, 0.0)
+	var grid := FloorGrid.new()
+	grid.falsify_ride = falsify == "gridride"
+	grid.setup(world, fake_head)
+	var st := SettingsRes.new()
+	st.reset()
+	st.values["grid_mode"] = "fixed"
+	grid.apply(st)
+	grid.follow()
+	var bad: Array = []
+	if not grid.around.global_position.is_equal_approx(Vector3.ZERO):
+		bad.append("вид «на месте» уехал в %s" % grid.around.global_position)
+	st.values["grid_mode"] = "around"
+	grid.apply(st)
+	grid.follow()
+	var c := grid.around.global_position
+	if not is_equal_approx(c.x, 5.3) or not is_zero_approx(c.y) or not is_equal_approx(c.z, 0.4):
+		bad.append("вид «вокруг меня»: центр %s, ожидался (5.3, 0, 0.4)" % c)
+	if not grid.center_of(grid.around).is_equal_approx(c):
+		bad.append("центр затухания разошёлся с квадом")
+	world.queue_free()
+	if bad.is_empty():
+		r.pass_("сетка не едет с человеком: «на месте» стоит на нуле уровня, «вокруг меня» считает центр по миру (5.3, 0, 0.4) и не поднимается на платформу")
+	else:
+		r.fail("сетка не едет с человеком: %s" % "; ".join(bad))
+
+
+## Какой рукой идти и поворачиваться — настройка (просьба владельца, сессия 17). «Обе» складывает
+## стики: поворот забирает ось X, движение — ось Y, иначе одна рука спорила бы сама с собой.
+func _hand_choice() -> void:
+	var loco := LocomotionRes.new()
+	loco.falsify_fixed_hands = falsify == "onehand"
+	loco.falsify_no_axis_lock = falsify == "axisfree"
+	loco.menu = menu
+	var l := XRController3D.new()
+	var rr := XRController3D.new()
+	head.get_parent().add_child(l)
+	head.get_parent().add_child(rr)
+	loco.left = l
+	loco.right = rr
+	var st := menu.settings
+	var bad: Array = []
+	# Стиков без трекинга нет, поэтому берём подменённые значения через сам узел: XRController3D
+	# отдаёт ноль, и проверка смотрит НЕ величину, а какую руку спросили.
+	var asked: Array = []
+	loco.stick_source = func(who: String) -> Vector2:
+		asked.append(who)
+		return Vector2(0.5 if who == "right" else 0.25, 0.75 if who == "left" else 0.1)
+	for pair in [["left", ["left"]], ["right", ["right"]], ["both", ["left", "right"]]]:
+		st.values["move_hand"] = pair[0]
+		asked.clear()
+		var v: Vector2 = loco.hand_stick("move_hand", "left")
+		if asked != pair[1]:
+			bad.append("move_hand=%s спросил %s" % [pair[0], asked])
+		if pair[0] == "both" and not (is_equal_approx(v.x, 0.75) and is_equal_approx(v.y, 0.85)):
+			bad.append("«обе» сложила стики в %s, ожидалось (0.75, 0.85)" % v)
+	# Доминирующая ось: при «обе» поворот стиком не должен тащить вперёд (сессия 24 — каждый поворот
+	# шёл в паре с отрезком ходьбы).
+	st.values["move_hand"] = "both"
+	loco.stick_source = func(who: String) -> Vector2:
+		# Правый стик ведут вбок для поворота, палец слегка задевает вертикаль.
+		return Vector2(0.9, 0.25) if who == "right" else Vector2.ZERO
+	var turn_only: Vector2 = loco.hand_stick("move_hand", "left")
+	if absf(turn_only.y) > 0.01:
+		bad.append("поворот тащит вперёд: ход %.2f при повороте %.2f" % [turn_only.y, turn_only.x])
+	# И наоборот: ход вперёд с лёгким заносом вбок не должен крутить.
+	loco.stick_source = func(who: String) -> Vector2:
+		return Vector2(0.2, 0.95) if who == "left" else Vector2.ZERO
+	var move_only: Vector2 = loco.hand_stick("move_hand", "left")
+	if absf(move_only.x) > 0.01:
+		bad.append("ход крутит: поворот %.2f при ходе %.2f" % [move_only.x, move_only.y])
+	# Диагональ без явного перевеса проходит целиком — человек ведёт стик наискось нарочно.
+	loco.stick_source = func(who: String) -> Vector2:
+		return Vector2(0.7, 0.7) if who == "left" else Vector2.ZERO
+	var diag: Vector2 = loco.hand_stick("move_hand", "left")
+	if absf(diag.x) < 0.5 or absf(diag.y) < 0.5:
+		bad.append("нарочная диагональ подавлена: %s" % diag)
+	loco.stick_source = func(who: String) -> Vector2:
+		asked.append(who)
+		return Vector2(0.5 if who == "right" else 0.25, 0.75 if who == "left" else 0.1)
+	st.values["turn_hand"] = "left"
+	asked.clear()
+	loco.hand_stick("turn_hand", "right")
+	if asked != ["left"]:
+		bad.append("turn_hand=left спросил %s" % [asked])
+	st.values["move_hand"] = "right"
+	var aim := loco.aiming_hand()
+	if aim != rr:
+		bad.append("телепорт целит не из правой руки")
+	l.queue_free()
+	rr.queue_free()
+	loco.free()
+	if bad.is_empty():
+		r.pass_("рука движения и поворота: «левая», «правая» и «обе» спрашивают тот стик, который названы; при «обе» явно преобладающая ось глушит вторую (поворот не тащит вперёд); телепорт целит из выбранной руки")
+	else:
+		r.fail("рука движения и поворота: %s" % "; ".join(bad))
+
+
+## Упал со сцены — возвращают в стартовую точку. Сессия 17: за краем площадки можно падать вечно.
+func _fall_home() -> void:
+	var body := PlayerBody.new()
+	var origin := XROrigin3D.new()
+	var fake_head := Node3D.new()
+	head.get_parent().add_child(body)
+	body.add_child(origin)
+	origin.add_child(fake_head)
+	fake_head.position = Vector3(0, 1.6, 0)
+	body.falsify_no_fall = falsify == "nofall"
+	body.collision_mask = 0
+	body.setup(origin, fake_head)
+	var depth := [0.0]
+	body.fell.connect(func(d: float): depth[0] = d)
+	body.global_position = Vector3(0, PlayerBody.FALL_Y - 1.0, 0)
+	_fall = {"body": body, "depth": depth}
+
+
+## Сигнал падения приходит из _physics_process, поэтому проверка — на другом кадре (та же
+## отложенность, что у ловушки 26).
+func _fall_check() -> void:
+	var body: PlayerBody = _fall["body"]
+	var depth: Array = _fall["depth"]
+	var got: float = depth[0]
+	body.queue_free()
+	if got < PlayerBody.FALL_Y:
+		r.pass_("падение и возврат в старт: ниже %.0f м тело сообщило о падении (с %.0f м) — вызывающий вернёт в стартовую точку" % [PlayerBody.FALL_Y, got])
+	else:
+		r.fail("падение и возврат в старт: тело молчит, глубина %.0f при пороге %.0f" % [got, PlayerBody.FALL_Y])
+
+
+## Лазанье действительно поднимает. Сессия 17: двенадцать захватов и «вверх −0.00» в каждой строке —
+## мир ехал за дельтой руки, и подъёма не получалось. Шаг тянет руку вниз от зафиксированного
+## зацепа: человек при этом обязан подняться.
+func _climb_prep() -> void:
+	var loco := LocomotionRes.new()
+	var body := PlayerBody.new()
+	var origin := XROrigin3D.new()
+	var climb_head := Node3D.new()
+	head.get_parent().add_child(body)
+	body.add_child(origin)
+	origin.add_child(climb_head)
+	climb_head.position = Vector3(0, 1.6, 0)
+	body.setup(origin, climb_head)
+	body.set_eye_height(1.6)
+	# У стены для лазанья (зацепы на x 3.85 и 5.15, z −4.55), на полу.
+	body.global_position = Vector3(3.85, 0.05, -4.0)
+	loco.climb.falsify_drift = falsify == "climbdrift"
+	# Хват за нижний зацеп; рука пошла вниз — человек лезет вверх.
+	loco.climb.grab("right", Vector3(3.85, 0.95, -4.55))
+	_climb = {"body": body, "loco": loco, "from": body.global_position.y}
+
+
+func _climb_check() -> void:
+	var body: PlayerBody = _climb["body"]
+	var loco: LocomotionRes = _climb["loco"]
+	# Двадцать кадров: рука опускается на 4 см за кадр — обычный темп подтягивания. Рука едет вместе
+	# с телом (в жизни она внутри origin, а origin — ребёнок тела), иначе смещение копится и стенд
+	# показывает подъём в разы больше настоящего.
+	var hand := Vector3(3.85, 0.95, -4.55)
+	for i in 20:
+		var was := body.global_position
+		hand.y -= 0.04
+		body.climb_shift(loco.climb.update({"right": hand}, 1.0 / 90.0))
+		hand += body.global_position - was
+	var rise: float = body.global_position.y - float(_climb["from"])
+	body.queue_free()
+	loco.free()
+	# Подъём равен ходу руки: в этом и смысл фиксированного зацепа — рука «приклеена» к бруску.
+	if rise > 0.7 and rise < 0.9:
+		r.pass_("лазанье поднимает: рука опустилась на 0.80 м — человек поднялся на %.2f м" % rise)
+	else:
+		r.fail("лазанье поднимает: рука опустилась на 0.80 м, а человек поднялся на %.2f м" % rise)
+
+
+## Видимая связь при призыве: предмет выделен накладкой, от ладони к нему идёт нить, и всё это
+## снимается, когда цель ушла. Сессия 20: владелец просил визуализацию — её не было вовсе.
+func _pull_link() -> void:
+	var view := PullViewRes.new()
+	PullViewRes.falsify_no_line = falsify == "pullnoline"
+	PullViewRes.falsify_no_highlight = falsify == "pullnohl"
+	view.setup(head.get_parent())
+	var target := MeshInstance3D.new()
+	target.mesh = BoxMesh.new()
+	head.get_parent().add_child(target)
+	target.global_position = Vector3(0, 1.2, -2.0)
+	var bad: Array = []
+	view.show_link("right", target, Vector3(0.2, 1.3, 0), false)
+	if view.linked("right") != target:
+		bad.append("связь не запомнена")
+	if target.material_overlay == null:
+		bad.append("предмет не выделен")
+	var lines := 0
+	for ch in head.get_parent().get_children():
+		if ch is MeshInstance3D and (ch as MeshInstance3D).mesh is ImmediateMesh:
+			lines += 1
+	if lines < 1:
+		bad.append("нити нет")
+	view.show_link("right", null, Vector3.ZERO, false)
+	if target.material_overlay != null or view.linked("right") != null:
+		bad.append("связь не снялась: выделение %s" % target.material_overlay)
+	target.queue_free()
+	PullViewRes.falsify_no_line = false
+	PullViewRes.falsify_no_highlight = false
+	if bad.is_empty():
+		r.pass_("связь при призыве: предмет выделен накладкой, от ладони идёт нить, при потере цели снимается и то и другое")
+	else:
+		r.fail("связь при призыве: %s" % "; ".join(bad))
+
+
+## Перевал ставит человека НА площадку в полный рост. Сессия 20: «оказался низко — как будто на
+## коленях», потому что во время переноса физика тела продолжала работать: тяготение роняло, а
+## следование за головой тянуло обратно к стене.
+func _mantle_prep() -> void:
+	var loco := LocomotionRes.new()
+	var body := PlayerBody.new()
+	var origin := XROrigin3D.new()
+	var m_head := Node3D.new()
+	head.get_parent().add_child(body)
+	body.add_child(origin)
+	origin.add_child(m_head)
+	m_head.position = Vector3(0, 1.6, 0)
+	body.setup(origin, m_head)
+	body.set_eye_height(1.6)
+	loco.body = body
+	loco.head = m_head
+	loco.origin = origin
+	loco.falsify_mantle_phys = falsify == "mantlephys"
+	# Человек висит у стены для лазанья: голова над кромкой площадки climbtop (верх 3.40).
+	body.global_position = Vector3(4.5, 3.3, -4.2)
+	# Origin уехал на 1.4 м, как после подъёма по стене: компенсация следования копит смещение.
+	origin.position = Vector3(1.4, 0.0, 0.6)
+	_mantle_t_view = [m_head.global_position]
+	body.mantling = not loco.falsify_mantle_phys
+	# Кромка стены размечена в данных (тип ledge): точка приземления — её target.
+	var target := Vector3(4.5, 3.4, -5.4)
+	for node in get_nodes_in_group("ledge"):
+		target = (node as Area3D).get_meta("target", target)
+	body.hold_collisions()
+	_mantle_t = {"body": body, "loco": loco, "head": m_head, "origin": origin, "to": target}
+
+
+## Кадры перевала идут из _process — здесь только итог: тело на площадке, глаза на рост выше.
+func _mantle_check() -> void:
+	var body: PlayerBody = _mantle_t["body"]
+	var m_head: Node3D = _mantle_t["head"]
+	var eyes := m_head.global_position.y
+	var feet := body.global_position.y
+	(_mantle_t["loco"] as Node).free()
+	body.queue_free()
+	var stands: bool = absf(eyes - feet - 1.6) < 0.05
+	var on_top: bool = absf(feet - 3.4) < 0.1
+	# Столкновения на время переноса снимались и вернулись: иначе капсула цепляется за угол кромки.
+	var solid: bool = body.collision_mask != 0
+	if stands and on_top and solid:
+		r.pass_("перевал ставит в полный рост: ноги на площадке (%.2f м), глаза на %.2f м — ровно рост выше, столкновения вернулись" % [feet, eyes])
+	else:
+		r.fail("перевал ставит в полный рост: ноги %.2f (ждали 3.40), глаза %.2f — над ногами %.2f вместо 1.60, маска %d" % [
+				feet, eyes, eyes - feet, body.collision_mask])
+
+
+## Вид во время перевала не прыгает. Сессия 22: в конце переноса origin обнулялся по горизонтали, и
+## человека швыряло вбок ровно на смещение, накопленное за подъём, — «телепортировало куда-то
+## далеко в сторону от верха лестницы». Свидетель — мировая позиция головы по кадрам: между
+## соседними кадрами она не должна прыгать больше, чем идёт сам перенос.
+func _mantle_view_check() -> void:
+	var worst := 0.0
+	var at := 0
+	for i in range(1, _mantle_t_view.size()):
+		var step: float = (_mantle_t_view[i] as Vector3).distance_to(_mantle_t_view[i - 1])
+		if step > worst:
+			worst = step
+			at = i
+	# Шаг переноса за кадр: вся дорога (около 1.5 м) за RISE_S при 90 кадрах — сантиметры.
+	if worst < 0.25:
+		r.pass_("перевал без скачка вида: голова идёт ровно, худший шаг за кадр %.3f м" % worst)
+	else:
+		r.fail("перевал без скачка вида: на кадре %d голову бросило на %.2f м" % [at, worst])
+
+
+## Перевал не хватает того, кто стоит на полу. Сессия 23: человек взялся за нижний зацеп, стоя на
+## земле, и его мгновенно унесло «на площадку 1.44» — луч нашёл платформу перед ним, а условий
+## «висит» и «площадка выше ног» не было вовсе.
+##
+## Стенд ставит тело на пол перед платформой 0.9 м и держит хват: площадка находится лучом и выше
+## ног, то есть единственное, что должно удержать перевал, — «стоит на полу».
+func _mantle_floor_check() -> void:
+	if get_nodes_in_group("climb").is_empty():
+		r.fail("перевал не хватает стоящего: уровня в сцене нет — проверять нечего")
+		return
+	var loco := LocomotionRes.new()
+	var body := PlayerBody.new()
+	var origin := XROrigin3D.new()
+	var m_head := Node3D.new()
+	head.get_parent().add_child(body)
+	body.add_child(origin)
+	origin.add_child(m_head)
+	m_head.position = Vector3(0, 1.6, 0)
+	body.setup(origin, m_head)
+	body.set_eye_height(1.6)
+	loco.body = body
+	loco.head = m_head
+	loco.origin = origin
+	loco.falsify_mantle_eager_floor = falsify == "mantlefloor"
+	# Узел маршрута — в дерево: вне его `get_tree()` внутри поиска кромки равен null, и проверка
+	# молча ничего не проверяла бы. Свой такт ему не нужен — тактуем вручную из _process.
+	head.get_parent().add_child(loco)
+	loco.set_physics_process(false)
+	# Перед платформой plat09 (верх 0.9 м), лицом к ней, на полу.
+	body.global_position = Vector3(-7.0, 0.12, -4.25)
+	# Опираем тело на пол прямо сейчас: в headless кадры рендера идут много быстрее тактов физики,
+	# и ждать падения пришлось бы сотнями кадров (проверка краснела бы на верном коде).
+	for i in 4:
+		body.velocity = Vector3(0, -1.0, 0)
+		body.move_and_slide()
+	m_head.rotation = Vector3.ZERO
+	loco.climb.grab("right", Vector3(-7.0, 0.9, -4.3))
+	_floor_t = {"body": body, "loco": loco, "hand": Vector3(-7.0, 0.9, -4.3), "hit": false}
+	loco.moved.connect(func(kind: String, _d: String):
+		if kind == "перевал":
+			_floor_t["hit"] = true)
+
+
+## Итог: за два десятка тактов физики стоящего на полу наверх не утащило.
+func _mantle_floor_result() -> void:
+	var hit: bool = bool(_floor_t.get("hit", false))
+	var body: PlayerBody = _floor_t["body"]
+	var loco: LocomotionRes = _floor_t["loco"]
+	var ticks := int(_floor_t.get("ticks", 0))
+	var held: float = loco._ledge_held
+	var on_floor: bool = body.is_on_floor()
+	# Видит ли стенд площадку вообще — иначе «перевал не начался» ничего не доказывает.
+	var space := body.get_world_3d().direct_space_state
+	var probe := body.global_position + Vector3(0, 1.6, 0) + Vector3(0, 0, -MantleRes.PROBE_AHEAD_M)
+	var q := PhysicsRayQueryParameters3D.create(probe + Vector3.UP * 0.05, probe - Vector3.UP * 1.2)
+	q.exclude = [body.get_rid()]
+	var sees := not space.intersect_ray(q).is_empty()
+	loco.free()
+	body.queue_free()
+	_floor_t.clear()
+	if not sees:
+		r.fail("перевал не хватает стоящего: луч не находит площадку — стенд ничего не проверил")
+	elif ticks < 30:
+		r.fail("перевал не хватает стоящего: тактов всего %d — стенд не успел ничего проверить" % ticks)
+	elif not on_floor:
+		r.fail("перевал не хватает стоящего: тело не встало на пол — стенд ничего не проверил")
+	elif not hit:
+		r.pass_("перевал не хватает стоящего: %d тактов у площадки 0.9 м (накоплено %.2f с) — стоящего на полу наверх не унесло" % [ticks, held])
+	else:
+		r.fail("перевал не хватает стоящего: стоящего на полу унесло наверх")

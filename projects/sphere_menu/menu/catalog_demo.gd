@@ -113,6 +113,23 @@ func _init() -> void:
 	reset_it.action = "space_reset"
 	reset_it.type_label = "действие"
 	_add("settings_space", reset_it)
+	# Разметка пространства (world/room.gd): системный сканер Quest. Пункт есть всегда — он же и
+	# сообщает, что шлем разметки не отдаёт.
+	var capture_it: Item = Item.make("space_capture", "Разметка пространства шлема", K.ACTION, P.STAY, "Разметка")
+	capture_it.action = "space_capture"
+	capture_it.type_label = "действие"
+	_add("settings_space", capture_it)
+	_folder("settings", "settings_move", "Перемещение", "Движ.")
+	for sid in Settings.MOVE:
+		_setting_item("settings_move", sid)
+	# Возврат в стартовую точку уровня: сессия 17 — за край площадки можно уйти в пустоту, а из
+	# дальнего угла локации возвращаться пешком долго.
+	# Имя действия — с префиксом «space_»: навигатор рассылает действия ПО ПРЕФИКСУ, и пункт с чужим
+	# именем молча не делает ничего (сессии 18–20: в журнале нет ни одного возврата из меню).
+	var home_it: Item = Item.make("move_respawn", "Вернуться в стартовую точку", K.ACTION, P.CLOSE, "Старт")
+	home_it.action = "space_respawn"
+	home_it.type_label = "действие"
+	_add("settings_move", home_it)
 	var wiz: Item = Item.make("set_wizard", "Мастер настройки", K.ACTION, P.CLOSE, "Мастер")
 	wiz.action = "wizard"
 	wiz.icon = "wizard"

@@ -64,3 +64,8 @@ openxr/extensions/meta/hand_tracking_mesh=true
 ; если нет, controller_view.gd через 3 с показывает запасную модель.
 openxr/extensions/render_model=true
 openxr/extensions/meta/render_model=true
+; Пространственные данные шлема (этап Ф3): комната, пол, стены, столы — OpenXRFbSceneManager
+; плагина. Разрешение манифеста плагин пишет по этим настройкам; требуется, чтобы человек прошёл
+; «настройку пространства» в системе, иначе приходит сигнал «данных нет» (world/room.gd).
+openxr/extensions/meta/scene_api=true
+openxr/extensions/meta/anchor_api=true

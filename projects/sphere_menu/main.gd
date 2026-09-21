@@ -85,6 +85,12 @@ var grab: Grab = Grab.new()
 var _pull_aimed: Dictionary = {}
 var _flying: Dictionary = {}
 var _hand_was: Dictionary = {}
+## Предметы группы «grab» этого кадра: один обход вместо трёх.
+var _grabbable: Array = []
+## Фальсификатор «grabthrice»: группа обходится трижды за кадр — цена этой правки не измерялась.
+var falsify_grab_thrice := false
+## Предмет, к которому нить тянется принудительно: только для замера её цены самопроверкой.
+var _pull_probe: Node3D = null
 var pull_view: PullView = PullView.new()
 ## Учёт загруженных частей уровня и отложенной выгрузки (world/level_stream.gd).
 var stream: LevelStream = LevelStream.new()
@@ -360,6 +366,8 @@ func _take_screenshot() -> void:
 func _process(_delta: float) -> void:
 	floor_grid.follow()
 	SignFace.face_all(get_tree().get_nodes_in_group("sign"), camera.global_position)
+	if _pull_probe != null and is_instance_valid(_pull_probe):
+		pull_view.show_link("right", _pull_probe, right.global_position, false)
 	_unload_frame(_delta)
 	_grab_frame(_delta)
 	profile_ui.tick_eye(_delta)
@@ -407,6 +415,8 @@ func _load_level(path: String) -> Dictionary:
 		return {}
 	var built := LevelLoader.build(level, res["data"])
 	stream.add(path, built["nodes"])
+	# Появились новые таблички — развернуть их, не дожидаясь, когда человек сдвинется.
+	SignFace.forget()
 	for t in built["triggers"]:
 		var file: String = t["file"]
 		var area := t["area"] as Area3D
@@ -445,8 +455,7 @@ func _pull_aim(hand: String, ctrl: XRController3D) -> void:
 		pull_view.show_link(hand, null, Vector3.ZERO, false)
 		return
 	var aim_node := _aim_of(hand)
-	var target := Pull.target(get_tree().get_nodes_in_group("grab"),
-			aim_node.global_position, -aim_node.global_basis.z)
+	var target := Pull.target(_grabbable, aim_node.global_position, -aim_node.global_basis.z)
 	_pull_aimed[hand] = target
 	pull_view.show_link(hand, target, aim_node.global_position, ctrl.is_button_pressed("grip_click"))
 
@@ -540,16 +549,30 @@ func respawn(why: String) -> void:
 	_show_notice("Вы в стартовой точке уровня — %s" % why, Color(0.8, 1.0, 0.8))
 
 
+## Замер цены нити (самопроверка): связь строится принудительно, без наведения рукой.
+func set_pull_probe(node: Node3D) -> void:
+	_pull_probe = node
+	if node == null:
+		pull_view.show_link("right", null, Vector3.ZERO, false)
+
+
 ## Кадр предметов в руке: грип контроллера берёт и отпускает куб из группы «grab».
 func _grab_frame(dt: float) -> void:
 	if locomotion == null or not locomotion.input_free():
 		return
+	# Группа «grab» обходилась до трёх раз за кадр (наведение каждой руки плюс ближнее взятие).
+	# Один обход, дальше список передаётся (сессия 24, цена кадра).
+	_grabbable = get_tree().get_nodes_in_group("grab")
+	if falsify_grab_thrice:
+		# Как было до сессии 25: группа обходилась на каждое наведение и на ближнее взятие.
+		_grabbable = get_tree().get_nodes_in_group("grab")
+		_grabbable = get_tree().get_nodes_in_group("grab")
 	for pair in [["left", left], ["right", right]]:
 		var hand: String = pair[0]
 		var ctrl: XRController3D = pair[1]
 		var holding: bool = ctrl.is_button_pressed("grip_click")
 		if holding and not grab.held.has(hand):
-			var near := Grab.nearest(get_tree().get_nodes_in_group("grab"), ctrl.global_position)
+			var near := Grab.nearest(_grabbable, ctrl.global_position)
 			if near != null:
 				grab.grab(hand, near, ctrl.global_transform)
 				journal.log("предмет", menu.params(), "", "", -1, "взят %s рукой %s" % [near.name, hand])

@@ -68,6 +68,10 @@ extends SceneTree
 ##   --falsify=signblind  подсказка в мире принимается без текста — краснеет только «подсказка в мире»;
 ##   --falsify=onehand    настройки руки не действуют, движение прибито к левому стику, поворот к
 ##                        правому — краснеет только «рука движения и поворота»;
+##   --falsify=arccoarse  линия дуги рисуется редкими точками лучей — дуга угловатая; краснеет
+##                        только «курс при телепорте»;
+##   --falsify=arcstep    дуга снова считается сложением шагов, и её форма зависит от числа
+##                        сегментов — краснеет только «курс при телепорте»;
 ##   --falsify=crouchquiet про присед в подсказке не сказано — краснеет только «подсказка по
 ##                        состоянию шара»;
 ##   --falsify=mantleease перевал снова идёт с ускорением (камера разгоняется — в VR запрещено) —
@@ -89,6 +93,10 @@ extends SceneTree
 ##                        краснеет только «сценарий теста»;
 ##   --falsify=actionorphan  пункт-действие получает имя с неизвестным навигатору префиксом —
 ##                        краснеет только «действия меню адресованы»;
+##   --falsify=signevery  разворот табличек считается каждый кадр (цена кадра сессии 24) — краснеет
+##                        только «кадр: лишняя работа»;
+##   --falsify=pullevery  нить призыва перестраивается каждый кадр на новом меше — краснеет только
+##                        «кадр: лишняя работа»;
 ##   --falsify=climbdrift точка захвата снова плывёт за рукой — лазанье теряет силу (дефект
 ##                        сессии 17); краснеет только «лазанье»;
 ##   --falsify=nobreak    хват не срывается, как бы далеко рука ни ушла, — краснеет только «лазанье»;
@@ -164,10 +172,12 @@ const MOVE_CHECKS := ["дуга телепорта", "перенос и рыво
 		"виньетка", "лазанье", "разбор уровня", "подсказка в мире",
 		"подгрузка и выгрузка по зоне", "подсказка смотрит на человека",
 		"призыв предмета", "курс при телепорте", "присед и виньетка по ускорению",
-		"перевал через край", "кромка в данных", "столкновения возвращаются сами"]
+		"перевал через край", "кромка в данных", "столкновения возвращаются сами",
+		"кадр: лишняя работа"]
 const MantleRes := preload("res://locomotion/mantle.gd")
 const PullRes := preload("res://world/pull.gd")
 const SignFaceRes := preload("res://world/sign_face.gd")
+const PullViewRes := preload("res://world/pull_view.gd")
 const LevelStreamRes := preload("res://world/level_stream.gd")
 const ProjectsRes := preload("res://profile/projects.gd")
 const JournalRes := preload("res://session/journal.gd")
@@ -247,6 +257,7 @@ func _init() -> void:
 	_mantle_check()
 	_ledge_check()
 	_collision_guard_check()
+	_frame_work_check()
 
 	var total := r.executed()
 	r.note("")
@@ -3421,6 +3432,41 @@ func _pull_checks() -> void:
 ## потому что поворот не знал о прицеливании, а сам угол был всегда ровно ±90°.
 func _teleport_extras_check() -> void:
 	var bad: Array[String] = []
+	# Прореживание дуги не изменило её форму: 12 сегментов при вдвое большем шаге дают ту же
+	# траекторию, что 24. Иначе «стало дешевле» означало бы «стало другое» (сессия 25).
+	TeleportRes.falsify_step_sum = falsify == "arcstep"
+	TeleportRes.falsify_fine_arc = false
+	var coarse := TeleportRes.arc(Vector3(0, 1.4, 0), Vector3(0, -0.2, -1).normalized(), 8.0)
+	TeleportRes.falsify_fine_arc = true
+	var fine := TeleportRes.arc(Vector3(0, 1.4, 0), Vector3(0, -0.2, -1).normalized(), 8.0)
+	TeleportRes.falsify_fine_arc = false
+	TeleportRes.falsify_step_sum = false
+	var tail_gap: float = coarse[coarse.size() - 1].distance_to(fine[fine.size() - 1])
+	if tail_gap > 0.05:
+		bad.append("дуга изменила форму: конец разошёлся на %.2f м" % tail_gap)
+	# Сравнивать надо точки одного ВРЕМЕНИ, а не одного номера: шаг вдвое крупнее, значит точке k
+	# грубой дуги соответствует точка 2k мелкой. Сравнение по номеру сравнивало бы разные места.
+	var mid_gap := 0.0
+	for k in coarse.size():
+		if k * 2 >= fine.size():
+			break
+		mid_gap = maxf(mid_gap, coarse[k].distance_to(fine[k * 2]))
+	if mid_gap > 0.05:
+		bad.append("дуга изменила форму: точки одного времени разошлись на %.2f м" % mid_gap)
+	# Линия гуще лучей: точки — арифметика, запросы к физике — нет. Форма при этом та же.
+	TeleportRes.falsify_coarse_line = falsify == "arccoarse"
+	var line := TeleportRes.arc_line(Vector3(0, 1.4, 0), Vector3(0, -0.2, -1).normalized(), 8.0)
+	if line.size() < coarse.size() * 2 - 2:
+		bad.append("линия не гуще лучей: %d точек против %d" % [line.size(), coarse.size()])
+	# Точки, совпадающие по времени, должны лежать там же — гладкость не меняет траекторию.
+	var line_gap := 0.0
+	for k in coarse.size():
+		if k * TeleportRes.DRAW_SUBDIV >= line.size():
+			break
+		line_gap = maxf(line_gap, coarse[k].distance_to(line[k * TeleportRes.DRAW_SUBDIV]))
+	if line_gap > 0.01:
+		bad.append("линия ушла с дуги на %.3f м" % line_gap)
+	TeleportRes.falsify_coarse_line = false
 	# Мёртвая зона: лёгкое касание стика курс не задаёт — человек смотрит туда же, куда смотрел.
 	if not is_nan(TeleportRes.aim_yaw(TeleportRes.AIM_DEADZONE * 0.9, 30.0)):
 		bad.append("касание стика в мёртвой зоне уже задаёт курс")
@@ -3438,8 +3484,9 @@ func _teleport_extras_check() -> void:
 	if is_equal_approx(TeleportRes.aim_yaw(1.0, 0.0), TeleportRes.aim_yaw(1.0, 90.0)):
 		bad.append("курс не зависит от того, куда смотрит человек")
 	if bad.is_empty():
-		r.pass_("курс при телепорте: мёртвая зона %.2f, угол пропорционален отклонению до %.0f°, считается от взгляда" % [
-				TeleportRes.AIM_DEADZONE, TeleportRes.MAX_AIM_TURN])
+		r.pass_("курс при телепорте: мёртвая зона %.2f, угол пропорционален отклонению до %.0f°, считается от взгляда; дуга из %d сегментов совпадает с прежней из %d (конец %.3f м, худшая точка %.3f м)" % [
+				TeleportRes.AIM_DEADZONE, TeleportRes.MAX_AIM_TURN, TeleportRes.STEPS, TeleportRes.STEPS_FINE,
+				tail_gap, mid_gap])
 	else:
 		r.fail("курс при телепорте: %s" % "; ".join(bad))
 
@@ -3667,3 +3714,66 @@ func _collision_guard_check() -> void:
 		r.pass_("столкновения возвращаются сами: снятая на перевал маска восстанавливается первым же тактом после переноса, двойное снятие её не теряет")
 	else:
 		r.fail("столкновения возвращаются сами: %s" % "; ".join(bad))
+
+
+## Кадр не делает лишней работы. Сессия 24: CPU+скрипты 6.40 мс против 2.92 в сессиях 18 и 20.
+## Виновники были названы поимённо — разворот восьми табличек с записью `global_basis` каждый кадр
+## и нить призыва, пересоздающая `ImmediateMesh` вместе с массивом точек. Здесь проверяется не
+## время (его мерит прибор на шлеме), а сам факт: работа делается, только когда что-то сдвинулось.
+func _frame_work_check() -> void:
+	SignFaceRes.falsify_every_frame = falsify == "signevery"
+	PullViewRes.falsify_every_frame = falsify == "pullevery"
+	var bad: Array[String] = []
+	# Таблички: первый кадр разворачивает, стоячие кадры — нет, сдвиг головы — снова да.
+	var signs: Array = []
+	for i in 8:
+		var n := Node3D.new()
+		n.position = Vector3(float(i), 1.5, 0.0)
+		signs.append(n)
+	SignFaceRes.forget()
+	var head := Vector3(0, 1.6, 3.0)
+	var first := SignFaceRes.face_all(signs, head)
+	var still := SignFaceRes.face_all(signs, head)
+	var tiny := SignFaceRes.face_all(signs, head + Vector3(SignFaceRes.HEAD_EPS * 0.4, 0, 0))
+	var moved := SignFaceRes.face_all(signs, head + Vector3(0.5, 0, 0))
+	if first != 8:
+		bad.append("первый кадр развернул %d табличек из 8" % first)
+	if still != 0 or tiny != 0:
+		bad.append("стоящая голова всё равно крутит таблички: %d и %d" % [still, tiny])
+	if moved != 8:
+		bad.append("после шага головы таблички не развернулись: %d" % moved)
+	for n in signs:
+		(n as Node3D).free()
+	# Нить: меш переиспользуется, а не создаётся заново на каждый кадр.
+	var view: PullViewRes = PullViewRes.new()
+	var holder := Node3D.new()
+	root.add_child(holder)
+	view.setup(holder)
+	var target := MeshInstance3D.new()
+	holder.add_child(target)
+	target.position = Vector3(0, 1.2, -2.0)
+	view.show_link("right", target, Vector3(0.2, 1.3, 0), false)
+	var line: MeshInstance3D = null
+	for ch in holder.get_children():
+		if ch != target and ch is MeshInstance3D:
+			line = ch
+	if line == null:
+		bad.append("нить не построилась")
+	else:
+		var mesh_first: Mesh = line.mesh
+		view.show_link("right", target, Vector3(0.2, 1.3, 0), false)
+		view.show_link("right", target, Vector3(0.2, 1.3, 0), false)
+		if line.mesh != mesh_first:
+			bad.append("нить пересоздаёт меш на стоячей руке")
+		view.show_link("right", target, Vector3(0.5, 1.3, 0), false)
+		if line.mesh != mesh_first:
+			bad.append("нить пересоздаёт меш вместо перестройки поверхностей")
+	view.hide_all()
+	root.remove_child(holder)
+	holder.free()
+	SignFaceRes.falsify_every_frame = false
+	PullViewRes.falsify_every_frame = false
+	if bad.is_empty():
+		r.pass_("кадр: лишняя работа — таблички разворачиваются только после шага головы на %.2f м, нить перестраивает поверхности одного меша" % SignFaceRes.HEAD_EPS)
+	else:
+		r.fail("кадр: лишняя работа — %s" % "; ".join(bad))

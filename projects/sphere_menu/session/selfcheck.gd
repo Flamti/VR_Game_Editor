@@ -15,6 +15,9 @@ const Report := preload("res://probe_report.gd")
 const ProbeBudget := preload("res://probe_budget.gd")
 const ProbeWindow := preload("res://probe_window.gd")
 const ProbeStats := preload("res://probe_stats.gd")
+const SignFace := preload("res://world/sign_face.gd")
+const PullView := preload("res://world/pull_view.gd")
+const Teleport := preload("res://locomotion/teleport.gd")
 const Menu := preload("res://menu/sphere_menu.gd")
 const Settings := preload("res://menu/settings.gd")
 const SettingEdit := preload("res://menu/setting_edit.gd")
@@ -36,6 +39,9 @@ const WORST_SPIN := 1.5
 ## Пар окон «покой, вращение» подряд в проверке пропуска перерисовки. Чётное — медиана по
 ## двум средним.
 const REDRAW_PAIRS := 4
+## Сколько чередующихся пар на каждую из трёх правок: медиана по трём снимает дрейф, а больше пар
+## растянули бы самопроверку.
+const THREE_PAIRS := 3
 
 var r: Report = Report.new()
 var expected := 0
@@ -45,7 +51,8 @@ var results := {}
 func run(host: Node, menu: Menu) -> bool:
 	var checks := ["xr", "частота", "msaa", "прогрев", "глобус худший", "глобус крупный", "линза худшая",
 			"раскладки худшие", "атлас", "панель", "панель лучом", "прокрутка панели", "пропуск перерисовки",
-			"подписи", "клавиатура overlay", "PIN: время входа", "мир: свет и сетка"]
+			"подписи", "клавиатура overlay", "PIN: время входа", "мир: свет и сетка",
+			"кадр: таблички и нить", "кадр: три правки"]
 	expected = checks.size()
 	r.note("=== САМОПРОВЕРКА ШАР-МЕНЮ ===")
 	r.note("ожидается исполненных проверок: %d" % expected)
@@ -324,6 +331,10 @@ func run(host: Node, menu: Menu) -> bool:
 
 	menu.close()
 	await _world_cost(host, menu, rid, budget)
+	await _frame_extras(host, menu, rid, budget)
+	await _frame_three(host, menu, rid, budget)
+	await _frame_extras(host, menu, rid, budget)
+	await _frame_three(host, menu, rid, budget)
 	_pin_time()
 	return _verdict()
 
@@ -459,3 +470,126 @@ static func _delta(a: Dictionary, b: Dictionary) -> Dictionary:
 	for k in COUNTERS:
 		d[k] = int(b[k]) - int(a[k])
 	return d
+
+
+## Цена разворота табличек и нити призыва в кадре. Сессия 24: CPU+скрипты 6.40 мс против 2.92 в
+## сессиях 18 и 20 — рост вдвое, и виновники были названы по коду, но не измерены.
+##
+## Меряется ВЕРХНЯЯ ГРАНИЦА чередующимися парами: окно «механика выключена» против окна «механика
+## работает каждый кадр», и так несколько раз подряд, медиана разностей. Сравнение «как в игре»
+## зависело от того, вертел ли человек головой (сессия 25: +4.23 и −0.29), а два окна подряд
+## зависят от дрейфа за минуту (сессия 27: нить дала −2.00). Принудительный режим убирает из
+## измерения человека, медиана по парам — дрейф.
+func _frame_extras(host: Node, menu: Menu, rid: RID, budget: float) -> void:
+	var signs: Array = host.get_tree().get_nodes_in_group("sign")
+	if signs.is_empty():
+		r.fail("кадр: таблички и нить — в сцене нет табличек, мерить нечего")
+		return
+	menu.close()
+	var items: Array = host.get_tree().get_nodes_in_group("grab")
+	var has_thread: bool = host.has_method("set_pull_probe") and not items.is_empty()
+	var sign_diffs: Array[float] = []
+	var thread_diffs: Array[float] = []
+	for _p in THREE_PAIRS:
+		# Таблички: не крутим вовсе против разворота каждый кадр.
+		SignFace.falsify_billboard = true
+		SignFace.falsify_every_frame = false
+		await ProbeWindow.settle(host, 0.25)
+		var s_off: float = ((await _measure_short(host, rid, budget))["process"] as ProbeStats).percentile(0.95)
+		SignFace.falsify_billboard = false
+		SignFace.falsify_every_frame = true
+		SignFace.forget()
+		await ProbeWindow.settle(host, 0.25)
+		var s_on: float = ((await _measure_short(host, rid, budget))["process"] as ProbeStats).percentile(0.95)
+		sign_diffs.append(s_on - s_off)
+		if not has_thread:
+			continue
+		# Нить: без связи против связи, перестраиваемой каждый кадр.
+		host.set_pull_probe(null)
+		PullView.falsify_every_frame = false
+		await ProbeWindow.settle(host, 0.25)
+		var t_off: float = ((await _measure_short(host, rid, budget))["process"] as ProbeStats).percentile(0.95)
+		PullView.falsify_every_frame = true
+		host.set_pull_probe(items[0])
+		await ProbeWindow.settle(host, 0.25)
+		var t_on: float = ((await _measure_short(host, rid, budget))["process"] as ProbeStats).percentile(0.95)
+		thread_diffs.append(t_on - t_off)
+	SignFace.falsify_billboard = false
+	SignFace.falsify_every_frame = false
+	SignFace.forget()
+	PullView.falsify_every_frame = false
+	if has_thread:
+		host.set_pull_probe(null)
+	sign_diffs.sort()
+	thread_diffs.sort()
+	var s_mid: float = sign_diffs[sign_diffs.size() / 2]
+	var t_mid: float = thread_diffs[thread_diffs.size() / 2] if not thread_diffs.is_empty() else 0.0
+	results["frame_extras"] = {"signs": s_mid, "signs_low": sign_diffs[0],
+			"signs_high": sign_diffs[sign_diffs.size() - 1], "thread": t_mid,
+			"thread_low": thread_diffs[0] if not thread_diffs.is_empty() else 0.0,
+			"thread_high": thread_diffs[thread_diffs.size() - 1] if not thread_diffs.is_empty() else 0.0,
+			"count": signs.size(), "pairs": THREE_PAIRS}
+	var line := "кадр: таблички и нить (верхняя граница, медиана по %d парам) — %d табличек каждый кадр %+.2f мс (от %+.2f до %+.2f)" % [
+			THREE_PAIRS, signs.size(), s_mid, sign_diffs[0], sign_diffs[sign_diffs.size() - 1]]
+	if not thread_diffs.is_empty():
+		line += "; нить каждый кадр %+.2f мс (от %+.2f до %+.2f)" % [t_mid, thread_diffs[0], thread_diffs[thread_diffs.size() - 1]]
+	line += "; бюджет %.2f" % budget
+	r.pass_(line)
+
+
+## Цена трёх правок сессии 25, сделанных «заодно» и не измеренных: поиск зацепа только с нажатым
+## грипом, один обход группы предметов вместо трёх, дуга телепорта из 12 сегментов вместо 24.
+##
+## **Чередующиеся пары с медианой разностей**, а не два окна подряд. Сессия 27: десять окон подряд
+## дали разброс больше измеряемого — «каждый такт» вышел дешевле «по грипу» дважды, а нить один раз
+## показала −2.00 мс. Причина известна и уже записана в проверке «пропуск перерисовки»: за минуту
+## условия дрейфуют, и соседние окна сравнивать нельзя. Медиана по парам это снимает.
+func _frame_three(host: Node, menu: Menu, rid: RID, budget: float) -> void:
+	var loco = host.get("locomotion")
+	if loco == null:
+		r.fail("кадр: три правки — в сцене нет перемещения, мерить нечего")
+		return
+	menu.close()
+	loco.probe_aim = true
+	# Три механики: имя, как включить «как было», как вернуть «как стало».
+	var cases := [
+			["зацеп каждый такт", func(on: bool): loco.falsify_climb_every = on],
+			["группа трижды", func(on: bool): host.set("falsify_grab_thrice", on)],
+			["дуга 24 сегмента", func(on: bool): Teleport.falsify_fine_arc = on],
+	]
+	var out := {}
+	var parts: Array[String] = []
+	for case in cases:
+		var name: String = case[0]
+		var set_old: Callable = case[1]
+		var diffs: Array[float] = []
+		for _p in THREE_PAIRS:
+			set_old.call(false)
+			await ProbeWindow.settle(host, 0.25)
+			var now: float = ((await _measure_short(host, rid, budget))["process"] as ProbeStats).percentile(0.95)
+			set_old.call(true)
+			await ProbeWindow.settle(host, 0.25)
+			var was: float = ((await _measure_short(host, rid, budget))["process"] as ProbeStats).percentile(0.95)
+			diffs.append(was - now)
+		set_old.call(false)
+		diffs.sort()
+		var mid: float = diffs[diffs.size() / 2]
+		out[name] = {"median": mid, "low": diffs[0], "high": diffs[diffs.size() - 1]}
+		parts.append("%s %+.2f (от %+.2f до %+.2f)" % [name, mid, diffs[0], diffs[diffs.size() - 1]])
+	loco.probe_aim = false
+	results["frame_three"] = out
+	# Вердикт — по бюджету; сами разности называются числом, решение по ним принимает владелец.
+	var line := "кадр: три правки, медиана по %d парам — %s; бюджет %.2f" % [THREE_PAIRS, "; ".join(parts), budget]
+	r.pass_(line)
+
+
+## Короткое окно для парных замеров: их много, и полуторасекундные окна растянули бы самопроверку
+## на минуты. Прогрев остаётся — без него первое окно пары ловит переходный процесс.
+func _measure_short(host: Node, rid: RID, budget: float) -> Dictionary:
+	var m: Dictionary = await ProbeWindow.measure(host, rid, budget, 0.4, 0.8)
+	var proc := ProbeStats.new()
+	for _i in int(m["frames"]):
+		await host.get_tree().process_frame
+		proc.add(Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0)
+	m["process"] = proc
+	return m

@@ -11,8 +11,28 @@ extends RefCounted
 ## примерно на 5 м вперёд при горизонтальной руке.
 const SPEED := 8.0
 const GRAVITY := 12.0
-const STEPS := 24
-const STEP_S := 0.06
+## Сегментов дуги ДЛЯ ЛУЧЕЙ: каждый — запрос к физике, и всё это каждый такт прицеливания.
+## Двенадцать: прореживание с 24 до 12 измеримого выигрыша не дало (сессия 28, медиана в пределах
+## разброса), но и вреда нет, а запросов вдвое меньше.
+const STEPS := 12
+const STEP_S := 0.12
+## Во сколько раз чаще ставятся точки ЛИНИИ. Дуга из 12 отрезков на семи метрах заметно угловата,
+## а лишние точки — чистая арифметика без единого запроса к физике: считать их нечем дорого.
+const DRAW_SUBDIV := 2
+## Как было до сессии 25 — вдвое мельче. Цена этой правки не измерялась, и фальсификатор нужен,
+## чтобы прибор назвал её числом, а не чтобы поверить на слово.
+const STEPS_FINE := 24
+const STEP_S_FINE := 0.06
+
+## Режим сравнения «как было»: дуга из 24 сегментов. Не порча данных, а вторая точка отсчёта —
+## самопроверка меряет им цену прореживания, а настольная проверка сверяет форму.
+static var falsify_fine_arc := false
+## Фальсификатор «arccoarse»: линия рисуется теми же редкими точками, что идут на лучи, — дуга
+## становится угловатой.
+static var falsify_coarse_line := false
+## Фальсификатор «arcstep»: точка снова считается сложением шагов (метод Эйлера). Траектория тогда
+## зависит от числа сегментов — сессия 25: прореживание увело середину дуги на полметра.
+static var falsify_step_sum := false
 ## Площадка считается пригодной, если наклон не круче этого, градусы.
 const MAX_SLOPE_DEG := 40.0
 ## Затемнение мигания и длительность рывка, с.
@@ -40,15 +60,28 @@ var mode := "blink"
 ## Точки дуги от origin в направлении dir. Последняя точка — конец дальности.
 static func arc(origin: Vector3, dir: Vector3, max_range: float) -> PackedVector3Array:
 	var pts := PackedVector3Array()
-	var v := dir.normalized() * SPEED
-	var p := origin
-	for i in STEPS:
-		pts.append(p)
-		p += v * STEP_S
-		v.y -= GRAVITY * STEP_S
+	var v0 := dir.normalized() * SPEED
+	var steps := STEPS_FINE if falsify_fine_arc else STEPS
+	var step_s := STEP_S_FINE if falsify_fine_arc else STEP_S
+	# Точка считается ТОЧНОЙ формулой броска, а не сложением шагов. Пошаговое сложение (метод
+	# Эйлера) при вдвое большем шаге даёт другую траекторию: сессия 25 — прореживание дуги с 24
+	# сегментов до 12 увело середину на 0.52 м, и «стало дешевле» означало «стало другое».
+	# Теперь число сегментов влияет только на гладкость линии.
+	var walk := origin
+	var walk_v := v0
+	for i in steps + 1:
+		var t := float(i) * step_s
+		var p := origin + v0 * t + Vector3.DOWN * (0.5 * GRAVITY * t * t)
+		if falsify_step_sum:
+			p = walk
+			walk += walk_v * step_s
+			walk_v.y -= GRAVITY * step_s
 		if p.distance_to(origin) > max_range:
-			break
-	pts.append(p)
+			# Последняя точка — ровно на границе дальности: иначе дуга выходит за настройку, и
+			# «дальность телепорта» перестаёт значить сказанное.
+			pts.append(origin + (p - origin).normalized() * max_range)
+			return pts
+		pts.append(p)
 	return pts
 
 
@@ -108,3 +141,21 @@ func tick(dt: float) -> Dictionary:
 			# сглаженный разгон и торможение: рывок не должен дёргать в начале и конце
 			return {"pos": from.lerp(target, smoothstep(0.0, 1.0, k3)), "fade": 0.0, "done": false}
 	return {"pos": target, "fade": 0.0, "done": true}
+
+
+## Точки для ЛИНИИ: та же дуга, но гуще. Лучи физики по ним не пускаются, поэтому гладкость
+## достаётся даром — форма считается точной формулой и от числа точек не зависит.
+static func arc_line(origin: Vector3, dir: Vector3, max_range: float) -> PackedVector3Array:
+	var sub := 1 if falsify_coarse_line else DRAW_SUBDIV
+	var pts := PackedVector3Array()
+	var v0 := dir.normalized() * SPEED
+	var steps := (STEPS_FINE if falsify_fine_arc else STEPS) * sub
+	var step_s := (STEP_S_FINE if falsify_fine_arc else STEP_S) / float(sub)
+	for i in steps + 1:
+		var t := float(i) * step_s
+		var p := origin + v0 * t + Vector3.DOWN * (0.5 * GRAVITY * t * t)
+		if p.distance_to(origin) > max_range:
+			pts.append(origin + (p - origin).normalized() * max_range)
+			return pts
+		pts.append(p)
+	return pts

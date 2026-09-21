@@ -60,6 +60,11 @@ var falsify_quiet_walk := false
 ## Фальсификатор «aimturn»: поворот работает и во время прицеливания — человек крутится, вместо
 ## того чтобы задать курс приземления.
 var falsify_aim_turn := false
+## Фальсификатор «climbevery»: зацеп ищется каждый такт на каждую руку, даже с отпущенным грипом —
+## как было до сессии 25 (обход группы из 14 брусков дважды за такт).
+var falsify_climb_every := false
+## Принудительное прицеливание для замера цены дуги: рисуется каждый такт из позы руки.
+var probe_aim := false
 ## Фальсификатор «axisfree»: оси стика не глушат друг друга — поворот снова тащит человека вперёд.
 var falsify_no_axis_lock := false
 ## Фальсификатор «mantlefloor»: перевал срабатывает и у стоящего на полу — дефект сессии 23, когда
@@ -124,6 +129,9 @@ func _physics_process(dt: float) -> void:
 		vignette.apply(vignette_math.update(0.0, 0.0, settings_value("move_vignette"), dt))
 		arc_line.visible = false
 		return
+	# Принудительное прицеливание — только для замера цены дуги самопроверкой.
+	if probe_aim:
+		_draw_arc(right.global_position, -right.global_basis.z)
 	# Пока целишься телепортом, стик вбок задаёт КУРС после переноса, а не крутит на месте
 	# (сессия 20: «поворот стика поворачивает сразу, а не после телепортации»).
 	if not aiming or falsify_aim_turn:
@@ -239,9 +247,12 @@ func _aim(from: Vector3, dir: Vector3) -> Dictionary:
 func _draw_arc(from: Vector3, dir: Vector3) -> void:
 	var aim := _aim(from, dir)
 	var ok: bool = aim["hit"] and Teleport.landing_ok(aim["normal"])
+	# Линия рисуется гуще, чем идут лучи: точки — чистая арифметика, а запросы к физике дороги.
+	# Если дуга упёрлась, показываем ровно её пройденную часть, иначе линия уходила бы сквозь стену.
+	var line_pts: PackedVector3Array = aim["points"] if aim["hit"] else Teleport.arc_line(from, dir, float(settings_value("teleport_range")))
 	var im := ImmediateMesh.new()
 	im.surface_begin(Mesh.PRIMITIVE_LINE_STRIP)
-	for p in aim["points"]:
+	for p in line_pts:
 		im.surface_add_vertex(origin.to_local(p))
 	im.surface_end()
 	arc_line.mesh = im
@@ -281,7 +292,9 @@ func _climb(dt: float) -> void:
 		var ctrl: XRController3D = pair[1]
 		positions[hand] = ctrl.global_position
 		var holding: bool = ctrl.is_button_pressed("grip_click")
-		var hold_node := _climbable_near(ctrl.global_position)
+		# Зацеп ищем только с нажатым грипом: обход группы из 14 брусков на каждую руку каждый такт
+		# шёл и тогда, когда человек просто шёл мимо (сессия 24, цена кадра).
+		var hold_node: Node3D = _climbable_near(ctrl.global_position) if (holding or falsify_climb_every) else null
 		if holding and not climb.hands.has(hand) and hold_node != null:
 			if not climb.active:
 				_climb_from = body.global_position

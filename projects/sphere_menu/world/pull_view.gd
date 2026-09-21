@@ -18,6 +18,11 @@ const HELD_COLOR := Color(0.45, 1.0, 0.6)
 static var falsify_no_line := false
 ## Фальсификатор «pullnohl»: предмет не выделяется — видно только нить.
 static var falsify_no_highlight := false
+## Фальсификатор «pullevery»: нить перестраивается каждый кадр и на новом меше, как до сессии 24.
+static var falsify_every_frame := false
+
+## Насколько должны разойтись ладонь или предмет, чтобы нить перестраивалась, м.
+const MOVE_EPS := 0.01
 
 ## рука → {line: MeshInstance3D, node: Node3D}
 var _shown: Dictionary = {}
@@ -47,18 +52,34 @@ func show_link(hand: String, node: Node3D, palm: Vector3, held: bool) -> void:
 		if not falsify_no_highlight and node is GeometryInstance3D:
 			(node as GeometryInstance3D).material_overlay = _glow
 		_shown[hand] = {"node": node, "line": _line()}
-	var line: MeshInstance3D = _shown[hand].get("line", null)
+	var link: Dictionary = _shown[hand]
+	var line: MeshInstance3D = link.get("line", null)
 	if line == null:
 		return
 	var color := HELD_COLOR if held else AIM_COLOR
-	(line.material_override as StandardMaterial3D).albedo_color = color
-	_glow.albedo_color = Color(color.r, color.g, color.b, 0.35)
-	var im := ImmediateMesh.new()
+	if link.get("held", null) != held:
+		link["held"] = held
+		(line.material_override as StandardMaterial3D).albedo_color = color
+		_glow.albedo_color = Color(color.r, color.g, color.b, 0.35)
+	# Перестраиваем, только когда ладонь или предмет РАЗОШЛИСЬ: раньше `ImmediateMesh` создавался
+	# заново каждый кадр вместе с массивом точек (сессия 24 — CPU+скрипты вдвое против обычного).
+	var to: Vector3 = node.global_position
+	if not falsify_every_frame and palm.distance_to(link.get("palm", Vector3(9e9, 0, 0))) < MOVE_EPS \
+			and to.distance_to(link.get("to", Vector3(9e9, 0, 0))) < MOVE_EPS:
+		return
+	link["palm"] = palm
+	link["to"] = to
+	# Меш один на всю жизнь связи: у ImmediateMesh для этого есть clear_surfaces().
+	var im: ImmediateMesh = line.mesh
+	if im == null or falsify_every_frame:
+		im = ImmediateMesh.new()
+		line.mesh = im
+	else:
+		im.clear_surfaces()
 	im.surface_begin(Mesh.PRIMITIVE_LINE_STRIP)
-	for p in Pull.thread(palm, node.global_position):
+	for p in Pull.thread(palm, to):
 		im.surface_add_vertex(line.to_local(p))
 	im.surface_end()
-	line.mesh = im
 
 
 func hide_all() -> void:

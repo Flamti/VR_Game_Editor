@@ -95,6 +95,17 @@ extends SceneTree
 ##   --falsify=grabstick   предмет не отпускается — краснеет только «предмет в руке»;
 ##   --falsify=pullnoline  нить от ладони к предмету не строится — краснеет только «связь при призыве»;
 ##   --falsify=pullnohl    предмет не выделяется накладкой — краснеет только «связь при призыве»;
+##   --falsify=triggergame коробка зоны подгрузки строится на слое игры — игрок видит разметку
+##                         автора; краснеет только «зона видна и работает скрытой»;
+##   --falsify=playmask    маска камеры не смотрит на режим игры — краснеет только «режим игры
+##                         прячет и возвращает»;
+##   --falsify=groupfree   скрытие группы гасит и столкновения — краснеет только «скрытая группа
+##                         держит»;
+##   --falsify=lockdrift   перехват ввода не гасит начатое движение — человек продолжает ехать,
+##                         пока вводит PIN (дефект сессии 29); краснеет только «перехват ввода
+##                         останавливает движение»;
+##   --falsify=groupmenu   папка групп строится из каталога, а не из уровня, и действие пункта
+##                         адресовано не сессии — краснеет только «меню групп из уровня»;
 ##   --falsify=handoff     отдача управления не бросает начатое касание — краснеет только
 ##                         «руки: отдача управления» (контроллер отпускает курок — выбор).
 ## Пол — по числу исполненных шагов; ошибки выполнения печатаются движком, их
@@ -126,6 +137,10 @@ const MantleRes := preload("res://locomotion/mantle.gd")
 const GrabRes := preload("res://world/grab.gd")
 const LocomotionRes := preload("res://locomotion/locomotion.gd")
 const RoomRes := preload("res://world/room.gd")
+const LayersRes := preload("res://world/layers.gd")
+const VisibilityRes := preload("res://world/visibility.gd")
+const TriggerViewRes := preload("res://world/trigger_view.gd")
+const ItemRes := preload("res://menu/item.gd")
 const SynthHand := preload("res://tests/synth_hand.gd")
 
 const STEPS := ["открыть", "войти коротким", "действия удержанием", "копировать", "вставить",
@@ -141,7 +156,11 @@ const STEPS := ["открыть", "войти коротким", "действи
 		"тело игрока: ступень", "тело игрока: стена",
 		"тело игрока: наклон у стены", "лазанье поднимает", "перевал ставит в полный рост",
 		"перевал без скачка вида", "перевал не хватает стоящего", "предмет в руке", "связь при призыве", "стики принадлежат меню", "журнал ходьбы", "рука движения и поворота",
-		"падение и возврат в старт", "комната от шлема", "раскладки", "выход удержанием"]
+		"падение и возврат в старт", "комната от шлема",
+		"перехват ввода останавливает движение",
+		"зона видна и работает скрытой", "режим игры прячет и возвращает", "скрытая группа держит",
+		"меню групп из уровня",
+		"раскладки", "выход удержанием"]
 
 var r: Report = Report.new()
 ## Фальсификатор дымового прогона: --falsify=scroll снимает ограничение хода прокрутки.
@@ -210,6 +229,7 @@ func _initialize() -> void:
 		[309, _hands_fist_touch], [309, _hands_drag], [309, _hands_handoff],
 		[309, _router_ready], [309, _router_visuals], [309, _router_settings], [309, _router_done], [309, _profile_switch], [309, _pui_new], [309, _pui_pin], [309, _pui_body], [309, _acc_key], [309, _acc_google], [309, _acc_pin], [309, _pui_done], [310, _world_light], [310, _world_grid], [310, _grid_fixed], [311, _level_build], [312, _phys_setup],
 		[330, _phys_head_prep], [360, _phys_head_check], [380, _phys_step], [470, _phys_wall], [500, _lean_prep], [520, _mantle_floor_check], [545, _lean_check], [556, _mantle_floor_result], [558, _climb_prep], [570, _climb_check], [572, _mantle_prep], [580, _grab_check], [580, _pull_link], [581, _stick_owner], [581, _walk_log], [581, _hand_choice], [582, _fall_home], [592, _fall_check], [600, _mantle_check], [601, _mantle_view_check], [582, _room_node],
+		[582, _input_lock], [583, _zone_prep], [615, _zone_check], [616, _play_mode], [617, _group_solid], [618, _group_menu],
 		[310, _layouts], [314, _exit_hold], [320, _finish],
 	]
 
@@ -242,7 +262,7 @@ func _process(_delta: float) -> bool:
 		# Переносим, только пока тело отдано нам. Если физику не выключили (фальсификатор), телом
 		# распоряжается она: тяготение роняет, следование тянет назад — ровно дефект сессии 20.
 		if mb.mantling:
-			mb.global_position = MantleRes.rise_point(Vector3(4.5, 3.3, -4.2), _mantle_t["to"], mt)
+			mb.global_position = MantleRes.rise_point(_mantle_t["from"], _mantle_t["to"], mt)
 			_mantle_t_view.append((_mantle_t["head"] as Node3D).global_position)
 			if mt >= 1.0:
 				mb.mantling = false
@@ -1916,6 +1936,7 @@ func _world_grid() -> void:
 
 var _level_root: Node3D
 var _level_built: Dictionary = {}
+var _level_data: Dictionary = {}
 var _player: PlayerBody
 var _fake_head: Node3D
 var _fake_origin: XROrigin3D
@@ -1926,6 +1947,8 @@ var _climb: Dictionary = {}
 var _mantle_t: Dictionary = {}
 ## Где была голова на каждом кадре перевала — ищем скачок вида.
 var _mantle_t_view: Array = []
+## Высота площадки, на которую ведёт кромка, — из данных уровня.
+var _mantle_t_top := 0.0
 var _floor_t: Dictionary = {}
 
 
@@ -1938,6 +1961,7 @@ func _level_build() -> void:
 	if not res["ok"]:
 		r.fail("уровень из данных: %s" % res["error"])
 		return
+	_level_data = res["data"]
 	_level_built = LevelLoader.build(_level_root, res["data"])
 	var nodes: int = (_level_built["nodes"] as Array).size()
 	var colors: int = _level_built["colors"]
@@ -1954,6 +1978,23 @@ func _level_build() -> void:
 	else:
 		r.fail("уровень из данных: узлов %d, материалов %d, зацепов %d, предметов %d, целей %d, триггеров %d, старт %s" % [
 				nodes, colors, climb, grabbable, targets, triggers, spawn])
+
+
+## Объект уровня по имени. Стенды опираются на данные сцены, а не на числа в своём коде: улицу
+## перестроили 2026-09-22, и пять шагов, знавших координаты наизусть, покраснели на верном коде.
+func _obj(uuid: String) -> Dictionary:
+	for o in _level_data.get("objects", []):
+		if str((o as Dictionary).get("uuid", "")) == uuid:
+			return o
+	return {}
+
+
+func _obj_pos(uuid: String) -> Vector3:
+	var o := _obj(uuid)
+	var a: Variant = o.get("pos", null)
+	if not a is Array:
+		return Vector3.ZERO
+	return Vector3(float(a[0]), float(a[1]), float(a[2]))
 
 
 ## Тело игрока над полом; дальше кадры физики делают своё дело.
@@ -2017,18 +2058,25 @@ func _phys_head_check() -> void:
 func _phys_step() -> void:
 	_phys["on_floor"] = bool(_phys.get("landed", false))
 	_phys["landing"] = false
-	# Лесенка стартовой локации: подходим к первой ступени (высота 0.18) и «идём» на неё.
-	_player.global_position = Vector3(-7.0, 0.05, -3.4)
+	# Лесенка улицы: подходим к нижней ступени (высота 0.18) и «идём» на неё. Ступени растут в −Z,
+	# туда же идёт стенд.
+	var st := _obj_pos("stairs")
+	var st_size: Array = _obj("stairs").get("size", [2.0, 1.8, 0.3])
+	_player.global_position = Vector3(st.x - float(st_size[0]) * 0.35, 0.05, st.z + 0.7)
 	_fake_head.position = Vector3(0, 1.6, 0)
 	_phys["walk"] = "stairs"
 
 
 func _phys_wall() -> void:
 	_phys["step_y"] = _player.global_position.y
-	# Стена помещения: идём в неё, тело не должно пройти насквозь.
-	_player.global_position = Vector3(-6.0, 0.05, 5.6)
+	# Стена дома: идём в неё, тело не должно пройти насквозь.
+	var wall := _obj_pos("hstair_side1")
+	_player.global_position = Vector3(wall.x, 0.05, wall.z - 1.9)
 	_phys["walk"] = "wall"
 	_phys["wall_from"] = _player.global_position.z
+	# Куда тело не должно дойти: плоскость стены минус полкапсулы. Порог из данных, а не число в
+	# коде: со старым числом (6.3) проверка была истинной всегда и не краснела даже на «ghost».
+	_phys["wall_stop"] = wall.z - 0.3
 
 
 ## Человек наклоняется к препятствию: голова уходит вперёд, капсула лезет в стену. Тело при этом
@@ -2047,11 +2095,11 @@ func _lean_prep() -> void:
 	body.falsify_push_lean = falsify == "pushlean"
 	body.setup(origin, lean_head)
 	body.set_eye_height(1.6)
-	# Вплотную к стене помещения (она на z = 6.4), лицом к ней: «позади глаз» считается по взгляду,
-	# и голова, смотрящая в другую сторону, дала бы смещение В стену вместо от неё.
-	# По x — в стороне от общего тела предыдущего шага (оно стоит у той же стены на x = −6):
+	# Вплотную к торцу дальнего дома, лицом к нему: «позади глаз» считается по взгляду, и голова,
+	# смотрящая в другую сторону, дала бы смещение В стену вместо от неё. Дом дальний намеренно —
 	# два тела в одной точке расталкиваются физикой, и этот сдвиг выглядел бы как выталкивание.
-	body.global_position = Vector3(-7.4, 0.05, 6.1)
+	var lean_wall := _obj_pos("hbeam_side1")
+	body.global_position = Vector3(lean_wall.x, 0.05, lean_wall.z - 0.55)
 	lean_head.rotation = Vector3(0, PI, 0)
 	# Наклон: голова уходит на четверть метра вперёд, в стену.
 	lean_head.position = Vector3(0, 1.4, 0.25)
@@ -2077,7 +2125,8 @@ func _lean_check() -> void:
 func _grab_check() -> void:
 	var stepped: bool = float(_phys.get("step_y", 0.0)) > 0.12
 	var wall_z: float = _player.global_position.z
-	var blocked: bool = wall_z < 6.3
+	var wall_stop: float = float(_phys.get("wall_stop", 0.0))
+	var blocked: bool = wall_z < wall_stop
 	var landed: bool = bool(_phys.get("on_floor", false)) and absf(float(_phys.get("floor_y", 9.0))) < 0.05
 	if landed and stepped:
 		r.pass_("тело игрока: ступень — упало на пол (y %.2f) и поднялось на ступень 18 см (y %.2f)" % [
@@ -2086,7 +2135,8 @@ func _grab_check() -> void:
 		r.fail("тело игрока: ступень — на полу %s (y %.2f), после ступени y %.2f" % [landed,
 				_phys.get("floor_y", 9.0), _phys.get("step_y", 0.0)])
 	if blocked:
-		r.pass_("тело игрока: стена — не прошло насквозь (z %.2f из 5.6 до стены на 6.4)" % wall_z)
+		r.pass_("тело игрока: стена — не прошло насквозь (остановилось на z %.2f, стена не ближе %.2f)" % [
+				wall_z, wall_stop])
 	else:
 		r.fail("тело игрока: стена — прошло насквозь до z %.2f" % wall_z)
 
@@ -2438,18 +2488,25 @@ func _mantle_prep() -> void:
 	loco.head = m_head
 	loco.origin = origin
 	loco.falsify_mantle_phys = falsify == "mantlephys"
-	# Человек висит у стены для лазанья: голова над кромкой площадки climbtop (верх 3.40).
-	body.global_position = Vector3(4.5, 3.3, -4.2)
+	# Кромка размечена в данных (тип ledge): точка приземления — её target, а «наружу» — сторона,
+	# противоположная ей: именно там висит человек, держась за карниз.
+	var ledge_pos := _obj_pos("ledge_roof")
+	var target := ledge_pos
+	for node in get_nodes_in_group("ledge"):
+		target = (node as Area3D).get_meta("target", target)
+	var out := (ledge_pos - target)
+	out.y = 0.0
+	out = out.normalized() if out.length() > 0.01 else Vector3.FORWARD
+	# Человек висит у стены снаружи, головой чуть ниже карниза.
+	body.global_position = ledge_pos + out * 0.4 + Vector3(0, -0.1, 0)
 	# Origin уехал на 1.4 м, как после подъёма по стене: компенсация следования копит смещение.
 	origin.position = Vector3(1.4, 0.0, 0.6)
 	_mantle_t_view = [m_head.global_position]
 	body.mantling = not loco.falsify_mantle_phys
-	# Кромка стены размечена в данных (тип ledge): точка приземления — её target.
-	var target := Vector3(4.5, 3.4, -5.4)
-	for node in get_nodes_in_group("ledge"):
-		target = (node as Area3D).get_meta("target", target)
+	_mantle_t_top = target.y
 	body.hold_collisions()
-	_mantle_t = {"body": body, "loco": loco, "head": m_head, "origin": origin, "to": target}
+	_mantle_t = {"body": body, "loco": loco, "head": m_head, "origin": origin, "to": target,
+			"from": body.global_position}
 
 
 ## Кадры перевала идут из _process — здесь только итог: тело на площадке, глаза на рост выше.
@@ -2461,14 +2518,14 @@ func _mantle_check() -> void:
 	(_mantle_t["loco"] as Node).free()
 	body.queue_free()
 	var stands: bool = absf(eyes - feet - 1.6) < 0.05
-	var on_top: bool = absf(feet - 3.4) < 0.1
+	var on_top: bool = absf(feet - _mantle_t_top) < 0.1
 	# Столкновения на время переноса снимались и вернулись: иначе капсула цепляется за угол кромки.
 	var solid: bool = body.collision_mask != 0
 	if stands and on_top and solid:
 		r.pass_("перевал ставит в полный рост: ноги на площадке (%.2f м), глаза на %.2f м — ровно рост выше, столкновения вернулись" % [feet, eyes])
 	else:
-		r.fail("перевал ставит в полный рост: ноги %.2f (ждали 3.40), глаза %.2f — над ногами %.2f вместо 1.60, маска %d" % [
-				feet, eyes, eyes - feet, body.collision_mask])
+		r.fail("перевал ставит в полный рост: ноги %.2f (ждали %.2f), глаза %.2f — над ногами %.2f вместо 1.60, маска %d" % [
+				feet, _mantle_t_top, eyes, eyes - feet, body.collision_mask])
 
 
 ## Вид во время перевала не прыгает. Сессия 22: в конце переноса origin обнулялся по горизонтали, и
@@ -2518,16 +2575,24 @@ func _mantle_floor_check() -> void:
 	# молча ничего не проверяла бы. Свой такт ему не нужен — тактуем вручную из _process.
 	head.get_parent().add_child(loco)
 	loco.set_physics_process(false)
-	# Перед платформой plat09 (верх 0.9 м), лицом к ней, на полу.
-	body.global_position = Vector3(-7.0, 0.12, -4.25)
+	# Перед помостом в конце улицы (верх 1.2 м), лицом к нему. Именно помост, а не крыльцо: перед
+	# крыльцом лежит пандус — стенд вставал на него, поднимался вместе с ним, и луч поиска уходил
+	# ВЫШЕ площадки. Подступ к площадке для такого стенда обязан быть ровным.
+	var deck := _obj_pos("end_deck")
+	var deck_size: Array = _obj("end_deck").get("size", [8.0, 1.2, 2.4])
+	var near_z: float = deck.z + float(deck_size[2]) * 0.5
+	# Вплотную к краю: луч поиска площадки смотрит вперёд всего на PROBE_AHEAD_M (0.45 м), и
+	# отойди стенд дальше — он бы ничего не нашёл и молча «доказал» отсутствие перевала.
+	body.global_position = Vector3(deck.x, 0.4, near_z + MantleRes.PROBE_AHEAD_M - 0.1)
 	# Опираем тело на пол прямо сейчас: в headless кадры рендера идут много быстрее тактов физики,
 	# и ждать падения пришлось бы сотнями кадров (проверка краснела бы на верном коде).
-	for i in 4:
-		body.velocity = Vector3(0, -1.0, 0)
+	for i in 20:
+		body.velocity = Vector3(0, -2.0, 0)
 		body.move_and_slide()
 	m_head.rotation = Vector3.ZERO
-	loco.climb.grab("right", Vector3(-7.0, 0.9, -4.3))
-	_floor_t = {"body": body, "loco": loco, "hand": Vector3(-7.0, 0.9, -4.3), "hit": false}
+	var hand := Vector3(deck.x, 1.2, near_z - 0.05)
+	loco.climb.grab("right", hand)
+	_floor_t = {"body": body, "loco": loco, "hand": hand, "hit": false}
 	loco.moved.connect(func(kind: String, _d: String):
 		if kind == "перевал":
 			_floor_t["hit"] = true)
@@ -2551,12 +2616,277 @@ func _mantle_floor_result() -> void:
 	body.queue_free()
 	_floor_t.clear()
 	if not sees:
-		r.fail("перевал не хватает стоящего: луч не находит площадку — стенд ничего не проверил")
+		r.fail("перевал не хватает стоящего: луч из %s вниз не находит площадку — стенд ничего не проверил (тело %s, на полу %s)" % [
+				probe.snappedf(0.01), body.global_position.snappedf(0.01), on_floor])
 	elif ticks < 30:
 		r.fail("перевал не хватает стоящего: тактов всего %d — стенд не успел ничего проверить" % ticks)
 	elif not on_floor:
-		r.fail("перевал не хватает стоящего: тело не встало на пол — стенд ничего не проверил")
+		r.fail("перевал не хватает стоящего: тело в %s не встало на пол — стенд ничего не проверил" % body.global_position.snappedf(0.01))
 	elif not hit:
-		r.pass_("перевал не хватает стоящего: %d тактов у площадки 0.9 м (накоплено %.2f с) — стоящего на полу наверх не унесло" % [ticks, held])
+		r.pass_("перевал не хватает стоящего: %d тактов у площадки 1.2 м (накоплено %.2f с) — стоящего на полу наверх не унесло" % [ticks, held])
 	else:
 		r.fail("перевал не хватает стоящего: стоящего на полу унесло наверх")
+
+
+# --- слои, группы и режим игры (этап Е2) ----------------------------------------------
+
+var _zone: Dictionary = {}
+
+
+## Зона подгрузки: её видно на слое отладки — и она продолжает грузить интерьер скрытой.
+## Скрывается маской камеры, а маска отсекает отрисовку, а не физику; проверяем это телом,
+## а не рассуждением: тело кладётся в зону, и сигнал обязан прийти.
+func _zone_prep() -> void:
+	TriggerViewRes.falsify_game_layer = falsify == "triggergame"
+	var res := LevelLoader.parse(FileAccess.get_file_as_string("res://world/levels/start_location.json"))
+	var root := Node3D.new()
+	root.position = Vector3(0, -400, 0)  # подальше от стенда тела игрока: чужая физика не мешает
+	head.get_parent().add_child(root)
+	var built := LevelLoader.build(root, res["data"])
+	var area: Area3D = (built["triggers"][0] as Dictionary)["area"]
+	# Камера с маской режима игры: зону человек не увидит.
+	var cam := Camera3D.new()
+	cam.cull_mask = LayersRes.play_mask()
+	root.add_child(cam)
+	var box: MeshInstance3D = null
+	for c in area.get_children():
+		if c is MeshInstance3D:
+			box = c
+	var body := StaticBody3D.new()
+	var cs := CollisionShape3D.new()
+	var sh := BoxShape3D.new()
+	sh.size = Vector3(0.3, 0.3, 0.3)
+	cs.shape = sh
+	body.add_child(cs)
+	root.add_child(body)
+	# ПОСЛЕ добавления и в мировых осях: стенд отнесён на 400 м вниз, и локальная позиция зоны
+	# положила бы тело мимо неё (мировые координаты вне дерева — ловушка 37).
+	body.global_position = area.global_position
+	# Стенд общий на три шага Е2: уровень прогона сносится раньше, в шаге «предмет в руке».
+	_zone = {"root": root, "area": area, "box": box, "cam": cam, "fired": false, "built": built}
+	area.body_entered.connect(func(_b: Node3D): _zone["fired"] = true)
+
+
+func _zone_check() -> void:
+	var box: MeshInstance3D = _zone.get("box", null)
+	var bad: Array[String] = []
+	if box == null:
+		bad.append("у зоны нет видимой коробки — разметить её можно только по числам в JSON")
+	else:
+		if box.layers != LayersRes.bit("debug"):
+			bad.append("коробка зоны на слое %d, а не отладки (%d)" % [box.layers, LayersRes.bit("debug")])
+		if (box.layers & int(_zone["cam"].cull_mask)) != 0:
+			bad.append("игрок видит разметку зоны")
+		if box.mesh == null or (box.mesh as BoxMesh).size == Vector3.ZERO:
+			bad.append("коробка нулевого размера")
+	if not bool(_zone.get("fired", false)):
+		bad.append("тело внутри зоны не дало body_entered — интерьер не загрузился бы")
+	if bad.is_empty():
+		r.pass_("зона видна и работает скрытой: коробка %s м на слое отладки, игроку не видна, тело внутри дало body_entered" % [(box.mesh as BoxMesh).size])
+	else:
+		r.fail("зона видна и работает скрытой: %s" % "; ".join(bad))
+
+
+## Режим игры на реальном уровне: маска, спрятанное автором и возврат ровно как было.
+func _play_mode() -> void:
+	var bad: Array[String] = []
+	var vis: VisibilityRes = VisibilityRes.new()
+	vis.falsify_play_mask = falsify == "playmask"
+	var index: Array = (_zone["built"] as Dictionary)["index"]
+	var files := {"start": index}
+	for e in index:
+		vis.register(e)
+	var cam := Camera3D.new()
+	head.get_parent().add_child(cam)
+	# Автор спрятал группу предметов и включил отладку.
+	vis.group_on["предметы"] = false
+	vis.layer_on["debug"] = true
+	vis.apply_to(cam, files)
+	var props_hidden := _vis_count(files, "предметы", false)
+	if props_hidden == 0:
+		bad.append("скрытая группа не спрятала ни одного узла из %d в группе (всего записей %d, группы уровня: %s)" % [
+				_vis_count(files, "предметы", true) + props_hidden, index.size(), vis.group_names()])
+	var snap := vis.enter_play()
+	vis.apply_to(cam, files)
+	if cam.cull_mask != LayersRes.play_mask():
+		bad.append("маска камеры в игре %d — игрок видит инструментарий" % cam.cull_mask)
+	if _vis_count(files, "предметы", false) != 0:
+		bad.append("игрок не видит предметы, спрятанные автором")
+	# Разметка мест уровня лежит на слое редактора: узлы остаются, но маска их не пускает.
+	var marks := 0
+	for e in index:
+		if str(e["layer"]) == "editor":
+			marks += 1
+	if marks == 0:
+		bad.append("в уровне нет ни одного объекта редактора — проверять нечего")
+	vis.exit_play(snap)
+	vis.apply_to(cam, files)
+	if cam.cull_mask != LayersRes.mask({"editor": true, "debug": true}):
+		bad.append("после выхода маска %d" % cam.cull_mask)
+	if _vis_count(files, "предметы", false) != props_hidden:
+		bad.append("после выхода скрытие группы не вернулось")
+	cam.queue_free()
+	if bad.is_empty():
+		r.pass_("режим игры прячет и возвращает: %d объектов редактора мимо маски, %d предметов спрятано автором и показано игроку, выход вернул и маску, и скрытия" % [marks, props_hidden])
+	else:
+		r.fail("режим игры прячет и возвращает: %s" % "; ".join(bad))
+
+
+## Сколько узлов группы сейчас в заданном состоянии видимости.
+func _vis_count(files: Dictionary, group: String, want: bool) -> int:
+	var n := 0
+	for file in files:
+		for e in files[file]:
+			if not (group in (e["groups"] as Array)):
+				continue
+			var node: Node = e.get("node", null)
+			if node is Node3D and (node as Node3D).visible == want:
+				n += 1
+	return n
+
+
+## Скрытая группа прячет вид, но НЕ коллайдер: человек не должен проваливаться туда, где автор
+## спрятал постройки. Свидетель — луч физики, а не поле `visible`.
+func _group_solid() -> void:
+	var bad: Array[String] = []
+	var vis: VisibilityRes = VisibilityRes.new()
+	vis.falsify_group_free = falsify == "groupfree"
+	var index: Array = (_zone["built"] as Dictionary)["index"]
+	var files := {"start": index}
+	for e in index:
+		vis.register(e)
+	var floor_node: Node3D = null
+	for e in index:
+		if str(e["uuid"]) == "floor":
+			floor_node = e["node"]
+	if floor_node == null:
+		r.fail("скрытая группа держит: в уровне нет пола")
+		(_zone["root"] as Node3D).queue_free()
+		return
+	vis.group_on["площадки"] = false
+	vis.apply_to(null, files)
+	if floor_node.visible:
+		bad.append("пол не спрятался")
+	var space := floor_node.get_world_3d().direct_space_state
+	var from := floor_node.global_position + Vector3(0, 3.0, 0)
+	var q := PhysicsRayQueryParameters3D.create(from, from + Vector3.DOWN * 6.0)
+	var hit := space.intersect_ray(q)
+	if hit.is_empty():
+		bad.append("луч прошёл насквозь: спрятанный пол перестал держать")
+	vis.group_on["площадки"] = true
+	vis.apply_to(null, files)
+	if not floor_node.visible:
+		bad.append("показ группы не вернул вид")
+	(_zone["root"] as Node3D).queue_free()
+	if bad.is_empty():
+		r.pass_("скрытая группа держит: пол скрыт видом, луч сверху всё так же попадает в него на %.2f м" % [from.y - float(hit.get("position", Vector3.ZERO).y)])
+	else:
+		r.fail("скрытая группа держит: %s" % "; ".join(bad))
+
+
+## Папка «Группы» в меню наполняется именами из УРОВНЯ, а переключение пункта доходит до сессии
+## действием «space_group:<имя>» (ловушка 41: действие, адресованное не туда, молчит).
+func _group_menu() -> void:
+	var bad: Array[String] = []
+	var vis: VisibilityRes = VisibilityRes.new()
+	for e in ((_zone["built"] as Dictionary)["index"] as Array):
+		vis.register(e)
+	var names := vis.group_names()
+	if falsify == "groupmenu":
+		names = []
+	menu.catalog.set_groups(names, {"зацепы": false})
+	var ids: Array = menu.catalog.children_of.get("settings_groups", [])
+	if ids.size() != names.size() or names.is_empty():
+		bad.append("в папке %d пунктов на %d групп уровня" % [ids.size(), names.size()])
+	var seen: Array = []
+	var routed := ""
+	for id in ids:
+		var it = menu.catalog.items[id]
+		seen.append(it.title)
+		if it.kind != ItemRes.Kind.TOGGLE:
+			bad.append("пункт «%s» не переключатель" % it.title)
+		if not str(it.action).begins_with("space_group:"):
+			bad.append("пункт «%s» не адресован сессии: «%s»" % [it.title, it.action])
+		elif it.title == "зацепы":
+			routed = str(it.action)
+			if it.on:
+				bad.append("скрытая группа пришла в меню включённой")
+	if routed != "space_group:зацепы":
+		bad.append("нет пункта скрытой группы: %s" % [seen])
+	# Пересборка не плодит пунктов: подгрузка части уровня зовёт set_groups снова.
+	menu.catalog.set_groups(names, {})
+	if (menu.catalog.children_of.get("settings_groups", []) as Array).size() != names.size():
+		bad.append("после пересборки пунктов стало %d" % (menu.catalog.children_of["settings_groups"] as Array).size())
+	if bad.is_empty():
+		r.pass_("меню групп из уровня: %d переключателей (%s), скрытая пришла выключенной, действие «%s» адресовано сессии, пересборка не двоит" % [
+				names.size(), ", ".join(names), routed])
+	else:
+		r.fail("меню групп из уровня: %s" % "; ".join(bad))
+
+
+## Перехват ввода останавливает начатое движение. Сессия 29: после самопроверки открывается шар с
+## запросом PIN, и человек, который в этот момент шёл, ехал всё время ввода — «пока не введу PIN и
+## не уберу меню».
+##
+## Корень был в порядке строк: такт перемещения выходил при занятом вводе РАНЬШЕ, чем обнулял
+## скорость, а заданная в прошлом такте скорость живёт в теле сама. Ждать остановки от «отпустили
+## стик» нельзя: пока ввод перехвачен, события отпускания не приходят (ловушка 29).
+func _input_lock() -> void:
+	var bad: Array[String] = []
+	var loco := LocomotionRes.new()
+	var body := PlayerBody.new()
+	var origin := XROrigin3D.new()
+	var lk_head := Node3D.new()
+	head.get_parent().add_child(body)
+	body.add_child(origin)
+	origin.add_child(lk_head)
+	lk_head.position = Vector3(0, 1.6, 0)
+	body.setup(origin, lk_head)
+	body.set_eye_height(1.6)
+	body.global_position = Vector3(20.0, 0.1, 20.0)  # пустой угол площади, подальше от чужих стендов
+	loco.body = body
+	loco.head = lk_head
+	loco.origin = origin
+	loco.menu = menu
+	loco.falsify_no_suspend = falsify == "lockdrift"
+	var breaks: Array[String] = []
+	loco.moved.connect(func(kind: String, why: String):
+		if kind == "перемещение прервано":
+			breaks.append(why))
+	# Человек идёт: скорость задана прошлым тактом, как при зажатом стике.
+	body.velocity = Vector3(1.4, 0.0, 0.0)
+	loco.aiming = true
+	# Ввод забирают: шар открыт (так и появляется запрос PIN).
+	_to_root_open()
+	if loco.input_free():
+		bad.append("при открытом шаре ввод считается свободным")
+	loco.suspend("ввод занят")
+	var speed := Vector2(body.velocity.x, body.velocity.z).length()
+	if speed > 0.01:
+		bad.append("скорость осталась %.2f м/с — человек продолжает ехать" % speed)
+	if loco.aiming:
+		bad.append("прицел телепорта не брошен: отпускание стика после ввода PIN швырнёт человека")
+	if breaks.size() != 1:
+		bad.append("в журнале %d записей о прерывании вместо одной" % breaks.size())
+	# Повторные такты молчат: запись о прерывании одна на отрезок, а не 90 в секунду.
+	loco.suspend("ввод занят")
+	loco.suspend("ввод занят")
+	if breaks.size() > 1:
+		bad.append("прерывание записано %d раз за три такта" % breaks.size())
+	# И отдельно: ввод держит не только шар. Закрываем его, но PIN всё ещё спрашивают.
+	menu.close()
+	# Состояние — в словаре: лямбда GDScript захватывает ЗНАЧЕНИЕ локальной переменной, и снятый
+	# позже флаг до неё бы не дошёл (проверка краснела бы на верном коде).
+	var pin := {"waiting": true}
+	loco.input_busy = func() -> bool: return bool(pin["waiting"])
+	if loco.input_free():
+		bad.append("при закрытом шаре, но ожидании PIN ввод считается свободным")
+	pin["waiting"] = false
+	if not loco.input_free():
+		bad.append("после ввода PIN управление не вернулось")
+	body.queue_free()
+	loco.free()
+	if bad.is_empty():
+		r.pass_("перехват ввода останавливает движение: скорость обнулена, прицел брошен, прерывание записано один раз; ввод держат и шар, и ожидание PIN, и после него возвращается")
+	else:
+		r.fail("перехват ввода: %s" % "; ".join(bad))

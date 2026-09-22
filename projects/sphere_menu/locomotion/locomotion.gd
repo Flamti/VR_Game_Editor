@@ -57,6 +57,11 @@ var _mantle: Dictionary = {}
 var falsify_ignore_menu := false
 ## Фальсификатор «walkquiet»: непрерывное движение снова не пишет в журнал (слепота сессии 17).
 var falsify_quiet_walk := false
+## Фальсификатор «lockdrift»: перехват ввода не гасит начатое движение — возвращается дефект
+## сессии 29, когда человек ехал всё время, пока вводил PIN.
+var falsify_no_suspend := false
+## Уже сообщили в журнал о прерывании этого отрезка.
+var _suspended := false
 ## Фальсификатор «aimturn»: поворот работает и во время прицеливания — человек крутится, вместо
 ## того чтобы задать курс приземления.
 var falsify_aim_turn := false
@@ -108,9 +113,18 @@ func settings_value(id: String) -> Variant:
 	return menu.settings.get_value(id)
 
 
-## Ввод разрешён перемещению: шар закрыт (стики принадлежат меню, пока он открыт).
+## Кто ещё держит ввод, кроме шара: ожидание PIN, замок панели, системная клавиатура. Задаёт
+## сессия (main.gd) — перемещение не должно знать про профили и клавиатуры, но обязано их слушать.
+var input_busy: Callable = func() -> bool: return false
+
+
+## Ввод разрешён перемещению: шар закрыт (стики принадлежат меню, пока он открыт) И никто другой
+## ввод не держит. PIN спрашивают в открытом шаре, но замок панели и системная клавиатура могут
+## держать ввод и при закрытом — а событие «отпустили стик» в это время не приходит вовсе.
 func input_free() -> bool:
-	return falsify_ignore_menu or not menu.is_open()
+	if falsify_ignore_menu:
+		return true
+	return not menu.is_open() and not bool(input_busy.call())
 
 
 func _physics_process(dt: float) -> void:
@@ -126,9 +140,17 @@ func _physics_process(dt: float) -> void:
 		vignette.apply(res["fade"])
 		return
 	if not input_free():
+		# Ввод забрали (шар открыт, спрашивают PIN, показана системная клавиатура) — начатое
+		# движение обязано ОСТАНОВИТЬСЯ здесь же. Раньше выход стоял до обнуления скорости, и
+		# заданная в прошлом такте скорость жила дальше: человек уезжал всё время, пока вводил PIN
+		# (сессия 29). Остановку нельзя ждать от «отпустили стик»: пока ввод перехвачен, события
+		# отпускания не приходят вовсе (ловушка 29 — при системной клавиатуре контроллеры до
+		# приложения не доходят).
+		suspend("ввод занят")
 		vignette.apply(vignette_math.update(0.0, 0.0, settings_value("move_vignette"), dt))
-		arc_line.visible = false
 		return
+	# Ввод снова наш: следующее прерывание опять попадёт в журнал.
+	_suspended = false
 	# Принудительное прицеливание — только для замера цены дуги самопроверкой.
 	if probe_aim:
 		_draw_arc(right.global_position, -right.global_basis.z)
@@ -454,6 +476,32 @@ func _climbable_near(pos: Vector3) -> Node3D:
 			best_d = d
 			best = node
 	return best
+
+
+## Остановить всё начатое перемещение: скорость, прицел телепорта, запись отрезка ходьбы.
+##
+## Зовётся каждый такт, пока ввод занят, поэтому обязана быть идемпотентной — и сообщать в журнал
+## ровно один раз, на первом такте остановки.
+func suspend(why: String) -> void:
+	if falsify_no_suspend:
+		return
+	var was_moving: bool = _walking or aiming \
+			or Vector2(body.velocity.x, body.velocity.z).length() > 0.01
+	# Сначала само движение, и только потом узлы: любая ошибка ниже (в стенде дуги ещё нет, в
+	# приложении её может не быть до setup) оборвала бы остановку на полпути, а скорость живёт
+	# в теле сама — ровно этим дефект и был.
+	body.velocity.x = 0.0
+	body.velocity.z = 0.0
+	# Прицел бросается, а не «доигрывается»: иначе отпускание стика после закрытия меню швырнуло бы
+	# человека туда, куда он целился до того, как его прервали.
+	aiming = false
+	if arc_line != null and is_instance_valid(arc_line):
+		arc_line.visible = false
+	if menu != null:
+		_track_walk(str(settings_value("move_mode")), false)
+	if was_moving and not _suspended:
+		moved.emit("перемещение прервано", why)
+		_suspended = true
 
 
 ## Отрезок непрерывного движения: строка в журнал на старте и на остановке. Событие на каждый кадр

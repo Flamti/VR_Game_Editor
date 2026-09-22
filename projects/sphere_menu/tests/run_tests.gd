@@ -68,6 +68,15 @@ extends SceneTree
 ##   --falsify=signblind  подсказка в мире принимается без текста — краснеет только «подсказка в мире»;
 ##   --falsify=onehand    настройки руки не действуют, движение прибито к левому стику, поворот к
 ##                        правому — краснеет только «рука движения и поворота»;
+##   --falsify=joinblind  связность уровня не проверяется — «на глаз», как до 2026-09-22, когда
+##                        лестница сидела в площадке, а площадка висела консолью; краснеет только
+##                        «связность уровня: прибор»;
+##   --falsify=layerany   неизвестный слой молча становится «игрой» вместо отказа разбора —
+##                        краснеет только «слои объектов»;
+##   --falsify=grouporany объект виден, если видима ХОТЬ ОДНА его группа, — краснеет только
+##                        «видимость групп»;
+##   --falsify=snapshotref снимок режима игры держит ссылки вместо копий — краснеет только «снимок
+##                        режима игры»;
 ##   --falsify=arccoarse  линия дуги рисуется редкими точками лучей — дуга угловатая; краснеет
 ##                        только «курс при телепорте»;
 ##   --falsify=arcstep    дуга снова считается сложением шагов, и её форма зависит от числа
@@ -173,7 +182,11 @@ const MOVE_CHECKS := ["дуга телепорта", "перенос и рыво
 		"подгрузка и выгрузка по зоне", "подсказка смотрит на человека",
 		"призыв предмета", "курс при телепорте", "присед и виньетка по ускорению",
 		"перевал через край", "кромка в данных", "столкновения возвращаются сами",
-		"кадр: лишняя работа"]
+		"кадр: лишняя работа", "слои объектов", "видимость групп", "снимок режима игры",
+		"связность уровня: прибор", "уровень улицы связен"]
+const LayersRes := preload("res://world/layers.gd")
+const LevelCheck := preload("res://world/level_check.gd")
+const VisibilityRes := preload("res://world/visibility.gd")
 const MantleRes := preload("res://locomotion/mantle.gd")
 const PullRes := preload("res://world/pull.gd")
 const SignFaceRes := preload("res://world/sign_face.gd")
@@ -258,6 +271,11 @@ func _init() -> void:
 	_ledge_check()
 	_collision_guard_check()
 	_frame_work_check()
+	_level_join_check()
+	_level_real_check()
+	_layers_check()
+	_visibility_check()
+	_play_mode_check()
 
 	var total := r.executed()
 	r.note("")
@@ -3777,3 +3795,181 @@ func _frame_work_check() -> void:
 		r.pass_("кадр: лишняя работа — таблички разворачиваются только после шага головы на %.2f м, нить перестраивает поверхности одного меша" % SignFaceRes.HEAD_EPS)
 	else:
 		r.fail("кадр: лишняя работа — %s" % "; ".join(bad))
+
+
+## Слои: биты, маска камеры и отказ на неизвестном имени. Слой — это «кому видно», в отличие от
+## тегов, которые говорят «что объект умеет».
+func _layers_check() -> void:
+	LayersRes.falsify_any = falsify == "layerany"
+	var bad: Array[String] = []
+	if LayersRes.bit("game") != 1 or LayersRes.bit("editor") != 2 or LayersRes.bit("debug") != 4:
+		bad.append("биты: %d, %d, %d" % [LayersRes.bit("game"), LayersRes.bit("editor"), LayersRes.bit("debug")])
+	# Бит игры включён всегда: на нём живёт всё неразмеченное — меню, руки, панели.
+	if LayersRes.mask({}) != 1:
+		bad.append("при всех скрытых слоях маска %d, а игра обязана остаться" % LayersRes.mask({}))
+	if LayersRes.mask({"editor": true, "debug": true}) != 7:
+		bad.append("все слои дают маску %d вместо 7" % LayersRes.mask({"editor": true, "debug": true}))
+	if LayersRes.mask({"editor": true}) != 3:
+		bad.append("редактор без отладки даёт %d вместо 3" % LayersRes.mask({"editor": true}))
+	if LayersRes.play_mask() != 1:
+		bad.append("в режиме игры маска %d — игрок видел бы инструментарий" % LayersRes.play_mask())
+	# Умолчание и отказ.
+	if LayersRes.of({}) != "game":
+		bad.append("объект без слоя не попал в игру")
+	if LayersRes.of({"layer": "debug"}) != "debug":
+		bad.append("слой из данных не прочитан")
+	if LayersRes.check({"layer": "editor"}) != "":
+		bad.append("правильный слой отвергнут")
+	var err := LayersRes.check({"layer": "полный", "uuid": "obj1"})
+	if err == "" or not err.contains("obj1"):
+		bad.append("неизвестный слой принят или отказ без имени объекта: «%s»" % err)
+	LayersRes.falsify_any = false
+	if bad.is_empty():
+		r.pass_("слои объектов: биты 1/2/4, бит игры в маске всегда, режим игры оставляет только его; неизвестное имя — отказ разбора с именем объекта")
+	else:
+		r.fail("слои объектов: %s" % "; ".join(bad))
+
+
+## Видимость: объект скрыт, если скрыт сам ИЛИ скрыта любая его группа. «Любая» — потому что
+## скрытие это запрет: спрятал «пивоты» — пивот не должен всплывать оттого, что он ещё и «реквизит».
+func _visibility_check() -> void:
+	var bad: Array[String] = []
+	var vis: VisibilityRes = VisibilityRes.new()
+	vis.falsify_group_or = falsify == "grouporany"
+	vis.register({"uuid": "cube", "layer": "game", "groups": ["реквизит", "пивоты"]})
+	vis.register({"uuid": "lone", "layer": "game", "groups": []})
+	vis.register({"uuid": "zone", "layer": "debug", "groups": ["пивоты"]})
+	if not vis.is_visible("cube") or not vis.is_visible("lone"):
+		bad.append("без скрытий что-то уже не видно")
+	vis.group_on["пивоты"] = false
+	if vis.is_visible("cube"):
+		bad.append("объект виден, хотя одна из его групп скрыта")
+	if not vis.is_visible("lone"):
+		bad.append("объект без групп пострадал от чужого скрытия")
+	vis.group_on["пивоты"] = true
+	vis.object_on["lone"] = false
+	if vis.is_visible("lone"):
+		bad.append("скрытый поимённо объект всё равно виден")
+	# Список групп — по разу и по алфавиту.
+	var names := vis.group_names()
+	if names != ["пивоты", "реквизит"]:
+		bad.append("группы уровня: %s" % [names])
+	vis.forget(["zone"])
+	if vis.group_names().size() != 2:
+		bad.append("после выгрузки объекта группы посчитаны неверно")
+	if bad.is_empty():
+		r.pass_("видимость групп: скрыта любая группа — скрыт и объект; своё скрытие независимо; список групп собирается из уровня без повторов")
+	else:
+		r.fail("видимость групп: %s" % "; ".join(bad))
+
+
+## Режим игры: показать игроку только игровое, а на выходе вернуть ровно то, что было — включая
+## объекты, скрытые поимённо до запуска.
+func _play_mode_check() -> void:
+	var bad: Array[String] = []
+	var vis: VisibilityRes = VisibilityRes.new()
+	vis.falsify_snapshot_ref = falsify == "snapshotref"
+	vis.register({"uuid": "prop", "layer": "game", "groups": ["реквизит"]})
+	vis.register({"uuid": "gizmo", "layer": "editor", "groups": []})
+	# Автор спрятал реквизит и группу до запуска.
+	vis.object_on["prop"] = false
+	vis.group_on["реквизит"] = false
+	vis.layer_on["debug"] = true
+	var snap := vis.enter_play()
+	if vis.camera_mask() != LayersRes.play_mask():
+		bad.append("в режиме игры маска %d" % vis.camera_mask())
+	if not vis.is_visible("prop"):
+		bad.append("игрок не видит игровой объект, спрятанный автором")
+	# В режиме игры что-то поменяли — выход обязан это отменить.
+	vis.group_on["реквизит"] = true
+	vis.object_on["gizmo"] = false
+	vis.layer_on["editor"] = false
+	vis.exit_play(snap)
+	if vis.playing:
+		bad.append("режим игры не выключился")
+	if vis.is_visible("prop"):
+		bad.append("после выхода не вернулось скрытие объекта")
+	if bool(vis.group_on.get("реквизит", true)):
+		bad.append("после выхода не вернулось скрытие группы")
+	if not bool(vis.layer_on.get("editor", false)) or not bool(vis.layer_on.get("debug", false)):
+		bad.append("после выхода не вернулись слои: %s" % [vis.layer_on])
+	if bad.is_empty():
+		r.pass_("снимок режима игры: игрок видит только игровое, выход возвращает слои, группы и поимённые скрытия ровно как было")
+	else:
+		r.fail("снимок режима игры: %s" % "; ".join(bad))
+
+
+## Прибор связности: на заведомо битом уровне он обязан назвать КАЖДЫЙ дефект поимённо.
+## Контрольный случай тут главнее реального уровня: ошибка исполнения в GDScript возвращает пустой
+## список, и «уровень связен» становится неотличимо от «проверка не работала» (так и случилось
+## 2026-09-22: `bool("")` оборвал разбор, и 30 замечаний превратились в ноль).
+func _level_join_check() -> void:
+	LevelCheck.falsify_blind = falsify == "joinblind"
+	var broken := {"format": 1, "objects": [
+		{"uuid": "floor", "type": "box", "pos": [0, -0.1, 0], "size": [40, 0.2, 40]},
+		# Висит: под ним пусто.
+		{"uuid": "shelf", "type": "box", "pos": [5, 2.0, 0], "size": [2, 0.2, 2]},
+		# Врезка: столб наполовину в стене.
+		{"uuid": "wall", "type": "box", "pos": [0, 1.0, -5], "size": [4, 2, 0.4]},
+		{"uuid": "post", "type": "box", "pos": [0, 1.0, -5.1], "size": [0.3, 2, 0.3]},
+		# За краем пола.
+		{"uuid": "far", "type": "box", "pos": [30, 0.5, 0], "size": [2, 1, 2]},
+		# Подъём, не дотянувшийся до площадки.
+		{"uuid": "plat", "type": "box", "pos": [-6, 0.5, -3], "size": [3, 1, 3]},
+		{"uuid": "ramp", "type": "box", "pos": [-6, 0.3, 0], "size": [3, 0.2, 3],
+				"leads_to": "plat"},
+		# Кромка, роняющая человека в воздух.
+		{"uuid": "edge", "type": "ledge", "pos": [-6, 1.0, -1.6], "size": [1, 0.5, 1],
+				"target": [-6, 9.0, -3]},
+		# Зацеп, до которого не дотянуться.
+		{"uuid": "h0", "type": "box", "pos": [3, 0.6, -5], "size": [0.4, 0.1, 0.1],
+				"tags": ["climb"], "mounted_on": "wall"},
+		{"uuid": "h1", "type": "box", "pos": [3, 2.4, -5], "size": [0.4, 0.1, 0.1],
+				"tags": ["climb"], "mounted_on": "wall"},
+		# Старт внутри стены.
+		{"uuid": "spawn", "type": "spawn", "pos": [0, 0, -5]},
+	]}
+	var notes: Array = LevelCheck.run(broken)
+	var text := "\n".join(PackedStringArray(notes))
+	# Ищем по тому, КАК прибор называет дефект: замечание о старте называет стену, в которую он
+	# попал, а не сам старт.
+	var want := {"висит в воздухе": "shelf", "врезаны": "post", "за край пола": "far",
+			"расхождение": "ramp", "не лежит ни на одной площадке": "edge",
+			"не дотянется": "h1", "точка старта внутри": "wall"}
+	var missed: Array[String] = []
+	for phrase in want:
+		if not (text.contains(phrase) and text.contains(str(want[phrase]))):
+			missed.append(str(want[phrase]))
+	# И обратная сторона: верные конструкции молчат.
+	var good := {"format": 1, "objects": [
+		{"uuid": "floor", "type": "box", "pos": [0, -0.1, 0], "size": [40, 0.2, 40]},
+		{"uuid": "legs", "type": "box", "pos": [0, 0.33, 0], "size": [0.1, 0.66, 0.1],
+				"join": ["top"]},
+		{"uuid": "top", "type": "box", "pos": [0, 0.7, 0], "size": [1, 0.08, 1], "join": ["legs"]},
+	]}
+	var noise: Array = LevelCheck.run(good)
+	LevelCheck.falsify_blind = false
+	if missed.is_empty() and noise.is_empty() and notes.size() >= want.size():
+		r.pass_("связность уровня: прибор назвал все %d дефекта поимённо (висит, врезка, за краем, недобор высоты, кромка в воздух, недосягаемый зацеп, старт в стене) и промолчал на верном столе" % want.size())
+	else:
+		r.fail("связность уровня: не названы %s, ложных замечаний %d (%s), всего %d" % [
+				missed, noise.size(), noise, notes.size()])
+
+
+## Сами данные уровня: улица и её интерьер обязаны быть связны — это проверка не кода, а сцены.
+func _level_real_check() -> void:
+	var bad: Array[String] = []
+	var total := 0
+	for path in ["res://world/levels/start_location.json", "res://world/levels/start_interior.json"]:
+		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if not data is Dictionary:
+			bad.append("%s не читается" % path)
+			continue
+		var notes: Array = LevelCheck.run(data)
+		total += (data["objects"] as Array).size()
+		for n in notes:
+			bad.append("%s: %s" % [path.get_file(), n])
+	if bad.is_empty():
+		r.pass_("уровень улицы связен: %d объектов в двух файлах, ни одного висящего, врезанного, недотянутого или выпавшего за край" % total)
+	else:
+		r.fail("уровень улицы: %s" % "; ".join(bad))

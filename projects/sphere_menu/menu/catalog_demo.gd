@@ -130,6 +130,17 @@ func _init() -> void:
 	home_it.action = "space_respawn"
 	home_it.type_label = "действие"
 	_add("settings_move", home_it)
+	# Слои объектов: кому что видно (ADR о слоях, 2026-09-21).
+	_folder("settings", "settings_layers", "Слои", "Слои")
+	for sid in Settings.LAYERS:
+		_setting_item("settings_layers", sid)
+	# Группы объектов уровня. Пусты до загрузки уровня: имена групп приходят из данных, а не из
+	# каталога (set_groups), — поэтому папка строится, а наполняется на ходу.
+	_folder("settings_layers", "settings_groups", "Группы", "Группы")
+	var play_it: Item = Item.make("layers_play", "Режим игры", K.ACTION, P.CLOSE, "Игра")
+	play_it.action = "space_play"
+	play_it.type_label = "действие"
+	_add("settings_layers", play_it)
 	var wiz: Item = Item.make("set_wizard", "Мастер настройки", K.ACTION, P.CLOSE, "Мастер")
 	wiz.action = "wizard"
 	wiz.icon = "wizard"
@@ -251,6 +262,22 @@ func _object(parent: String, id: String, title: String, kind: int, type_label: S
 	it.modified = modified
 	it.preview = preview
 	_add(parent, it)
+
+
+## Пересобрать папку групп по именам из уровня. Состояние «показана» приходит снимком, чтобы
+## пункты не забывали скрытые группы при подгрузке новой части уровня.
+func set_groups(names: Array, shown: Dictionary) -> void:
+	for id in (children_of.get("settings_groups", []) as Array):
+		items.erase(id)
+		parent_of.erase(id)
+	children_of["settings_groups"] = []
+	for n in names:
+		var name := str(n)
+		var it: Item = Item.make("group_" + name, name, K.TOGGLE, P.STAY, name)
+		it.on = bool(shown.get(name, true))
+		it.action = "space_group:" + name
+		it.type_label = "группа"
+		_add("settings_groups", it)
 
 
 func _add(parent: String, it: Item) -> void:

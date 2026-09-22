@@ -11,6 +11,12 @@ extends RefCounted
 ## паспорт), и число материалов важнее числа кубов.
 
 const TYPES := ["box", "stairs", "trigger", "spawn", "sign", "ledge"]
+const Layers := preload("res://world/layers.gd")
+const TriggerView := preload("res://world/trigger_view.gd")
+## Префикс пользовательских групп в дереве Godot. Пространство имён групп одно на всех, и группа,
+## названная человеком «grab» или «sign», иначе сделала бы объект хватаемым или развернула бы его
+## к лицу — теги из данных добавляются дословно (строка ниже), и дыра эта существует с этапа Ф3.
+const GROUP_PREFIX := "g:"
 ## Подсказка в мире: высота символов по умолчанию, м.
 const SIGN_SIZE := 0.08
 ## Высота и глубина ступени по умолчанию, м.
@@ -49,6 +55,9 @@ static func _check(o: Variant) -> String:
 	var type_name := str(obj.get("type", ""))
 	if not type_name in TYPES:
 		return "неизвестный тип «%s»" % type_name
+	var layer_err := Layers.check(obj)
+	if layer_err != "":
+		return layer_err
 	if type_name == "spawn":
 		return "" if obj.has("pos") else "у точки старта нет положения"
 	if type_name == "ledge":
@@ -83,7 +92,7 @@ static func _v3(a: Variant, fallback := Vector3.ZERO) -> Vector3:
 ## Построить уровень под parent. Возвращает {nodes, spawn: Transform3D, triggers: [{area, file}],
 ## colors: сколько материалов}.
 static func build(parent: Node3D, data: Dictionary) -> Dictionary:
-	var out := {"nodes": [], "spawn": Transform3D(), "triggers": [], "colors": 0}
+	var out := {"nodes": [], "spawn": Transform3D(), "triggers": [], "colors": 0, "index": []}
 	var materials := {}
 	for o in data.get("objects", []):
 		var obj: Dictionary = o
@@ -100,19 +109,35 @@ static func build(parent: Node3D, data: Dictionary) -> Dictionary:
 				box.size = _v3(obj.get("size"), Vector3.ONE)
 				cs.shape = box
 				area.add_child(cs)
+				# Видимая коробка на слое отладки: до неё зону можно было разметить только по
+				# числам в JSON. Маска камеры отсекает отрисовку, а не физику, — зона продолжает
+				# грузить интерьер и скрытой.
+				area.add_child(TriggerView.build(box.size))
 				parent.add_child(area)
 				out["nodes"].append(area)
 				out["triggers"].append({"area": area, "file": str(obj.get("loads", ""))})
 			"ledge":
-				out["nodes"].append(_ledge(parent, obj))
+				var ledge := _ledge(parent, obj)
+				out["nodes"].append(ledge)
+				out["index"].append(_entry(obj, ledge))
 			"sign":
-				out["nodes"].append(_sign(parent, obj))
+				var sign_node := _sign(parent, obj)
+				out["nodes"].append(sign_node)
+				out["index"].append(_entry(obj, sign_node))
 			"stairs":
 				_stairs(parent, obj, materials, out)
 			_:
-				out["nodes"].append(_box(parent, obj, _v3(obj.get("pos")), _v3(obj.get("size"), Vector3.ONE), materials))
+				var node := _box(parent, obj, _v3(obj.get("pos")), _v3(obj.get("size"), Vector3.ONE), materials)
+				out["nodes"].append(node)
+				out["index"].append(_entry(obj, node))
 	out["colors"] = materials.size()
 	return out
+
+
+## Запись об объекте для учёта видимости: кто он, на каком слое, в каких группах.
+static func _entry(obj: Dictionary, node: Node) -> Dictionary:
+	return {"uuid": str(obj.get("uuid", "")), "layer": Layers.of(obj),
+			"groups": (obj.get("groups", []) as Array).duplicate(), "node": node}
 
 
 ## Лесенка из ступеней: подъём и глубина ступени постоянны, число — из размера.
@@ -166,6 +191,10 @@ static func _box(parent: Node3D, obj: Dictionary, pos: Vector3, size: Vector3, m
 	body.rotation = _v3(obj.get("rot")) * (PI / 180.0)
 	for tag in obj.get("tags", []):
 		body.add_to_group(str(tag))
+	# Пользовательские группы — с префиксом, в своём пространстве имён.
+	for g in obj.get("groups", []):
+		body.add_to_group(GROUP_PREFIX + str(g))
+	Layers.apply(body, Layers.bit(Layers.of(obj)))
 	parent.add_child(body)
 	return body
 
@@ -185,6 +214,7 @@ static func _sign(parent: Node3D, obj: Dictionary) -> Label3D:
 	# экрана, то есть крутит её вместе с поворотом шлема, а не поворачивает лицом к человеку
 	# (сессия 18).
 	label.add_to_group("sign")
+	label.layers = Layers.bit(Layers.of(obj))
 	# Подсказка — инструмент, а не часть сцены: её не должен гасить свет уровня.
 	label.shaded = false
 	label.modulate = Color.html(str(obj.get("color", "#ffe9a8")))

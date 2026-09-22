@@ -1,1000 +1,1799 @@
 {
- "format": 1,
- "name": "Стартовая локация",
- "objects": [
-  {
-   "uuid": "floor",
-   "type": "box",
-   "pos": [
-    0,
-    -0.1,
-    0
-   ],
-   "size": [
-    20,
-    0.2,
-    20
-   ],
-   "color": "#6c7280"
-  },
-  {
-   "uuid": "plat04",
-   "type": "box",
-   "pos": [
-    -4,
-    0.2,
-    -3
-   ],
-   "size": [
-    3,
-    0.4,
-    3
-   ],
-   "color": "#8a93a6",
-   "tags": [
-    "teleport_target"
-   ]
-  },
-  {
-   "uuid": "plat09",
-   "type": "box",
-   "pos": [
-    -7,
-    0.45,
-    -6
-   ],
-   "size": [
-    3,
-    0.9,
-    3
-   ],
-   "color": "#8a93a6",
-   "tags": [
-    "teleport_target"
-   ]
-  },
-  {
-   "uuid": "plat16",
-   "type": "box",
-   "pos": [
-    4.5,
-    0.8,
-    -6.5
-   ],
-   "size": [
-    3.5,
-    1.6,
-    3.5
-   ],
-   "color": "#8a93a6",
-   "tags": [
-    "teleport_target"
-   ]
-  },
-  {
-   "uuid": "ramp",
-   "type": "box",
-   "pos": [
-    -4,
-    0.2,
-    -0.9
-   ],
-   "size": [
-    3,
-    0.12,
-    2.4
-   ],
-   "rot": [
-    -9.5,
-    0,
-    0
-   ],
-   "color": "#7d8a72"
-  },
-  {
-   "uuid": "stairs",
-   "type": "stairs",
-   "pos": [
-    -7,
-    0,
-    -4.0
-   ],
-   "size": [
-    2.4,
-    0.9,
-    1.5
-   ],
-   "color": "#7d8a72",
-   "rise": 0.18,
-   "run": 0.3
-  },
-  {
-   "uuid": "table",
-   "type": "box",
-   "pos": [
-    1.5,
-    0.7,
-    1.5
-   ],
-   "size": [
-    1.6,
-    0.08,
-    0.8
-   ],
-   "color": "#9a7b52"
-  },
-  {
-   "uuid": "leg0",
-   "type": "box",
-   "pos": [
-    1.0,
-    0.35,
-    1.5
-   ],
-   "size": [
-    0.08,
-    0.7,
-    0.08
-   ],
-   "color": "#9a7b52"
-  },
-  {
-   "uuid": "leg1",
-   "type": "box",
-   "pos": [
-    2.0,
-    0.35,
-    1.5
-   ],
-   "size": [
-    0.08,
-    0.7,
-    0.08
-   ],
-   "color": "#9a7b52"
-  },
-  {
-   "uuid": "post1",
-   "type": "box",
-   "pos": [
-    3.2,
-    0.5,
-    1.2
-   ],
-   "size": [
-    0.1,
-    1.0,
-    0.1
-   ],
-   "color": "#d8d2c0"
-  },
-  {
-   "uuid": "post2",
-   "type": "box",
-   "pos": [
-    3.6,
-    1.0,
-    1.2
-   ],
-   "size": [
-    0.1,
-    2.0,
-    0.1
-   ],
-   "color": "#d8d2c0"
-  },
-  {
-   "uuid": "mark0",
-   "type": "box",
-   "pos": [
-    3.2,
-    0.5,
-    1.2
-   ],
-   "size": [
-    0.16,
-    0.02,
-    0.16
-   ],
-   "color": "#c4693f",
-   "body": "none"
-  },
-  {
-   "uuid": "mark1",
-   "type": "box",
-   "pos": [
-    3.2,
-    1.0,
-    1.2
-   ],
-   "size": [
-    0.16,
-    0.02,
-    0.16
-   ],
-   "color": "#c4693f",
-   "body": "none"
-  },
-  {
-   "uuid": "mark2",
-   "type": "box",
-   "pos": [
-    3.2,
-    1.5,
-    1.2
-   ],
-   "size": [
-    0.16,
-    0.02,
-    0.16
-   ],
-   "color": "#c4693f",
-   "body": "none"
-  },
-  {
-   "uuid": "mark3",
-   "type": "box",
-   "pos": [
-    3.2,
-    2.0,
-    1.2
-   ],
-   "size": [
-    0.16,
-    0.02,
-    0.16
-   ],
-   "color": "#c4693f",
-   "body": "none"
-  },
-  {
-   "uuid": "fix0",
-   "type": "box",
-   "pos": [
-    1.0,
-    0.1,
-    -1.6
-   ],
-   "size": [
-    0.2,
-    0.2,
-    0.2
-   ],
-   "color": "#8a93a6"
-  },
-  {
-   "uuid": "fix1",
-   "type": "box",
-   "pos": [
-    1.35,
-    0.1,
-    -1.6
-   ],
-   "size": [
-    0.2,
-    0.2,
-    0.2
-   ],
-   "color": "#8a93a6"
-  },
-  {
-   "uuid": "fix2",
-   "type": "box",
-   "pos": [
-    1.7,
-    0.1,
-    -1.6
-   ],
-   "size": [
-    0.2,
-    0.2,
-    0.2
-   ],
-   "color": "#8a93a6"
-  },
-  {
-   "uuid": "fix3",
-   "type": "box",
-   "pos": [
-    2.05,
-    0.1,
-    -1.6
-   ],
-   "size": [
-    0.2,
-    0.2,
-    0.2
-   ],
-   "color": "#8a93a6"
-  },
-  {
-   "uuid": "fix4",
-   "type": "box",
-   "pos": [
-    2.4,
-    0.1,
-    -1.6
-   ],
-   "size": [
-    0.2,
-    0.2,
-    0.2
-   ],
-   "color": "#8a93a6"
-  },
-  {
-   "uuid": "fix5",
-   "type": "box",
-   "pos": [
-    2.75,
-    0.1,
-    -1.6
-   ],
-   "size": [
-    0.2,
-    0.2,
-    0.2
-   ],
-   "color": "#8a93a6"
-  },
-  {
-   "uuid": "grab0",
-   "type": "box",
-   "pos": [
-    1.2,
-    0.82,
-    1.5
-   ],
-   "size": [
-    0.12,
-    0.12,
-    0.12
-   ],
-   "color": "#c4693f",
-   "body": "grab"
-  },
-  {
-   "uuid": "grab1",
-   "type": "box",
-   "pos": [
-    1.5,
-    0.82,
-    1.5
-   ],
-   "size": [
-    0.12,
-    0.12,
-    0.12
-   ],
-   "color": "#c4693f",
-   "body": "grab"
-  },
-  {
-   "uuid": "grab2",
-   "type": "box",
-   "pos": [
-    1.8,
-    0.82,
-    1.5
-   ],
-   "size": [
-    0.12,
-    0.12,
-    0.12
-   ],
-   "color": "#c4693f",
-   "body": "grab"
-  },
-  {
-   "uuid": "grab3",
-   "type": "box",
-   "pos": [
-    2.1,
-    0.82,
-    1.5
-   ],
-   "size": [
-    0.12,
-    0.12,
-    0.12
-   ],
-   "color": "#c4693f",
-   "body": "grab"
-  },
-  {
-   "uuid": "grab4",
-   "type": "box",
-   "pos": [
-    2.4,
-    0.82,
-    1.5
-   ],
-   "size": [
-    0.12,
-    0.12,
-    0.12
-   ],
-   "color": "#c4693f",
-   "body": "grab"
-  },
-  {
-   "uuid": "ledge",
-   "type": "box",
-   "pos": [
-    7.5,
-    0.3,
-    0
-   ],
-   "size": [
-    0.5,
-    0.6,
-    6
-   ],
-   "color": "#8a93a6",
-   "tags": [
-    "teleport_target"
-   ]
-  },
-  {
-   "uuid": "pad0",
-   "type": "box",
-   "pos": [
-    -2,
-    0.02,
-    5
-   ],
-   "size": [
-    1.0,
-    0.04,
-    1.0
-   ],
-   "color": "#3f7fc4",
-   "tags": [
-    "teleport_target"
-   ]
-  },
-  {
-   "uuid": "pad1",
-   "type": "box",
-   "pos": [
-    0,
-    0.02,
-    6.5
-   ],
-   "size": [
-    1.0,
-    0.04,
-    1.0
-   ],
-   "color": "#3f7fc4",
-   "tags": [
-    "teleport_target"
-   ]
-  },
-  {
-   "uuid": "pad2",
-   "type": "box",
-   "pos": [
-    2,
-    0.02,
-    5
-   ],
-   "size": [
-    1.0,
-    0.04,
-    1.0
-   ],
-   "color": "#3f7fc4",
-   "tags": [
-    "teleport_target"
-   ]
-  },
-  {
-   "uuid": "room_w1",
-   "type": "box",
-   "pos": [
-    -6,
-    1.4,
-    6.5
-   ],
-   "size": [
-    5,
-    2.8,
-    0.2
-   ],
-   "color": "#5c6170"
-  },
-  {
-   "uuid": "room_w2",
-   "type": "box",
-   "pos": [
-    -8.4,
-    1.4,
-    4.6
-   ],
-   "size": [
-    0.2,
-    2.8,
-    4
-   ],
-   "color": "#5c6170"
-  },
-  {
-   "uuid": "room_w3",
-   "type": "box",
-   "pos": [
-    -3.6,
-    1.4,
-    4.6
-   ],
-   "size": [
-    0.2,
-    2.8,
-    4
-   ],
-   "color": "#5c6170"
-  },
-  {
-   "uuid": "room_w4a",
-   "type": "box",
-   "pos": [
-    -7.6,
-    1.4,
-    2.7
-   ],
-   "size": [
-    2.2,
-    2.8,
-    0.2
-   ],
-   "color": "#5c6170"
-  },
-  {
-   "uuid": "room_w4b",
-   "type": "box",
-   "pos": [
-    -4.4,
-    1.4,
-    2.7
-   ],
-   "size": [
-    2.2,
-    2.8,
-    0.2
-   ],
-   "color": "#5c6170"
-  },
-  {
-   "uuid": "room_ceil",
-   "type": "box",
-   "pos": [
-    -6,
-    2.85,
-    4.6
-   ],
-   "size": [
-    5,
-    0.1,
-    4
-   ],
-   "color": "#5c6170"
-  },
-  {
-   "uuid": "room_enter",
-   "type": "trigger",
-   "pos": [
-    -6,
-    1.0,
-    4.6
-   ],
-   "size": [
-    4.4,
-    2.0,
-    3.6
-   ],
-   "loads": "res://world/levels/start_interior.json"
-  },
-  {
-   "uuid": "spawn",
-   "type": "spawn",
-   "pos": [
-    0,
-    0,
-    3
-   ],
-   "yaw": 180
-  },
-  {
-   "uuid": "sign_ramp",
-   "type": "sign",
-   "pos": [
-    -4,
-    1.6,
-    -0.9
-   ],
-   "text": "Пандус ~10°\nпройти ногами и телепортом",
-   "size": 0.1
-  },
-  {
-   "uuid": "sign_stairs",
-   "type": "sign",
-   "pos": [
-    -7,
-    1.7,
-    -4.2
-   ],
-   "text": "Ступени 0.18 м\nтело поднимается само",
-   "size": 0.1
-  },
-  {
-   "uuid": "sign_room",
-   "type": "sign",
-   "pos": [
-    -6,
-    2.1,
-    2.9
-   ],
-   "text": "Помещение: интерьер грузится\nпри входе и выгружается при выходе",
-   "size": 0.1
-  },
-  {
-   "uuid": "sign_table",
-   "type": "sign",
-   "pos": [
-    1.5,
-    1.3,
-    1.5
-   ],
-   "text": "Верстак 0.74 м\nкубы берутся грипом",
-   "size": 0.1
-  },
-  {
-   "uuid": "sign_ledge",
-   "type": "sign",
-   "pos": [
-    7.5,
-    1.4,
-    0
-   ],
-   "text": "Узкий уступ — точность луча",
-   "size": 0.1
-  },
-  {
-   "uuid": "sign_posts",
-   "type": "sign",
-   "pos": [
-    3.4,
-    1.5,
-    1.2
-   ],
-   "text": "Столбы 1 и 2 м — метки масштаба",
-   "size": 0.1
-  },
-  {
-   "uuid": "climbwall",
-   "type": "box",
-   "pos": [
-    4.5,
-    1.7,
-    -4.75
-   ],
-   "size": [
-    3.0,
-    3.4,
-    0.3
-   ],
-   "color": "#6e6a60"
-  },
-  {
-   "uuid": "climb0",
-   "type": "box",
-   "pos": [
-    3.85,
-    0.5,
-    -4.55
-   ],
-   "size": [
-    0.5,
-    0.09,
-    0.12
-   ],
-   "color": "#9a7b52",
-   "tags": [
-    "climb"
-   ]
-  },
-  {
-   "uuid": "climb1",
-   "type": "box",
-   "pos": [
-    5.15,
-    0.5,
-    -4.55
-   ],
-   "size": [
-    0.5,
-    0.09,
-    0.12
-   ],
-   "color": "#9a7b52",
-   "tags": [
-    "climb"
-   ]
-  },
-  {
-   "uuid": "climb2",
-   "type": "box",
-   "pos": [
-    3.85,
-    0.95,
-    -4.55
-   ],
-   "size": [
-    0.5,
-    0.09,
-    0.12
-   ],
-   "color": "#9a7b52",
-   "tags": [
-    "climb"
-   ]
-  },
-  {
-   "uuid": "climb3",
-   "type": "box",
-   "pos": [
-    5.15,
-    0.95,
-    -4.55
-   ],
-   "size": [
-    0.5,
-    0.09,
-    0.12
-   ],
-   "color": "#9a7b52",
-   "tags": [
-    "climb"
-   ]
-  },
-  {
-   "uuid": "climb4",
-   "type": "box",
-   "pos": [
-    3.85,
-    1.4,
-    -4.55
-   ],
-   "size": [
-    0.5,
-    0.09,
-    0.12
-   ],
-   "color": "#9a7b52",
-   "tags": [
-    "climb"
-   ]
-  },
-  {
-   "uuid": "climb5",
-   "type": "box",
-   "pos": [
-    5.15,
-    1.4,
-    -4.55
-   ],
-   "size": [
-    0.5,
-    0.09,
-    0.12
-   ],
-   "color": "#9a7b52",
-   "tags": [
-    "climb"
-   ]
-  },
-  {
-   "uuid": "climb6",
-   "type": "box",
-   "pos": [
-    3.85,
-    1.85,
-    -4.55
-   ],
-   "size": [
-    0.5,
-    0.09,
-    0.12
-   ],
-   "color": "#9a7b52",
-   "tags": [
-    "climb"
-   ]
-  },
-  {
-   "uuid": "climb7",
-   "type": "box",
-   "pos": [
-    5.15,
-    1.85,
-    -4.55
-   ],
-   "size": [
-    0.5,
-    0.09,
-    0.12
-   ],
-   "color": "#9a7b52",
-   "tags": [
-    "climb"
-   ]
-  },
-  {
-   "uuid": "climb8",
-   "type": "box",
-   "pos": [
-    3.85,
-    2.3,
-    -4.55
-   ],
-   "size": [
-    0.5,
-    0.09,
-    0.12
-   ],
-   "color": "#9a7b52",
-   "tags": [
-    "climb"
-   ]
-  },
-  {
-   "uuid": "climb9",
-   "type": "box",
-   "pos": [
-    5.15,
-    2.3,
-    -4.55
-   ],
-   "size": [
-    0.5,
-    0.09,
-    0.12
-   ],
-   "color": "#9a7b52",
-   "tags": [
-    "climb"
-   ]
-  },
-  {
-   "uuid": "climb10",
-   "type": "box",
-   "pos": [
-    3.85,
-    2.75,
-    -4.55
-   ],
-   "size": [
-    0.5,
-    0.09,
-    0.12
-   ],
-   "color": "#9a7b52",
-   "tags": [
-    "climb"
-   ]
-  },
-  {
-   "uuid": "climb11",
-   "type": "box",
-   "pos": [
-    5.15,
-    2.75,
-    -4.55
-   ],
-   "size": [
-    0.5,
-    0.09,
-    0.12
-   ],
-   "color": "#9a7b52",
-   "tags": [
-    "climb"
-   ]
-  },
-  {
-   "uuid": "climb12",
-   "type": "box",
-   "pos": [
-    3.85,
-    3.2,
-    -4.55
-   ],
-   "size": [
-    0.5,
-    0.09,
-    0.12
-   ],
-   "color": "#9a7b52",
-   "tags": [
-    "climb"
-   ]
-  },
-  {
-   "uuid": "climb13",
-   "type": "box",
-   "pos": [
-    5.15,
-    3.2,
-    -4.55
-   ],
-   "size": [
-    0.5,
-    0.09,
-    0.12
-   ],
-   "color": "#9a7b52",
-   "tags": [
-    "climb"
-   ]
-  },
-  {
-   "uuid": "sign_climb",
-   "type": "sign",
-   "pos": [
-    4.5,
-    3.9,
-    -4.4
-   ],
-   "text": "Стена 3.4 м — грип у бруска, перехват руками",
-   "size": 0.1
-  },
-  {
-   "uuid": "climbtop",
-   "type": "box",
-   "pos": [
-    4.5,
-    3.25,
-    -5.85
-   ],
-   "size": [
-    3.0,
-    0.3,
-    2.5
-   ],
-   "color": "#8a93a6",
-   "tags": [
-    "teleport_target"
-   ]
-  },
-  {
-   "uuid": "sign_top",
-   "type": "sign",
-   "pos": [
-    4.5,
-    4.2,
-    -5.85
-   ],
-   "text": "Верх стены: долез — подтянись и перевались",
-   "size": 0.1
-  },
-  {
-   "uuid": "ledge_wall",
-   "type": "ledge",
-   "pos": [
-    4.5,
-    3.4,
-    -4.62
-   ],
-   "size": [
-    3.0,
-    0.5,
-    0.6
-   ],
-   "target": [
-    4.5,
-    3.4,
-    -5.4
-   ]
-  }
- ]
+	"format": 1,
+	"name": "Стартовая локация: улица",
+	"objects": [
+		{
+			"uuid": "floor",
+			"type": "box",
+			"pos": [
+				0,
+				-0.1,
+				0
+			],
+			"size": [
+				100.0,
+				0.2,
+				100.0
+			],
+			"color": "#6c7280",
+			"groups": [
+				"площадки"
+			]
+		},
+		{
+			"uuid": "walk_l",
+			"type": "box",
+			"pos": [
+				-2.7,
+				0.06,
+				-12.0
+			],
+			"size": [
+				1.4,
+				0.12,
+				44.0
+			],
+			"color": "#7f8792",
+			"groups": [
+				"улица"
+			]
+		},
+		{
+			"uuid": "walk_r",
+			"type": "box",
+			"pos": [
+				2.7,
+				0.06,
+				-12.0
+			],
+			"size": [
+				1.4,
+				0.12,
+				44.0
+			],
+			"color": "#7f8792",
+			"groups": [
+				"улица"
+			]
+		},
+		{
+			"uuid": "home_face0",
+			"type": "box",
+			"pos": [
+				-3.525,
+				1.5,
+				-8.4
+			],
+			"size": [
+				0.25,
+				3.0,
+				3.2
+			],
+			"color": "#8d7f6a",
+			"groups": [
+				"дома"
+			],
+			"join": [
+				"home_face1",
+				"home_lintel",
+				"home_back",
+				"home_side0",
+				"home_side1",
+				"home_roof"
+			]
+		},
+		{
+			"uuid": "home_face1",
+			"type": "box",
+			"pos": [
+				-3.525,
+				1.5,
+				-3.6
+			],
+			"size": [
+				0.25,
+				3.0,
+				3.2
+			],
+			"color": "#8d7f6a",
+			"groups": [
+				"дома"
+			],
+			"join": [
+				"home_face0",
+				"home_lintel",
+				"home_back",
+				"home_side0",
+				"home_side1",
+				"home_roof"
+			]
+		},
+		{
+			"uuid": "home_lintel",
+			"type": "box",
+			"pos": [
+				-3.525,
+				2.55,
+				-6.0
+			],
+			"size": [
+				0.25,
+				0.9,
+				1.6
+			],
+			"color": "#8d7f6a",
+			"groups": [
+				"дома"
+			],
+			"mounted_on": "home_face0",
+			"join": [
+				"home_face0",
+				"home_face1",
+				"home_back",
+				"home_side0",
+				"home_side1",
+				"home_roof"
+			]
+		},
+		{
+			"uuid": "home_back",
+			"type": "box",
+			"pos": [
+				-10.275,
+				1.5,
+				-6.0
+			],
+			"size": [
+				0.25,
+				3.0,
+				8.0
+			],
+			"color": "#8d7f6a",
+			"groups": [
+				"дома"
+			],
+			"join": [
+				"home_face0",
+				"home_face1",
+				"home_lintel",
+				"home_side0",
+				"home_side1",
+				"home_roof"
+			]
+		},
+		{
+			"uuid": "home_side0",
+			"type": "box",
+			"pos": [
+				-6.9,
+				1.5,
+				-9.875
+			],
+			"size": [
+				7.0,
+				3.0,
+				0.25
+			],
+			"color": "#8d7f6a",
+			"groups": [
+				"дома"
+			],
+			"join": [
+				"home_face0",
+				"home_face1",
+				"home_lintel",
+				"home_back",
+				"home_side1",
+				"home_roof"
+			]
+		},
+		{
+			"uuid": "home_side1",
+			"type": "box",
+			"pos": [
+				-6.9,
+				1.5,
+				-2.125
+			],
+			"size": [
+				7.0,
+				3.0,
+				0.25
+			],
+			"color": "#8d7f6a",
+			"groups": [
+				"дома"
+			],
+			"join": [
+				"home_face0",
+				"home_face1",
+				"home_lintel",
+				"home_back",
+				"home_side0",
+				"home_roof"
+			]
+		},
+		{
+			"uuid": "home_roof",
+			"type": "box",
+			"pos": [
+				-6.9,
+				3.1,
+				-6.0
+			],
+			"size": [
+				7.0,
+				0.2,
+				8.0
+			],
+			"color": "#5c5148",
+			"groups": [
+				"дома"
+			],
+			"tags": [],
+			"join": [
+				"home_face0",
+				"home_face1",
+				"home_lintel",
+				"home_back",
+				"home_side0",
+				"home_side1"
+			]
+		},
+		{
+			"uuid": "hramp_face",
+			"type": "box",
+			"pos": [
+				-3.525,
+				2.1,
+				-16.5
+			],
+			"size": [
+				0.25,
+				4.2,
+				8.0
+			],
+			"color": "#6f7a82",
+			"groups": [
+				"дома"
+			],
+			"join": [
+				"hramp_back",
+				"hramp_side0",
+				"hramp_side1",
+				"hramp_roof"
+			]
+		},
+		{
+			"uuid": "hramp_back",
+			"type": "box",
+			"pos": [
+				-9.275,
+				2.1,
+				-16.5
+			],
+			"size": [
+				0.25,
+				4.2,
+				8.0
+			],
+			"color": "#6f7a82",
+			"groups": [
+				"дома"
+			],
+			"join": [
+				"hramp_face",
+				"hramp_side0",
+				"hramp_side1",
+				"hramp_roof"
+			]
+		},
+		{
+			"uuid": "hramp_side0",
+			"type": "box",
+			"pos": [
+				-6.4,
+				2.1,
+				-20.375
+			],
+			"size": [
+				6.0,
+				4.2,
+				0.25
+			],
+			"color": "#6f7a82",
+			"groups": [
+				"дома"
+			],
+			"join": [
+				"hramp_face",
+				"hramp_back",
+				"hramp_side1",
+				"hramp_roof"
+			]
+		},
+		{
+			"uuid": "hramp_side1",
+			"type": "box",
+			"pos": [
+				-6.4,
+				2.1,
+				-12.625
+			],
+			"size": [
+				6.0,
+				4.2,
+				0.25
+			],
+			"color": "#6f7a82",
+			"groups": [
+				"дома"
+			],
+			"join": [
+				"hramp_face",
+				"hramp_back",
+				"hramp_side0",
+				"hramp_roof"
+			]
+		},
+		{
+			"uuid": "hramp_roof",
+			"type": "box",
+			"pos": [
+				-6.4,
+				4.3,
+				-16.5
+			],
+			"size": [
+				6.0,
+				0.2,
+				8.0
+			],
+			"color": "#5c5148",
+			"groups": [
+				"дома"
+			],
+			"tags": [],
+			"join": [
+				"hramp_face",
+				"hramp_back",
+				"hramp_side0",
+				"hramp_side1"
+			]
+		},
+		{
+			"uuid": "hclimb_face",
+			"type": "box",
+			"pos": [
+				-3.525,
+				1.7,
+				-27.0
+			],
+			"size": [
+				0.25,
+				3.4,
+				8.0
+			],
+			"color": "#8d7f6a",
+			"groups": [
+				"дома"
+			],
+			"join": [
+				"hclimb_back",
+				"hclimb_side0",
+				"hclimb_side1",
+				"hclimb_roof"
+			]
+		},
+		{
+			"uuid": "hclimb_back",
+			"type": "box",
+			"pos": [
+				-9.775,
+				1.7,
+				-27.0
+			],
+			"size": [
+				0.25,
+				3.4,
+				8.0
+			],
+			"color": "#8d7f6a",
+			"groups": [
+				"дома"
+			],
+			"join": [
+				"hclimb_face",
+				"hclimb_side0",
+				"hclimb_side1",
+				"hclimb_roof"
+			]
+		},
+		{
+			"uuid": "hclimb_side0",
+			"type": "box",
+			"pos": [
+				-6.65,
+				1.7,
+				-30.875
+			],
+			"size": [
+				6.5,
+				3.4,
+				0.25
+			],
+			"color": "#8d7f6a",
+			"groups": [
+				"дома"
+			],
+			"join": [
+				"hclimb_face",
+				"hclimb_back",
+				"hclimb_side1",
+				"hclimb_roof"
+			]
+		},
+		{
+			"uuid": "hclimb_side1",
+			"type": "box",
+			"pos": [
+				-6.65,
+				1.7,
+				-23.125
+			],
+			"size": [
+				6.5,
+				3.4,
+				0.25
+			],
+			"color": "#8d7f6a",
+			"groups": [
+				"дома"
+			],
+			"join": [
+				"hclimb_face",
+				"hclimb_back",
+				"hclimb_side0",
+				"hclimb_roof"
+			]
+		},
+		{
+			"uuid": "hclimb_roof",
+			"type": "box",
+			"pos": [
+				-6.65,
+				3.5,
+				-27.0
+			],
+			"size": [
+				6.5,
+				0.2,
+				8.0
+			],
+			"color": "#5c5148",
+			"groups": [
+				"дома"
+			],
+			"tags": [
+				"teleport_target"
+			],
+			"join": [
+				"hclimb_face",
+				"hclimb_back",
+				"hclimb_side0",
+				"hclimb_side1"
+			]
+		},
+		{
+			"uuid": "hstair_face",
+			"type": "box",
+			"pos": [
+				3.525,
+				2.8,
+				-6.5
+			],
+			"size": [
+				0.25,
+				5.6,
+				9.0
+			],
+			"color": "#6f7a82",
+			"groups": [
+				"дома"
+			],
+			"join": [
+				"hstair_back",
+				"hstair_side0",
+				"hstair_side1",
+				"hstair_roof"
+			]
+		},
+		{
+			"uuid": "hstair_back",
+			"type": "box",
+			"pos": [
+				10.275,
+				2.8,
+				-6.5
+			],
+			"size": [
+				0.25,
+				5.6,
+				9.0
+			],
+			"color": "#6f7a82",
+			"groups": [
+				"дома"
+			],
+			"join": [
+				"hstair_face",
+				"hstair_side0",
+				"hstair_side1",
+				"hstair_roof"
+			]
+		},
+		{
+			"uuid": "hstair_side0",
+			"type": "box",
+			"pos": [
+				6.9,
+				2.8,
+				-10.875
+			],
+			"size": [
+				7.0,
+				5.6,
+				0.25
+			],
+			"color": "#6f7a82",
+			"groups": [
+				"дома"
+			],
+			"join": [
+				"hstair_face",
+				"hstair_back",
+				"hstair_side1",
+				"hstair_roof"
+			]
+		},
+		{
+			"uuid": "hstair_side1",
+			"type": "box",
+			"pos": [
+				6.9,
+				2.8,
+				-2.125
+			],
+			"size": [
+				7.0,
+				5.6,
+				0.25
+			],
+			"color": "#6f7a82",
+			"groups": [
+				"дома"
+			],
+			"join": [
+				"hstair_face",
+				"hstair_back",
+				"hstair_side0",
+				"hstair_roof"
+			]
+		},
+		{
+			"uuid": "hstair_roof",
+			"type": "box",
+			"pos": [
+				6.9,
+				5.7,
+				-6.5
+			],
+			"size": [
+				7.0,
+				0.2,
+				9.0
+			],
+			"color": "#5c5148",
+			"groups": [
+				"дома"
+			],
+			"tags": [],
+			"join": [
+				"hstair_face",
+				"hstair_back",
+				"hstair_side0",
+				"hstair_side1"
+			]
+		},
+		{
+			"uuid": "htall_face",
+			"type": "box",
+			"pos": [
+				3.525,
+				3.5,
+				-17.5
+			],
+			"size": [
+				0.25,
+				7.0,
+				8.0
+			],
+			"color": "#8d7f6a",
+			"groups": [
+				"дома"
+			],
+			"join": [
+				"htall_back",
+				"htall_side0",
+				"htall_side1",
+				"htall_roof"
+			]
+		},
+		{
+			"uuid": "htall_back",
+			"type": "box",
+			"pos": [
+				9.275,
+				3.5,
+				-17.5
+			],
+			"size": [
+				0.25,
+				7.0,
+				8.0
+			],
+			"color": "#8d7f6a",
+			"groups": [
+				"дома"
+			],
+			"join": [
+				"htall_face",
+				"htall_side0",
+				"htall_side1",
+				"htall_roof"
+			]
+		},
+		{
+			"uuid": "htall_side0",
+			"type": "box",
+			"pos": [
+				6.4,
+				3.5,
+				-21.375
+			],
+			"size": [
+				6.0,
+				7.0,
+				0.25
+			],
+			"color": "#8d7f6a",
+			"groups": [
+				"дома"
+			],
+			"join": [
+				"htall_face",
+				"htall_back",
+				"htall_side1",
+				"htall_roof"
+			]
+		},
+		{
+			"uuid": "htall_side1",
+			"type": "box",
+			"pos": [
+				6.4,
+				3.5,
+				-13.625
+			],
+			"size": [
+				6.0,
+				7.0,
+				0.25
+			],
+			"color": "#8d7f6a",
+			"groups": [
+				"дома"
+			],
+			"join": [
+				"htall_face",
+				"htall_back",
+				"htall_side0",
+				"htall_roof"
+			]
+		},
+		{
+			"uuid": "htall_roof",
+			"type": "box",
+			"pos": [
+				6.4,
+				7.1,
+				-17.5
+			],
+			"size": [
+				6.0,
+				0.2,
+				8.0
+			],
+			"color": "#5c5148",
+			"groups": [
+				"дома"
+			],
+			"tags": [],
+			"join": [
+				"htall_face",
+				"htall_back",
+				"htall_side0",
+				"htall_side1"
+			]
+		},
+		{
+			"uuid": "hbeam_face",
+			"type": "box",
+			"pos": [
+				3.525,
+				2.0,
+				-27.5
+			],
+			"size": [
+				0.25,
+				4.0,
+				7.0
+			],
+			"color": "#6f7a82",
+			"groups": [
+				"дома"
+			],
+			"join": [
+				"hbeam_back",
+				"hbeam_side0",
+				"hbeam_side1",
+				"hbeam_roof"
+			]
+		},
+		{
+			"uuid": "hbeam_back",
+			"type": "box",
+			"pos": [
+				9.275,
+				2.0,
+				-27.5
+			],
+			"size": [
+				0.25,
+				4.0,
+				7.0
+			],
+			"color": "#6f7a82",
+			"groups": [
+				"дома"
+			],
+			"join": [
+				"hbeam_face",
+				"hbeam_side0",
+				"hbeam_side1",
+				"hbeam_roof"
+			]
+		},
+		{
+			"uuid": "hbeam_side0",
+			"type": "box",
+			"pos": [
+				6.4,
+				2.0,
+				-30.875
+			],
+			"size": [
+				6.0,
+				4.0,
+				0.25
+			],
+			"color": "#6f7a82",
+			"groups": [
+				"дома"
+			],
+			"join": [
+				"hbeam_face",
+				"hbeam_back",
+				"hbeam_side1",
+				"hbeam_roof"
+			]
+		},
+		{
+			"uuid": "hbeam_side1",
+			"type": "box",
+			"pos": [
+				6.4,
+				2.0,
+				-24.125
+			],
+			"size": [
+				6.0,
+				4.0,
+				0.25
+			],
+			"color": "#6f7a82",
+			"groups": [
+				"дома"
+			],
+			"join": [
+				"hbeam_face",
+				"hbeam_back",
+				"hbeam_side0",
+				"hbeam_roof"
+			]
+		},
+		{
+			"uuid": "hbeam_roof",
+			"type": "box",
+			"pos": [
+				6.4,
+				4.1,
+				-27.5
+			],
+			"size": [
+				6.0,
+				0.2,
+				7.0
+			],
+			"color": "#5c5148",
+			"groups": [
+				"дома"
+			],
+			"tags": [
+				"teleport_target"
+			],
+			"join": [
+				"hbeam_face",
+				"hbeam_back",
+				"hbeam_side0",
+				"hbeam_side1"
+			]
+		},
+		{
+			"uuid": "spawn",
+			"type": "spawn",
+			"pos": [
+				0,
+				0,
+				8
+			],
+			"yaw": 0
+		},
+		{
+			"uuid": "sign_street",
+			"type": "sign",
+			"pos": [
+				0,
+				2.4,
+				2.0
+			],
+			"text": "Улица уходит на север\nдома по обе стороны",
+			"size": 0.1,
+			"groups": [
+				"подсказки"
+			]
+		},
+		{
+			"uuid": "table",
+			"type": "box",
+			"pos": [
+				-4.6,
+				0.7,
+				7.0
+			],
+			"size": [
+				1.8,
+				0.08,
+				0.8
+			],
+			"color": "#9a7b52",
+			"groups": [
+				"постройки"
+			],
+			"join": [
+				"leg0",
+				"leg1"
+			]
+		},
+		{
+			"uuid": "leg0",
+			"type": "box",
+			"pos": [
+				-5.3,
+				0.33,
+				7.0
+			],
+			"size": [
+				0.08,
+				0.66,
+				0.08
+			],
+			"color": "#9a7b52",
+			"groups": [
+				"постройки"
+			],
+			"join": [
+				"table"
+			]
+		},
+		{
+			"uuid": "leg1",
+			"type": "box",
+			"pos": [
+				-3.9,
+				0.33,
+				7.0
+			],
+			"size": [
+				0.08,
+				0.66,
+				0.08
+			],
+			"color": "#9a7b52",
+			"groups": [
+				"постройки"
+			],
+			"join": [
+				"table"
+			]
+		},
+		{
+			"uuid": "sign_table",
+			"type": "sign",
+			"pos": [
+				-4.6,
+				1.5,
+				7.0
+			],
+			"text": "Верстак 0.74 м\nкубы берутся грипом",
+			"size": 0.1,
+			"groups": [
+				"подсказки"
+			]
+		},
+		{
+			"uuid": "grab0",
+			"type": "box",
+			"pos": [
+				-5.25,
+				0.8,
+				7.0
+			],
+			"size": [
+				0.12,
+				0.12,
+				0.12
+			],
+			"color": "#c4693f",
+			"body": "grab",
+			"groups": [
+				"предметы"
+			]
+		},
+		{
+			"uuid": "grab1",
+			"type": "box",
+			"pos": [
+				-4.99,
+				0.8,
+				7.0
+			],
+			"size": [
+				0.12,
+				0.12,
+				0.12
+			],
+			"color": "#c4693f",
+			"body": "grab",
+			"groups": [
+				"предметы"
+			]
+		},
+		{
+			"uuid": "grab2",
+			"type": "box",
+			"pos": [
+				-4.73,
+				0.8,
+				7.0
+			],
+			"size": [
+				0.12,
+				0.12,
+				0.12
+			],
+			"color": "#c4693f",
+			"body": "grab",
+			"groups": [
+				"предметы"
+			]
+		},
+		{
+			"uuid": "grab3",
+			"type": "box",
+			"pos": [
+				-4.47,
+				0.8,
+				7.0
+			],
+			"size": [
+				0.12,
+				0.12,
+				0.12
+			],
+			"color": "#c4693f",
+			"body": "grab",
+			"groups": [
+				"предметы"
+			]
+		},
+		{
+			"uuid": "grab4",
+			"type": "box",
+			"pos": [
+				-4.21,
+				0.8,
+				7.0
+			],
+			"size": [
+				0.12,
+				0.12,
+				0.12
+			],
+			"color": "#c4693f",
+			"body": "grab",
+			"groups": [
+				"предметы"
+			]
+		},
+		{
+			"uuid": "grab5",
+			"type": "box",
+			"pos": [
+				-3.95,
+				0.8,
+				7.0
+			],
+			"size": [
+				0.12,
+				0.12,
+				0.12
+			],
+			"color": "#c4693f",
+			"body": "grab",
+			"groups": [
+				"предметы"
+			]
+		},
+		{
+			"uuid": "post0",
+			"type": "box",
+			"pos": [
+				4.2,
+				0.5,
+				6.6
+			],
+			"size": [
+				0.1,
+				1.0,
+				0.1
+			],
+			"color": "#d8d2c0",
+			"groups": [
+				"постройки"
+			]
+		},
+		{
+			"uuid": "post1",
+			"type": "box",
+			"pos": [
+				4.6,
+				1.0,
+				6.6
+			],
+			"size": [
+				0.1,
+				2.0,
+				0.1
+			],
+			"color": "#d8d2c0",
+			"groups": [
+				"постройки"
+			]
+		},
+		{
+			"uuid": "sign_posts",
+			"type": "sign",
+			"pos": [
+				4.4,
+				2.5,
+				6.6
+			],
+			"text": "Столбы 1 и 2 м — метки масштаба",
+			"size": 0.1,
+			"groups": [
+				"подсказки"
+			]
+		},
+		{
+			"uuid": "mark0",
+			"type": "box",
+			"pos": [
+				4.2,
+				0.5,
+				6.6
+			],
+			"size": [
+				0.16,
+				0.02,
+				0.16
+			],
+			"color": "#c4693f",
+			"body": "none",
+			"layer": "editor",
+			"groups": [
+				"разметка"
+			],
+			"mounted_on": "post0"
+		},
+		{
+			"uuid": "mark1",
+			"type": "box",
+			"pos": [
+				4.2,
+				1.0,
+				6.6
+			],
+			"size": [
+				0.16,
+				0.02,
+				0.16
+			],
+			"color": "#c4693f",
+			"body": "none",
+			"layer": "editor",
+			"groups": [
+				"разметка"
+			],
+			"mounted_on": "post0"
+		},
+		{
+			"uuid": "mark2",
+			"type": "box",
+			"pos": [
+				4.2,
+				1.5,
+				6.6
+			],
+			"size": [
+				0.16,
+				0.02,
+				0.16
+			],
+			"color": "#c4693f",
+			"body": "none",
+			"layer": "editor",
+			"groups": [
+				"разметка"
+			],
+			"mounted_on": "post0"
+		},
+		{
+			"uuid": "mark3",
+			"type": "box",
+			"pos": [
+				4.2,
+				2.0,
+				6.6
+			],
+			"size": [
+				0.16,
+				0.02,
+				0.16
+			],
+			"color": "#c4693f",
+			"body": "none",
+			"layer": "editor",
+			"groups": [
+				"разметка"
+			],
+			"mounted_on": "post0"
+		},
+		{
+			"uuid": "pad0",
+			"type": "box",
+			"pos": [
+				-2.0,
+				0.02,
+				11.5
+			],
+			"size": [
+				1.0,
+				0.04,
+				1.0
+			],
+			"color": "#3f7fc4",
+			"tags": [
+				"teleport_target"
+			],
+			"groups": [
+				"площадки"
+			]
+		},
+		{
+			"uuid": "pad1",
+			"type": "box",
+			"pos": [
+				0.0,
+				0.02,
+				13.0
+			],
+			"size": [
+				1.0,
+				0.04,
+				1.0
+			],
+			"color": "#3f7fc4",
+			"tags": [
+				"teleport_target"
+			],
+			"groups": [
+				"площадки"
+			]
+		},
+		{
+			"uuid": "pad2",
+			"type": "box",
+			"pos": [
+				2.0,
+				0.02,
+				11.5
+			],
+			"size": [
+				1.0,
+				0.04,
+				1.0
+			],
+			"color": "#3f7fc4",
+			"tags": [
+				"teleport_target"
+			],
+			"groups": [
+				"площадки"
+			]
+		},
+		{
+			"uuid": "home_step",
+			"type": "box",
+			"pos": [
+				-3.9,
+				0.06,
+				-6.0
+			],
+			"size": [
+				1.0,
+				0.12,
+				1.8
+			],
+			"color": "#7f8792",
+			"groups": [
+				"улица"
+			],
+			"join": [
+				"walk_l",
+				"home_face0",
+				"home_face1"
+			]
+		},
+		{
+			"uuid": "home_enter",
+			"type": "trigger",
+			"pos": [
+				-6.9,
+				1.2,
+				-6.0
+			],
+			"size": [
+				6.5,
+				2.2,
+				7.5
+			],
+			"loads": "res://world/levels/start_interior.json",
+			"groups": [
+				"дома"
+			]
+		},
+		{
+			"uuid": "sign_home",
+			"type": "sign",
+			"pos": [
+				-4.0,
+				2.5,
+				-6.0
+			],
+			"text": "Жилой дом: интерьер грузится при входе\nи выгружается при выходе",
+			"size": 0.1,
+			"groups": [
+				"подсказки"
+			]
+		},
+		{
+			"uuid": "porch",
+			"type": "box",
+			"pos": [
+				-2.1,
+				0.45,
+				-18.0
+			],
+			"size": [
+				2.6,
+				0.9,
+				3.0
+			],
+			"color": "#8a93a6",
+			"tags": [
+				"teleport_target"
+			],
+			"groups": [
+				"площадки"
+			],
+			"join": [
+				"hramp_face",
+				"walk_l"
+			]
+		},
+		{
+			"uuid": "ramp",
+			"type": "box",
+			"pos": [
+				-2.1,
+				0.519,
+				-13.95
+			],
+			"size": [
+				2.6,
+				0.14,
+				5.179
+			],
+			"color": "#9a7b52",
+			"rot": [
+				10.0,
+				0,
+				0
+			],
+			"groups": [
+				"площадки"
+			],
+			"leads_to": "porch",
+			"join": [
+				"porch",
+				"walk_l"
+			]
+		},
+		{
+			"uuid": "sign_ramp",
+			"type": "sign",
+			"pos": [
+				-2.1,
+				1.9,
+				-13.95
+			],
+			"text": "Пандус 10°\nпройти ногами и телепортом",
+			"size": 0.1,
+			"groups": [
+				"подсказки"
+			]
+		},
+		{
+			"uuid": "balcony",
+			"type": "box",
+			"pos": [
+				2.2,
+				1.65,
+				-8.3
+			],
+			"size": [
+				2.4,
+				0.3,
+				3.0
+			],
+			"color": "#8a93a6",
+			"tags": [
+				"teleport_target"
+			],
+			"groups": [
+				"площадки"
+			],
+			"join": [
+				"hstair_face0",
+				"hstair_face1",
+				"balcony_post"
+			]
+		},
+		{
+			"uuid": "balcony_post",
+			"type": "box",
+			"pos": [
+				1.15,
+				0.75,
+				-9.6
+			],
+			"size": [
+				0.18,
+				1.5,
+				0.18
+			],
+			"color": "#8a93a6",
+			"groups": [
+				"постройки"
+			],
+			"join": [
+				"balcony",
+				"walk_r"
+			]
+		},
+		{
+			"uuid": "stairs",
+			"type": "stairs",
+			"pos": [
+				2.2,
+				0.0,
+				-3.95
+			],
+			"size": [
+				2.0,
+				1.8,
+				0.3
+			],
+			"rise": 0.18,
+			"run": 0.3,
+			"color": "#8a93a6",
+			"groups": [
+				"площадки"
+			],
+			"leads_to": "balcony",
+			"join": [
+				"balcony",
+				"walk_r"
+			]
+		},
+		{
+			"uuid": "sign_stairs",
+			"type": "sign",
+			"pos": [
+				2.2,
+				2.4,
+				-5.6
+			],
+			"text": "Ступени 0.18 м\nтело поднимается само",
+			"size": 0.1,
+			"groups": [
+				"подсказки"
+			]
+		},
+		{
+			"uuid": "climb0",
+			"type": "box",
+			"pos": [
+				-3.36,
+				0.55,
+				-28.25
+			],
+			"size": [
+				0.12,
+				0.09,
+				0.5
+			],
+			"color": "#9a7b52",
+			"tags": [
+				"climb"
+			],
+			"groups": [
+				"зацепы"
+			],
+			"mounted_on": "hclimb_face"
+		},
+		{
+			"uuid": "climb1",
+			"type": "box",
+			"pos": [
+				-3.36,
+				0.9,
+				-27.75
+			],
+			"size": [
+				0.12,
+				0.09,
+				0.5
+			],
+			"color": "#9a7b52",
+			"tags": [
+				"climb"
+			],
+			"groups": [
+				"зацепы"
+			],
+			"mounted_on": "hclimb_face"
+		},
+		{
+			"uuid": "climb2",
+			"type": "box",
+			"pos": [
+				-3.36,
+				1.25,
+				-28.25
+			],
+			"size": [
+				0.12,
+				0.09,
+				0.5
+			],
+			"color": "#9a7b52",
+			"tags": [
+				"climb"
+			],
+			"groups": [
+				"зацепы"
+			],
+			"mounted_on": "hclimb_face"
+		},
+		{
+			"uuid": "climb3",
+			"type": "box",
+			"pos": [
+				-3.36,
+				1.6,
+				-27.75
+			],
+			"size": [
+				0.12,
+				0.09,
+				0.5
+			],
+			"color": "#9a7b52",
+			"tags": [
+				"climb"
+			],
+			"groups": [
+				"зацепы"
+			],
+			"mounted_on": "hclimb_face"
+		},
+		{
+			"uuid": "climb4",
+			"type": "box",
+			"pos": [
+				-3.36,
+				1.95,
+				-28.25
+			],
+			"size": [
+				0.12,
+				0.09,
+				0.5
+			],
+			"color": "#9a7b52",
+			"tags": [
+				"climb"
+			],
+			"groups": [
+				"зацепы"
+			],
+			"mounted_on": "hclimb_face"
+		},
+		{
+			"uuid": "climb5",
+			"type": "box",
+			"pos": [
+				-3.36,
+				2.3,
+				-27.75
+			],
+			"size": [
+				0.12,
+				0.09,
+				0.5
+			],
+			"color": "#9a7b52",
+			"tags": [
+				"climb"
+			],
+			"groups": [
+				"зацепы"
+			],
+			"mounted_on": "hclimb_face"
+		},
+		{
+			"uuid": "climb6",
+			"type": "box",
+			"pos": [
+				-3.36,
+				2.65,
+				-28.25
+			],
+			"size": [
+				0.12,
+				0.09,
+				0.5
+			],
+			"color": "#9a7b52",
+			"tags": [
+				"climb"
+			],
+			"groups": [
+				"зацепы"
+			],
+			"mounted_on": "hclimb_face"
+		},
+		{
+			"uuid": "climb7",
+			"type": "box",
+			"pos": [
+				-3.36,
+				3.0,
+				-27.75
+			],
+			"size": [
+				0.12,
+				0.09,
+				0.5
+			],
+			"color": "#9a7b52",
+			"tags": [
+				"climb"
+			],
+			"groups": [
+				"зацепы"
+			],
+			"mounted_on": "hclimb_face"
+		},
+		{
+			"uuid": "climb8",
+			"type": "box",
+			"pos": [
+				-3.36,
+				3.35,
+				-28.25
+			],
+			"size": [
+				0.12,
+				0.09,
+				0.5
+			],
+			"color": "#9a7b52",
+			"tags": [
+				"climb"
+			],
+			"groups": [
+				"зацепы"
+			],
+			"mounted_on": "hclimb_face"
+		},
+		{
+			"uuid": "sign_climb",
+			"type": "sign",
+			"pos": [
+				-2.7,
+				3.9,
+				-28.0
+			],
+			"text": "Стена 3.4 м — грип у бруска, перехват руками",
+			"size": 0.1,
+			"groups": [
+				"подсказки"
+			]
+		},
+		{
+			"uuid": "ledge_roof",
+			"type": "ledge",
+			"pos": [
+				-3.6,
+				3.6,
+				-28.0
+			],
+			"size": [
+				0.8,
+				0.5,
+				2.4
+			],
+			"target": [
+				-4.4,
+				3.6,
+				-28.0
+			],
+			"layer": "editor",
+			"groups": [
+				"кромки"
+			]
+		},
+		{
+			"uuid": "sign_roof",
+			"type": "sign",
+			"pos": [
+				-4.6,
+				4.6,
+				-28.0
+			],
+			"text": "Крыша: долез — подтянись и перевались",
+			"size": 0.1,
+			"groups": [
+				"подсказки"
+			]
+		},
+		{
+			"uuid": "beam",
+			"type": "box",
+			"pos": [
+				0.4,
+				3.7,
+				-29.5
+			],
+			"size": [
+				6.0,
+				0.35,
+				0.5
+			],
+			"color": "#9a7b52",
+			"tags": [
+				"teleport_target"
+			],
+			"groups": [
+				"площадки"
+			],
+			"mounted_on": "hbeam_face"
+		},
+		{
+			"uuid": "sign_beam",
+			"type": "sign",
+			"pos": [
+				0.4,
+				4.4,
+				-29.5
+			],
+			"text": "Узкий уступ — точность луча",
+			"size": 0.1,
+			"groups": [
+				"подсказки"
+			]
+		},
+		{
+			"uuid": "end_deck",
+			"type": "box",
+			"pos": [
+				0,
+				0.6,
+				-32.7
+			],
+			"size": [
+				8.0,
+				1.2,
+				2.4
+			],
+			"color": "#8a93a6",
+			"tags": [
+				"teleport_target"
+			],
+			"groups": [
+				"площадки"
+			],
+			"join": [
+				"walk_l",
+				"walk_r"
+			]
+		},
+		{
+			"uuid": "sign_end",
+			"type": "sign",
+			"pos": [
+				0,
+				2.2,
+				-32.7
+			],
+			"text": "Конец улицы",
+			"size": 0.1,
+			"groups": [
+				"подсказки"
+			]
+		}
+	]
 }

@@ -151,6 +151,15 @@ const SPEC := {
 	"crouch_m": {"title": "Присесть кнопкой", "kind": "number", "default": 0.5, "min": 0.0, "max": 0.9,
 		"round": 0.1, "unit": "м", "marks": [[0.0, "выкл"], [0.5, "полприседа"], [0.9, "на корточки"]],
 		"hint": "Насколько опускает взгляд кнопка A: заглянуть под объект, не приседая физически. 0 — выключено."},
+	# Слои объектов (ADR о слоях, 2026-09-21). Область «user»: от способа ввода не зависят.
+	# Слоя «игра» среди переключателей нет намеренно: на нём живёт всё неразмеченное — меню, руки,
+	# панели, — и погасив его, человек ослеп бы вместе с интерфейсом.
+	"layer_editor": {"title": "Слой редактора", "kind": "choice", "default": true, "scope": "user",
+		"options": [[true, "показывать"], [false, "скрыть"]],
+		"hint": "Инструментарий автора: сетка пола и служебные объекты уровня."},
+	"layer_debug": {"title": "Слой отладки", "kind": "choice", "default": false, "scope": "user",
+		"options": [[true, "показывать"], [false, "скрыть"]],
+		"hint": "Зоны триггеров и прочая отладочная графика. Скрытая зона продолжает работать: маска камеры отсекает отрисовку, а не физику."},
 	"move_vignette": {"title": "Виньетка", "kind": "choice", "default": "light",
 		"options": [["off", "выкл"], ["light", "лёгкая"], ["strong", "сильная"], ["accel", "по ускорению"]],
 		"hint": "Затемнение краёв при движении и плавном повороте — первое средство от укачивания (руководство Meta). «По ускорению» темнеет только на разгоне и торможении, на ровном ходу не мешает."},
@@ -172,7 +181,9 @@ const SPACE := ["space_light", "space_glow", "grid_mode", "grid_origin", "grid_c
 ## «Перемещение» — способы, скорость, повороты, комфорт (ADR-0013).
 const MOVE := ["move_mode", "move_hand", "move_speed", "teleport_range", "teleport_turn",
 		"turn_mode", "turn_hand", "snap_angle", "turn_speed", "crouch_m", "pull_mode", "move_vignette"]
-const ORDER := MAIN + ADVANCED + SPACE + MOVE
+## Слои объектов: что кому показывается.
+const LAYERS := ["layer_editor", "layer_debug"]
+const ORDER := MAIN + ADVANCED + SPACE + MOVE + LAYERS
 ## Цвета сетки пола: имя настройки → цвет.
 const GRID_COLORS := {"cyan": Color(0.35, 0.85, 0.95), "white": Color(0.9, 0.92, 0.95),
 		"green": Color(0.45, 0.9, 0.5), "orange": Color(0.95, 0.65, 0.3)}

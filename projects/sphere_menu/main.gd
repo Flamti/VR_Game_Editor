@@ -20,6 +20,8 @@ const Space := preload("res://world/space.gd")
 const Room := preload("res://world/room.gd")
 const LevelLoader := preload("res://world/level_loader.gd")
 const LevelStream := preload("res://world/level_stream.gd")
+const Layers := preload("res://world/layers.gd")
+const Visibility := preload("res://world/visibility.gd")
 const SignFace := preload("res://world/sign_face.gd")
 const Locomotion := preload("res://locomotion/locomotion.gd")
 const Grab := preload("res://world/grab.gd")
@@ -85,6 +87,12 @@ var grab: Grab = Grab.new()
 var _pull_aimed: Dictionary = {}
 var _flying: Dictionary = {}
 var _hand_was: Dictionary = {}
+## файл уровня → его записи для учёта видимости
+var _vis_nodes: Dictionary = {}
+## Снимок видимости, снятый при входе в режим игры.
+var _play_snapshot: Dictionary = {}
+## Открыта ли системная клавиатура: ввод в это время принадлежит ей.
+var _keyboard_open := false
 ## Предметы группы «grab» этого кадра: один обход вместо трёх.
 var _grabbable: Array = []
 ## Фальсификатор «grabthrice»: группа обходится трижды за кадр — цена этой правки не измерялась.
@@ -94,6 +102,8 @@ var _pull_probe: Node3D = null
 var pull_view: PullView = PullView.new()
 ## Учёт загруженных частей уровня и отложенной выгрузки (world/level_stream.gd).
 var stream: LevelStream = LevelStream.new()
+## Кому что видно: слои маской камеры, группы и объекты — своим флагом (world/visibility.gd).
+var vis: Visibility = Visibility.new()
 ## Куда возвращает «в стартовую точку» и падение: положение И поворот при загрузке уровня.
 var spawn_xf := Transform3D()
 var journal: Journal = Journal.new()
@@ -174,6 +184,13 @@ func _ready() -> void:
 			iface.connect(sig, _on_xr_session.bind(sig))
 	panel.edit_changed.connect(_on_edit_changed)
 	panel.button.connect(_on_panel_button)
+	# Клавиатура платформы держит ввод: пока она открыта, контроллеры до приложения не доходят
+	# (ловушка 29), и «отпустили стик» перемещение не услышит.
+	panel.keyboard.connect(func(state: String):
+		if state == "show":
+			_keyboard_open = true
+		elif state in ["hide", "unavailable"]:
+			_keyboard_open = false)
 
 	router = Router.new()
 	add_child(router)
@@ -200,6 +217,10 @@ func _ready() -> void:
 	# грузился раньше, и запись обращалась к пустому меню).
 	_load_level("res://world/levels/start_location.json")
 	locomotion.setup(player, origin, camera, menu, left, right)
+	# Кто, кроме шара, держит ввод: ожидание PIN, замок панели, системная клавиатура. Пока держат,
+	# начатое перемещение обязано остановиться — событие «отпустили стик» до нас не дойдёт.
+	locomotion.input_busy = func() -> bool:
+		return profile_ui.active() or menu.panel_locked or _keyboard_open
 	locomotion.moved.connect(func(kind: String, detail: String):
 		journal.log("перемещение", menu.params(), "", "", -1, "%s: %s" % [kind, detail])
 		if kind == "перевал":
@@ -415,6 +436,11 @@ func _load_level(path: String) -> Dictionary:
 		return {}
 	var built := LevelLoader.build(level, res["data"])
 	stream.add(path, built["nodes"])
+	for entry in built["index"]:
+		vis.register(entry)
+	_vis_nodes[path] = built["index"]
+	menu.catalog.set_groups(vis.group_names(), vis.group_on)
+	_apply_visibility()
 	# Появились новые таблички — развернуть их, не дожидаясь, когда человек сдвинется.
 	SignFace.forget()
 	for t in built["triggers"]:
@@ -518,9 +544,34 @@ func _pull_fly(dt: float) -> void:
 			journal.log("предмет", menu.params(), "", "", -1, "не пойман рукой %s: %s" % [hand, node.name])
 
 
+## Показать то, что должно быть видно: слои — маской камеры (узлы не трогаются, физика цела),
+## группы и отдельные объекты — флагом у видимой части.
+func _apply_visibility() -> void:
+	vis.apply_to(camera, _vis_nodes)
+
+
+## Режим игры: показать только то, что видит игрок, и вернуть всё как было на выходе.
+func set_play(on: bool) -> void:
+	if on == vis.playing:
+		return
+	if on:
+		_play_snapshot = vis.enter_play()
+	else:
+		vis.exit_play(_play_snapshot)
+		_play_snapshot = {}
+	_apply_visibility()
+	journal.log("слои", menu.params(), "", "", -1,
+			"режим игры: %s, маска %d" % ["вход" if on else "выход", vis.camera_mask()])
+
+
 ## Кадр выгрузки: файл, из зоны которого человек вышел и не вернулся, снимается со сцены.
 func _unload_frame(dt: float) -> void:
 	for file in stream.tick(dt):
+		var gone: Array = []
+		for entry in _vis_nodes.get(file, []):
+			gone.append(str(entry["uuid"]))
+		vis.forget(gone)
+		_vis_nodes.erase(file)
 		var nodes: Array = stream.take(file)
 		for n in nodes:
 			if is_instance_valid(n):
@@ -596,11 +647,25 @@ func _apply_world() -> void:
 
 
 func _on_space_action(action: String) -> void:
-	match action:
+	# Аргумент действия — после двоеточия: «space_group:зацепы». Без разбора `match` сравнивал бы
+	# строку целиком и молча не находил ветку (ловушка 41 — действие, адресованное не туда).
+	var arg := action.get_slice(":", 1) if action.contains(":") else ""
+	match action.get_slice(":", 0):
 		"space_reset":
 			var detail := space.reset(profile_ui.measure_eye)
 			menu.nav.message = "Пространство сброшено к системным значениям"
 			print("пространство: %s" % detail)
+		"space_group":
+			# Имя группы — в аргументе; пункт меню уже переключил своё состояние.
+			var shown := not bool(vis.group_on.get(arg, true))
+			vis.group_on[arg] = shown
+			_apply_visibility()
+			menu.nav.message = "Группа «%s»: %s" % [arg, "показана" if shown else "скрыта"]
+			journal.log("слои", menu.params(), "", "", -1,
+					"группа %s: %s" % [arg, "показана" if shown else "скрыта"])
+		"space_play":
+			set_play(not vis.playing)
+			menu.nav.message = "Режим игры включён" if vis.playing else "Режим игры выключен"
 		"space_respawn":
 			respawn("пункт меню")
 			menu.nav.message = "Вы в стартовой точке уровня"
@@ -900,6 +965,10 @@ func _on_menu_event(name: String, data: Dictionary) -> void:
 	# Настройка пространства или света изменилась — мир перестраивается сразу, как шар.
 	if data.get("setting", "") in Settings.SPACE:
 		_apply_world()
+	if data.get("setting", "") in Settings.LAYERS:
+		vis.layer_on["editor"] = bool(menu.settings.get_value("layer_editor"))
+		vis.layer_on["debug"] = bool(menu.settings.get_value("layer_debug"))
+		_apply_visibility()
 	var hit := ""
 	var since := -1
 	if _task_id != "":

@@ -526,6 +526,10 @@ func _default(it: Item, scroll: Variant) -> Dictionary:
 			if it.id == "set_tasks":
 				tasks_on = it.on
 				return {"do": "tasks", "on": it.on}
+			# Переключатель, за которым стоит действие пространства (видимость группы объектов):
+			# состояние живёт в пункте, а сцену меняет сессия.
+			if it.action.begins_with("space_"):
+				return {"do": "space", "action": it.action}
 			return {"do": "redraw"}
 		K.OPTION:
 			if it.setting != "":

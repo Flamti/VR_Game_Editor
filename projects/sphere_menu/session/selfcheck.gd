@@ -333,8 +333,6 @@ func run(host: Node, menu: Menu) -> bool:
 	await _world_cost(host, menu, rid, budget)
 	await _frame_extras(host, menu, rid, budget)
 	await _frame_three(host, menu, rid, budget)
-	await _frame_extras(host, menu, rid, budget)
-	await _frame_three(host, menu, rid, budget)
 	_pin_time()
 	return _verdict()
 

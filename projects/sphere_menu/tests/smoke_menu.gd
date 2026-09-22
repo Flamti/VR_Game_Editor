@@ -68,7 +68,7 @@ extends SceneTree
 ##                         принадлежат меню»;
 ##   --falsify=walkquiet   непрерывное движение молчит в журнале (слепота сессии 17: двести секунд
 ##                         ходьбы и ни одной строки) — краснеет только «журнал ходьбы»;
-##   --falsify=axisfree    оси стика не глушат друг друга — поворот снова тащит вперёд (дефект
+##   --falsify=axisfree    приоритет поворота снят — поворот снова тащит вперёд (дефект
 ##                         сессии 24); краснеет только «рука движения и поворота»;
 ##   --falsify=onehand     настройки руки не действуют: движение прибито к левому стику, поворот к
 ##                         правому — краснеет только «рука движения и поворота»;
@@ -87,11 +87,20 @@ extends SceneTree
 ##   --falsify=mantlephys  физика тела во время перевала не выключается — человека роняет и тянет
 ##                         обратно к стене (дефект сессии 20); краснеет только «перевал ставит в
 ##                         полный рост»;
+##   --falsify=spawnblind посадка по геометрии не считается — тело ставится ровно в точку из данных
+##                         и висит или тонет вместе с ней; краснеет только «посадка считается
+##                         геометрией»;
+##   --falsify=climbpush   возврат остатка работает и во время лазанья: origin уезжает от стены,
+##                         кисть уходит от зацепа, тело дожимается в стену и хват рвётся сам
+##                         (дефект сессии 31) — краснеет только «лазанье у стены»;
 ##   --falsify=climbdrift  точка захвата снова плывёт за рукой — подъёма не получается (дефект
 ##                         сессии 17); краснеет только «лазанье поднимает»;
 ##   --falsify=pushlean    наклон у препятствия снова выталкивает человека (дефект сессии 17: «когда
 ##                         наклоняюсь у стола, весь передвигаюсь от препятствия») — краснеет только
 ##                         «тело игрока: наклон у стены»;
+##   --falsify=handgreedy  занятая рука берёт ещё один предмет — краснеет только «предмет в руке»;
+##   --falsify=heldsolid   предмет в руке остаётся препятствием и выталкивает человека (дефект
+##                         сессии 31) — краснеет только «предмет в руке»;
 ##   --falsify=grabstick   предмет не отпускается — краснеет только «предмет в руке»;
 ##   --falsify=pullnoline  нить от ладони к предмету не строится — краснеет только «связь при призыве»;
 ##   --falsify=pullnohl    предмет не выделяется накладкой — краснеет только «связь при призыве»;
@@ -101,6 +110,9 @@ extends SceneTree
 ##                         прячет и возвращает»;
 ##   --falsify=groupfree   скрытие группы гасит и столкновения — краснеет только «скрытая группа
 ##                         держит»;
+##   --falsify=holdstuck   удержание ввода копится флагом и не снимается — перемещение выключено
+##                         насовсем (дефект сессии 30); краснеет только «перехват ввода
+##                         останавливает движение»;
 ##   --falsify=lockdrift   перехват ввода не гасит начатое движение — человек продолжает ехать,
 ##                         пока вводит PIN (дефект сессии 29); краснеет только «перехват ввода
 ##                         останавливает движение»;
@@ -137,6 +149,7 @@ const MantleRes := preload("res://locomotion/mantle.gd")
 const GrabRes := preload("res://world/grab.gd")
 const LocomotionRes := preload("res://locomotion/locomotion.gd")
 const RoomRes := preload("res://world/room.gd")
+const SpaceRes := preload("res://world/space.gd")
 const LayersRes := preload("res://world/layers.gd")
 const VisibilityRes := preload("res://world/visibility.gd")
 const TriggerViewRes := preload("res://world/trigger_view.gd")
@@ -157,7 +170,9 @@ const STEPS := ["открыть", "войти коротким", "действи
 		"тело игрока: наклон у стены", "лазанье поднимает", "перевал ставит в полный рост",
 		"перевал без скачка вида", "перевал не хватает стоящего", "предмет в руке", "связь при призыве", "стики принадлежат меню", "журнал ходьбы", "рука движения и поворота",
 		"падение и возврат в старт", "комната от шлема",
-		"перехват ввода останавливает движение",
+		"перехват ввода останавливает движение", "предмет в руке не преграждает путь",
+		"лазанье у стены: хват держится, мир не едет", "старт стоит на полу",
+		"зона с полом: смена асинхронна", "посадка считается геометрией",
 		"зона видна и работает скрытой", "режим игры прячет и возвращает", "скрытая группа держит",
 		"меню групп из уровня",
 		"раскладки", "выход удержанием"]
@@ -228,8 +243,8 @@ func _initialize() -> void:
 		[301, _panel_layout_open], [304, _panel_layout], [307, _panel_show], [307, _pages], [307, _big_folder_labels], [306, _gesture_choice], [308, _shake_root],
 		[309, _hands_fist_touch], [309, _hands_drag], [309, _hands_handoff],
 		[309, _router_ready], [309, _router_visuals], [309, _router_settings], [309, _router_done], [309, _profile_switch], [309, _pui_new], [309, _pui_pin], [309, _pui_body], [309, _acc_key], [309, _acc_google], [309, _acc_pin], [309, _pui_done], [310, _world_light], [310, _world_grid], [310, _grid_fixed], [311, _level_build], [312, _phys_setup],
-		[330, _phys_head_prep], [360, _phys_head_check], [380, _phys_step], [470, _phys_wall], [500, _lean_prep], [520, _mantle_floor_check], [545, _lean_check], [556, _mantle_floor_result], [558, _climb_prep], [570, _climb_check], [572, _mantle_prep], [580, _grab_check], [580, _pull_link], [581, _stick_owner], [581, _walk_log], [581, _hand_choice], [582, _fall_home], [592, _fall_check], [600, _mantle_check], [601, _mantle_view_check], [582, _room_node],
-		[582, _input_lock], [583, _zone_prep], [615, _zone_check], [616, _play_mode], [617, _group_solid], [618, _group_menu],
+		[330, _phys_head_prep], [360, _phys_head_check], [380, _phys_step], [470, _phys_wall], [500, _lean_prep], [520, _mantle_floor_check], [545, _lean_check], [556, _mantle_floor_result], [558, _climb_prep], [570, _climb_check], [572, _mantle_prep], [563, _spawn_prep], [568, _spawn_check], [573, _climb_wall_prep], [576, _climb_wall_check], [577, _drop_check], [577, _held_ghost_prep], [579, _held_ghost_check], [580, _grab_check], [580, _pull_link], [581, _stick_owner], [581, _walk_log], [581, _hand_choice], [582, _fall_home], [592, _fall_check], [600, _mantle_check], [601, _mantle_view_check], [582, _room_node],
+		[582, _input_lock], [583, _zone_prep], [615, _zone_check], [616, _play_mode], [617, _group_solid], [618, _group_menu], [620, _area_wait_prep], [640, _area_wait_check],
 		[310, _layouts], [314, _exit_hold], [320, _finish],
 	]
 
@@ -2143,6 +2158,8 @@ func _grab_check() -> void:
 	_phys["walk"] = ""
 	var grab := GrabRes.new()
 	grab.falsify_sticky = falsify == "grabstick"
+	grab.falsify_greedy = falsify == "handgreedy"
+	grab.falsify_held_solid = falsify == "heldsolid"
 	var cubes: Array = get_nodes_in_group("grab")
 	var cube: Node3D = GrabRes.nearest(cubes, (cubes[0] as Node3D).global_position + Vector3(0.05, 0, 0))
 	var hand := Transform3D(Basis(), (cubes[0] as Node3D).global_position)
@@ -2152,15 +2169,28 @@ func _grab_check() -> void:
 		hand.origin += Vector3(0.02, 0, 0)
 		grab.update("right", hand, 1.0 / 90.0)
 	var moved_with_hand: bool = cube.global_position.distance_to(hand.origin) < 0.02
+	# Рука ЗАНЯТА: второй предмет она не берёт (решение владельца 2026-09-22). Раньше отказ был
+	# молчаливым, и вызывающий писал в журнал «взят», когда ничего не произошло.
+	var second: Node3D = null
+	for c in cubes:
+		if c != cube:
+			second = c
+			break
+	var took_second: bool = grab.grab("right", second, hand)
+	var still_first: bool = (grab.held["right"] as Dictionary)["node"] == cube
 	var thrown := grab.release("right")
+	var layer_back: bool = cube is CollisionObject3D and (cube as CollisionObject3D).collision_layer != 0
 	var released: bool = not grab.held.has("right") and cube is RigidBody3D and not (cube as RigidBody3D).freeze
 	_level_root.queue_free()
 	_player.queue_free()
-	if held_frozen and moved_with_hand and released and thrown.length() > 0.5:
-		r.pass_("предмет в руке: взят (физика приостановлена), едет за рукой, отпущен со скоростью %.2f м/с" % thrown.length())
+	if held_frozen and moved_with_hand and released and thrown.length() > 0.5 \
+			and not took_second and still_first and layer_back:
+		r.pass_("предмет в руке: взят (физика приостановлена), едет за рукой, отпущен со скоростью %.2f м/с; занятая рука второй не берёт; после отпускания снова осязаем" % [
+				thrown.length()])
 	else:
-		r.fail("предмет в руке: заморожен %s, едет за рукой %s, отпущен %s, бросок %.2f" % [held_frozen,
-				moved_with_hand, released, thrown.length()])
+		r.fail("предмет в руке: заморожен %s, едет за рукой %s, отпущен %s, бросок %.2f, взял второй %s, держит первый %s, слой вернулся %s" % [
+				held_frozen, moved_with_hand, released, thrown.length(), took_second, still_first,
+				layer_back])
 
 
 ## Пока шар открыт, стики принадлежат меню (левый вращает шар, правый листает панель) — иначе
@@ -2294,7 +2324,7 @@ func _grid_fixed() -> void:
 func _hand_choice() -> void:
 	var loco := LocomotionRes.new()
 	loco.falsify_fixed_hands = falsify == "onehand"
-	loco.falsify_no_axis_lock = falsify == "axisfree"
+	loco.falsify_no_turn_first = falsify == "axisfree"
 	loco.menu = menu
 	var l := XRController3D.new()
 	var rr := XRController3D.new()
@@ -2318,27 +2348,37 @@ func _hand_choice() -> void:
 			bad.append("move_hand=%s спросил %s" % [pair[0], asked])
 		if pair[0] == "both" and not (is_equal_approx(v.x, 0.75) and is_equal_approx(v.y, 0.85)):
 			bad.append("«обе» сложила стики в %s, ожидалось (0.75, 0.85)" % v)
-	# Доминирующая ось: при «обе» поворот стиком не должен тащить вперёд (сессия 24 — каждый поворот
-	# шёл в паре с отрезком ходьбы).
+	# ПОВОРОТ ГЛАВНЕЕ ДВИЖЕНИЯ, когда обе механики читают один стик (решение владельца 2026-09-22).
+	# Прежнее правило глушило «преобладающую ось» по отношению 1.6 и молчало ровно на тех
+	# отклонениях, которые человек даёт чаще всего: (0.8, 0.5) и (0.7, 0.7) вели и поворот, и ход.
 	st.values["move_hand"] = "both"
+	st.values["turn_hand"] = "both"
+	if not loco.same_stick():
+		bad.append("«обе»/«обе» — это один стик на две механики, а проверка считает иначе")
+	for probe in [[Vector2(0.9, 0.25), true], [Vector2(0.8, 0.5), true], [Vector2(0.7, 0.7), true],
+			[Vector2(0.2, 0.95), false], [Vector2(0.5, 0.5), false]]:
+		var v: Vector2 = probe[0]
+		loco.stick_source = func(who: String) -> Vector2:
+			return v if who == "right" else Vector2.ZERO
+		var f := loco.frame_sticks()
+		var moves: bool = (f["move"] as Vector2).length() > 0.01
+		var turns: bool = absf((f["turn"] as Vector2).x) >= 0.6
+		if bool(probe[1]) and moves:
+			bad.append("стик %s: поворот тащит вперёд (ход %s)" % [v, f["move"]])
+		if not bool(probe[1]) and not moves:
+			bad.append("стик %s: ход подавлен, хотя поворота нет" % v)
+		if bool(probe[1]) and not turns:
+			bad.append("стик %s: поворот не сработал" % v)
+	# Разные стики — правило не действует вовсе: стрейф на ходу остаётся.
+	st.values["move_hand"] = "left"
+	st.values["turn_hand"] = "right"
+	if loco.same_stick():
+		bad.append("«левая»/«правая» сочтены одним стиком")
 	loco.stick_source = func(who: String) -> Vector2:
-		# Правый стик ведут вбок для поворота, палец слегка задевает вертикаль.
-		return Vector2(0.9, 0.25) if who == "right" else Vector2.ZERO
-	var turn_only: Vector2 = loco.hand_stick("move_hand", "left")
-	if absf(turn_only.y) > 0.01:
-		bad.append("поворот тащит вперёд: ход %.2f при повороте %.2f" % [turn_only.y, turn_only.x])
-	# И наоборот: ход вперёд с лёгким заносом вбок не должен крутить.
-	loco.stick_source = func(who: String) -> Vector2:
-		return Vector2(0.2, 0.95) if who == "left" else Vector2.ZERO
-	var move_only: Vector2 = loco.hand_stick("move_hand", "left")
-	if absf(move_only.x) > 0.01:
-		bad.append("ход крутит: поворот %.2f при ходе %.2f" % [move_only.x, move_only.y])
-	# Диагональ без явного перевеса проходит целиком — человек ведёт стик наискось нарочно.
-	loco.stick_source = func(who: String) -> Vector2:
-		return Vector2(0.7, 0.7) if who == "left" else Vector2.ZERO
-	var diag: Vector2 = loco.hand_stick("move_hand", "left")
-	if absf(diag.x) < 0.5 or absf(diag.y) < 0.5:
-		bad.append("нарочная диагональ подавлена: %s" % diag)
+		return Vector2(0.8, 0.5) if who == "left" else Vector2(0.9, 0.1)
+	var split := loco.frame_sticks()
+	if (split["move"] as Vector2).length() < 0.5:
+		bad.append("при разных стиках ход подавлен: %s" % split["move"])
 	loco.stick_source = func(who: String) -> Vector2:
 		asked.append(who)
 		return Vector2(0.5 if who == "right" else 0.25, 0.75 if who == "left" else 0.1)
@@ -2355,7 +2395,7 @@ func _hand_choice() -> void:
 	rr.queue_free()
 	loco.free()
 	if bad.is_empty():
-		r.pass_("рука движения и поворота: «левая», «правая» и «обе» спрашивают тот стик, который названы; при «обе» явно преобладающая ось глушит вторую (поворот не тащит вперёд); телепорт целит из выбранной руки")
+		r.pass_("рука движения и поворота: «левая», «правая» и «обе» спрашивают тот стик, который названы; при одном стике на обе механики поворот главнее хода (0.9/0.25, 0.8/0.5 и 0.7/0.7 не везут), при разных стиках стрейф цел; телепорт целит из выбранной руки")
 	else:
 		r.fail("рука движения и поворота: %s" % "; ".join(bad))
 
@@ -2849,6 +2889,8 @@ func _input_lock() -> void:
 	loco.origin = origin
 	loco.menu = menu
 	loco.falsify_no_suspend = falsify == "lockdrift"
+	LocomotionRes.falsify_hold_stuck = falsify == "holdstuck"
+	LocomotionRes._stuck = false
 	var breaks: Array[String] = []
 	loco.moved.connect(func(kind: String, why: String):
 		if kind == "перемещение прервано":
@@ -2878,15 +2920,349 @@ func _input_lock() -> void:
 	# Состояние — в словаре: лямбда GDScript захватывает ЗНАЧЕНИЕ локальной переменной, и снятый
 	# позже флаг до неё бы не дошёл (проверка краснела бы на верном коде).
 	var pin := {"waiting": true}
-	loco.input_busy = func() -> bool: return bool(pin["waiting"])
+	loco.input_hold = func() -> String: return "ждём PIN" if bool(pin["waiting"]) else ""
 	if loco.input_free():
 		bad.append("при закрытом шаре, но ожидании PIN ввод считается свободным")
 	pin["waiting"] = false
 	if not loco.input_free():
 		bad.append("после ввода PIN управление не вернулось")
+	# Признак «ввод занят» берётся ОПРОСОМ состояния, а не флагом по сигналам. Сессия 30: системная
+	# клавиатура прислала «показана» без парной «скрыта», флаг залип, и перемещение было выключено
+	# весь прогон — человек мог двигаться только ногами по комнате.
+	var pan: Panel3D = menu.panel
+	pan.open_text("PIN", ["done"], "panel", {"digits": true, "masked": true})
+	# Правило берётся ИЗ ПРИЛОЖЕНИЯ (тот же вызов, что в main.gd), а не переписывается здесь.
+	var hold_while_text := LocomotionRes.hold_reason(false, menu.panel_locked, pan.is_text_open())
+	pan.close_editor()
+	var hold_after_text := LocomotionRes.hold_reason(false, menu.panel_locked, pan.is_text_open())
+	if hold_while_text == "":
+		bad.append("открытый ввод текста не держит перемещение")
+	if hold_after_text != "":
+		bad.append("после закрытия ввода текста перемещение осталось заперто: «%s»" % hold_after_text)
+	# И причина обязана быть названа словами: иначе в журнале не видно, кто держит.
+	if not hold_while_text.contains("текст"):
+		bad.append("причина удержания не названа: «%s»" % hold_while_text)
+	LocomotionRes.falsify_hold_stuck = false
 	body.queue_free()
 	loco.free()
 	if bad.is_empty():
 		r.pass_("перехват ввода останавливает движение: скорость обнулена, прицел брошен, прерывание записано один раз; ввод держат и шар, и ожидание PIN, и после него возвращается")
 	else:
 		r.fail("перехват ввода: %s" % "; ".join(bad))
+
+
+var _ghost: Dictionary = {}
+
+
+## Предмет в руке не преграждает путь человеку. Замороженное тело — статическое препятствие, и
+## оказавшись в капсуле, оно её выталкивает: два предмета в двух руках мотали человека туда-сюда
+## (сессия 31). Свидетель — ПРОЕЗД: капсула идёт сквозь место предмета.
+##
+## Подготовка и замер разнесены на кадры: смена `collision_layer` доходит до физического мира не
+## в том же кадре, и проверка, сделанная подряд, оставалась зелёной даже с фальсификатором.
+func _held_ghost_prep() -> void:
+	var grab := GrabRes.new()
+	grab.falsify_held_solid = falsify == "heldsolid"
+	var cubes: Array = get_nodes_in_group("grab")
+	if cubes.is_empty():
+		_ghost = {}
+		return
+	var cube: Node3D = cubes[0]
+	# Подальше от чужих стендов и над землёй, чтобы капсула ехала по прямой.
+	cube.global_position = Vector3(18.0, 0.9, 18.0)
+	grab.grab("right", cube, Transform3D(Basis(), cube.global_position))
+	var bump := PlayerBody.new()
+	var b_origin := XROrigin3D.new()
+	var b_head := Node3D.new()
+	head.get_parent().add_child(bump)
+	bump.add_child(b_origin)
+	b_origin.add_child(b_head)
+	b_head.position = Vector3(0, 1.6, 0)
+	# Без setup у тела нет формы вовсе, и оно проезжает сквозь что угодно: первый вариант стенда
+	# показывал одинаковый путь и с предметом, и без — спас контрольный случай.
+	bump.setup(b_origin, b_head)
+	bump.set_eye_height(1.6)
+	bump.set_physics_process(false)
+	bump.global_position = Vector3(18.0, 0.0, 17.0)
+	_ghost = {"grab": grab, "cube": cube, "bump": bump, "from": bump.global_position}
+
+
+func _held_ghost_check() -> void:
+	if _ghost.is_empty():
+		r.fail("предмет в руке не преграждает путь: в уровне нет предметов — проверять нечего")
+		return
+	var bump: PlayerBody = _ghost["bump"]
+	var cube: Node3D = _ghost["cube"]
+	var grab: GrabRes = _ghost["grab"]
+	var from: Vector3 = _ghost["from"]
+	for i in 12:
+		bump.move_and_collide(Vector3(0, 0, 0.1))
+	var way := bump.global_position.distance_to(from)
+	# Контроль: тот же проезд, но предмет УЖЕ отпущен — путь обязан быть перекрыт, иначе проверка
+	# доказывала бы пустоту (капсула могла просто не задевать предмет).
+	grab.release("right")
+	bump.global_position = from
+	for i in 12:
+		bump.move_and_collide(Vector3(0, 0, 0.1))
+	var way_solid := bump.global_position.distance_to(from)
+	bump.queue_free()
+	cube.queue_free()
+	_ghost.clear()
+	if way > 1.0 and way_solid < way - 0.1:
+		r.pass_("предмет в руке не преграждает путь: сквозь него человек проходит %.2f м, а отпущенный предмет останавливает его на %.2f м" % [way, way_solid])
+	else:
+		r.fail("предмет в руке не преграждает путь: сквозь держимый прошёл %.2f м, сквозь отпущенный %.2f м (контроль требует, чтобы второе было заметно меньше)" % [way, way_solid])
+
+
+var _climb_w: Dictionary = {}
+
+
+## Лазанье у НАСТОЯЩЕЙ стены, полным тактом: `player_body` и `locomotion` вместе, как в приложении.
+##
+## Прежний стенд звал `climb_shift` напрямую и потому не видел главного: во время лазанья
+## `_follow_head` отодвигал origin от стены (человек прижат к ней, тело упирается, остаток гасится
+## сдвигом origin со скоростью 1.2 м/с). Origin несёт кисти, а лазанье считает смещение от точки
+## захвата, ЗАФИКСИРОВАННОЙ в мире, — уехавшая кисть требовала сдвинуть тело обратно в стену, и так
+## каждый такт. Человека вдавливало в геометрию, а хват срывался сам (сессия 31).
+func _climb_wall_prep() -> void:
+	var face := _obj_pos("hclimb_face")
+	var face_size: Array = _obj("hclimb_face").get("size", [0.25, 3.4, 8.0])
+	var hold := _obj_pos("climb3")
+	if hold == Vector3.ZERO or face == Vector3.ZERO:
+		_climb_w = {}
+		return
+	# Наружу от фасада — туда, где висит человек.
+	var out := signf(hold.x - face.x)
+	var face_x: float = face.x + out * float(face_size[0]) * 0.5
+	var body := PlayerBody.new()
+	var origin := XROrigin3D.new()
+	var c_head := Node3D.new()
+	var l_ctrl := XRController3D.new()
+	var r_ctrl := XRController3D.new()
+	head.get_parent().add_child(body)
+	body.add_child(origin)
+	origin.add_child(c_head)
+	origin.add_child(l_ctrl)
+	origin.add_child(r_ctrl)
+	body.setup(origin, c_head)
+	body.set_eye_height(1.6)
+	body.global_position = Vector3(face_x + out * PlayerBody.RADIUS, hold.y - 1.0, hold.z)
+	# Голова ФИЗИЧЕСКИ зашла за плоскость стены: капсула туда встать не может, и остаток следования
+	# выходит за PUSH_MIN. Без этого возврат остатка не включается и стенд ничего не доказывает.
+	c_head.global_position = Vector3(face_x - out * 0.15, body.global_position.y + 1.6, hold.z)
+	r_ctrl.global_position = hold
+	l_ctrl.global_position = hold + Vector3(0, -0.5, 0)
+	var loco := LocomotionRes.new()
+	head.get_parent().add_child(loco)
+	loco.setup(body, origin, c_head, menu, l_ctrl, r_ctrl)
+	loco.set_physics_process(false)
+	body.set_physics_process(false)
+	loco.grip_source = func(who: String) -> bool: return who == "right"
+	# Шар закрыт: при открытом перемещение молчит целиком, и стенд проверял бы пустоту.
+	menu.close()
+	PlayerBody.falsify_climb_push = falsify == "climbpush"
+	var slips: Array[String] = []
+	loco.moved.connect(func(kind: String, why: String):
+		if kind == "лазанье" and why.begins_with("сорвался"):
+			slips.append(why))
+	_climb_w = {"body": body, "loco": loco, "r": r_ctrl, "origin": origin, "head": c_head,
+			"from_y": body.global_position.y, "o_from": origin.position, "slips": slips,
+			"face_x": face_x, "out": out, "hold": hold}
+
+
+func _climb_wall_check() -> void:
+	if _climb_w.is_empty():
+		r.fail("лазанье у стены: в уровне нет стены лазанья — проверять нечего")
+		return
+	var body: PlayerBody = _climb_w["body"]
+	var loco: LocomotionRes = _climb_w["loco"]
+	var r_ctrl: XRController3D = _climb_w["r"]
+	var origin: Node3D = _climb_w["origin"]
+	var head_node: Node3D = _climb_w["head"]
+	var dt := 1.0 / 90.0
+	# Контроль: случай действительно задевает возврат остатка — иначе стенд доказывал бы пустоту.
+	var gate: float = Vector2(head_node.global_position.x - body.global_position.x,
+			head_node.global_position.z - body.global_position.z).length()
+	var bad: Array[String] = []
+	if not loco.input_free():
+		bad.append("ввод занят — перемещение молчит, стенд ничего не проверяет")
+	# Порядок как в приложении: узел Player стоит в сцене раньше, чем добавляется locomotion.
+	var took := false
+	for i in 40:
+		r_ctrl.position.y -= 0.005          # подтягивается: 0.45 м/с
+		body._physics_process(dt)
+		loco._physics_process(dt)
+		took = took or loco.climb.active
+	var rise: float = body.global_position.y - float(_climb_w["from_y"])
+	# Свидетель — НЕ смещение origin: оно законно компенсирует ход тела, иначе голова уехала бы
+	# вместе с ним (сессия 15). Важно другое: далеко ли кисть от зацепа (петля уводит её) и не
+	# зашла ли капсула за плоскость стены.
+	var face_x: float = _climb_w["face_x"]
+	var out: float = _climb_w["out"]
+	var bite: float = PlayerBody.RADIUS - (body.global_position.x - face_x) * out
+	var hand_off: float = r_ctrl.global_position.distance_to(_climb_w["hold"] as Vector3)
+	var held: bool = loco.climb.active
+	var slips: Array = _climb_w["slips"]
+	if gate <= PlayerBody.PUSH_MIN:
+		bad.append("стенд не задевает возврат остатка (%.2f м при пороге %.2f) — проверять нечего" % [
+				gate, PlayerBody.PUSH_MIN])
+	if not took:
+		bad.append("хват не состоялся ни разу — стенд не дотянулся до зацепа")
+	elif not held:
+		bad.append("хват сорвался сам: %s" % [slips])
+	if rise < 0.15:
+		bad.append("подъём %.2f м за 0.2 м хода руки — тело не идёт вверх" % rise)
+	if bite > 0.02:
+		bad.append("капсула вошла в стену на %.2f м" % bite)
+	# Рука опускается на 0.20 м нарочно; всё, что сверх этого, — увод кисти петлёй.
+	if hand_off > 0.25:
+		bad.append("кисть ушла от зацепа на %.2f м (рука опустилась на 0.20)" % hand_off)
+	PlayerBody.falsify_climb_push = false
+	loco.free()
+	body.queue_free()
+	_climb_w.clear()
+	if bad.is_empty():
+		r.pass_("лазанье у стены: хват держится 40 тактов, подъём %.2f м за 0.20 м хода руки, капсула не входит в стену (%.3f м), кисть у зацепа (%.2f м); голова за плоскостью стены на %.2f м при пороге выталкивания %.2f" % [
+				rise, maxf(0.0, bite), hand_off, gate, PlayerBody.PUSH_MIN])
+	else:
+		r.fail("лазанье у стены: %s" % "; ".join(bad))
+
+
+var _spawn_t: Dictionary = {}
+
+
+## Точка старта держит человека на полу. Сессия 32: «в самом начале спавнюсь ниже пола и при сбросе
+## положения на стартовую точку проваливаюсь сквозь пол». Ставим тело ровно туда, куда его ставит
+## сессия (`spawn` из данных уровня), и тактуем физику: оно обязано остаться на поверхности.
+func _spawn_prep() -> void:
+	var spawn: Transform3D = _level_built.get("spawn", Transform3D())
+	if spawn == Transform3D():
+		_spawn_t = {}
+		return
+	var body := PlayerBody.new()
+	var origin := XROrigin3D.new()
+	var s_head := Node3D.new()
+	head.get_parent().add_child(body)
+	body.add_child(origin)
+	origin.add_child(s_head)
+	s_head.position = Vector3(0, 1.6, 0)
+	body.setup(origin, s_head)
+	body.set_eye_height(1.6)
+	body.set_physics_process(false)
+	body.global_transform = spawn
+	_spawn_t = {"body": body, "y": spawn.origin.y, "head": s_head}
+
+
+func _spawn_check() -> void:
+	if _spawn_t.is_empty():
+		r.fail("старт стоит на полу: в уровне нет точки старта — проверять нечего")
+		return
+	var body: PlayerBody = _spawn_t["body"]
+	var s_head: Node3D = _spawn_t["head"]
+	var want: float = _spawn_t["y"]
+	var dt := 1.0 / 90.0
+	# Тактуем столько же, сколько человек стоит, пока читает подсказку.
+	for i in 90:
+		body._physics_process(dt)
+	var feet := body.global_position.y
+	var eyes := s_head.global_position.y
+	var on_floor := body.is_on_floor()
+	var mask := body.collision_mask
+	body.queue_free()
+	_spawn_t.clear()
+	if absf(feet - want) < 0.05 and on_floor and eyes > want + 1.0:
+		r.pass_("старт стоит на полу: за 90 тактов ноги остались на %.2f м (старт %.2f), глаза на %.2f м, тело опирается на пол" % [
+				feet, want, eyes])
+	else:
+		r.fail("старт стоит на полу: ноги ушли на %.2f м (старт %.2f), глаза %.2f, на полу %s, маска столкновений %d" % [
+				feet, want, eyes, on_floor, mask])
+
+
+var _area_w: Dictionary = {}
+
+
+## Смена игровой зоны АСИНХРОННА: `set_play_area_mode` лишь помечает пространство «грязным»
+## (`openxr_api.cpp:1590`), а новое создаётся кадром позже. Читать режим сразу после запроса —
+## значит получить старый и объявить успех отказом; ровно та же ловушка, что с частотой кадров.
+##
+## Сессия 32: система отдала сидячую зону, запрос на stage ушёл, а чтение подряд вернуло 2 — и
+## приложение решило, что пола нет, хотя он уже был на подходе.
+func _area_wait_prep() -> void:
+	var sp := SpaceRes.new()
+	var reads := [0]
+	var mode := [int(XRInterface.XR_PLAY_AREA_SITTING)]
+	sp.set_play_area = func(_m: int) -> bool: return true
+	sp.play_area_mode = func() -> int:
+		reads[0] += 1
+		# Применяется поздно — позже, чем успевает сам запрос: иначе ожидание не понадобится, и
+		# проверка не заметила бы, что его убрали.
+		if reads[0] > 8:
+			mode[0] = int(XRInterface.XR_PLAY_AREA_STAGE)
+		return mode[0]
+	_area_w = {"sp": sp, "got": -1}
+	_area_w["got"] = await sp.ensure_floor_wait(head, 30)
+
+
+func _area_wait_check() -> void:
+	var got := int(_area_w.get("got", -1))
+	var sp: SpaceRes = _area_w.get("sp", null)
+	# Контроль: без ожидания тот же стенд даёт зону без пола — иначе проверка ничего не значит.
+	var now := int(sp.ensure_floor()) if sp != null else -1
+	_area_w.clear()
+	if SpaceRes.has_floor(got):
+		r.pass_("зона с полом: смена асинхронна — ожидание дождалось режима %d, а чтение сразу после запроса давало %d" % [got, int(XRInterface.XR_PLAY_AREA_SITTING)])
+	else:
+		r.fail("зона с полом: ожидание вернуло %d (без пола), чтение подряд — %d" % [got, now])
+
+
+## Точка старта говорит ГДЕ, а высоту и посадку считает геометрия уровня (решение владельца
+## 2026-09-22). Проверяем на настоящем уровне и на заведомо плохих точках: высоко над землёй,
+## глубоко под ней и внутри тела.
+func _drop_check() -> void:
+	var bad: Array[String] = []
+	var body := PlayerBody.new()
+	var origin := XROrigin3D.new()
+	var d_head := Node3D.new()
+	head.get_parent().add_child(body)
+	body.add_child(origin)
+	origin.add_child(d_head)
+	d_head.position = Vector3(0, 1.6, 0)
+	body.setup(origin, d_head)
+	body.set_eye_height(1.6)
+	body.set_physics_process(false)
+	PlayerBody.falsify_spawn_blind = falsify == "spawnblind"
+	var spawn: Transform3D = _level_built.get("spawn", Transform3D())
+	var ground: float = spawn.origin.y
+	# 1. Сама точка старта: ноги садятся на землю.
+	var at_spawn := body.drop_to_ground(spawn.origin)
+	if not bool(at_spawn["ok"]):
+		bad.append("в точке старта опора не найдена: %s" % at_spawn["why"])
+	elif absf(body.global_position.y - ground) > 0.05:
+		bad.append("в точке старта ноги на %.2f вместо %.2f (%s)" % [
+				body.global_position.y, ground, at_spawn["why"]])
+	# 2. Та же точка, но задана на 5 м выше: человек обязан оказаться на земле, а не парить.
+	body.drop_to_ground(spawn.origin + Vector3(0, 5.0, 0))
+	if absf(body.global_position.y - ground) > 0.05:
+		bad.append("точка на 5 м выше оставила ноги на %.2f" % body.global_position.y)
+	# 3. Точка УТОПЛЕНА в землю на метр: тело обязано подняться на поверхность, а не провалиться.
+	body.drop_to_ground(spawn.origin - Vector3(0, 1.0, 0))
+	if absf(body.global_position.y - ground) > 0.05:
+		bad.append("утопленная точка оставила ноги на %.2f" % body.global_position.y)
+	# 4. На крыльце: посадка идёт на ближайшую поверхность СВЕРХУ, а не на землю под ним.
+	var porch := _obj_pos("porch")
+	var porch_size: Array = _obj("porch").get("size", [2.6, 0.9, 3.0])
+	if porch != Vector3.ZERO:
+		var top: float = porch.y + float(porch_size[1]) * 0.5
+		body.drop_to_ground(Vector3(porch.x, top + 0.2, porch.z))
+		if absf(body.global_position.y - top) > 0.06:
+			bad.append("на крыльце ноги на %.2f вместо %.2f" % [body.global_position.y, top])
+	# 5. Над пустотой: честный отказ, а не тихое «поставили как есть».
+	var void_res := body.drop_to_ground(Vector3(2000.0, 5.0, 2000.0))
+	if bool(void_res["ok"]):
+		bad.append("над пустотой посадка доложила успех")
+	PlayerBody.falsify_spawn_blind = false
+	body.queue_free()
+	if bad.is_empty():
+		r.pass_("посадка считается геометрией: в точке старта, на 5 м выше и на метр ниже ноги встают на землю %.2f; на крыльце — на его верх; над пустотой — честный отказ" % ground)
+	else:
+		r.fail("посадка: %s" % "; ".join(bad))

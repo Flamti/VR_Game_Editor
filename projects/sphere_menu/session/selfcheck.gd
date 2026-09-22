@@ -46,26 +46,57 @@ const THREE_PAIRS := 3
 var r: Report = Report.new()
 var expected := 0
 var results := {}
+var _step_names: Array = []
+var _step_i := 0
+
+
+## Объявить начало шага. Имя берётся из набора, чтобы список и порядок не разошлись молча.
+func _step(name: String) -> bool:
+	if not name in _step_names:
+		return false
+	_step_i += 1
+	step.emit(_step_i, _step_names.size(), name)
+	return true
+
+
+## Проверки исправности: сломано или нет. Секунды на все вместе.
+const HEALTH := ["xr", "частота", "msaa", "прогрев", "атлас", "панель", "панель лучом",
+		"прокрутка панели", "клавиатура overlay", "PIN: время входа", "мир: свет и сетка"]
+## Замеры производительности: окна по 4–20 с каждое. Из-за них запуск молчал 154 секунды, и человек
+## в шлеме не мог понять, сломалось или надо ждать (сессия 31). Гоняются по требованию.
+const BENCH := ["глобус худший", "глобус крупный", "линза худшая", "раскладки худшие",
+		"пропуск перерисовки", "подписи", "кадр: таблички и нить", "кадр: три правки"]
+
+## Сколько шагов в наборе — чтобы показать «шаг N из M» до начала.
+static func plan(full: bool) -> Array:
+	return (HEALTH + BENCH) if full else HEALTH
+
+
+## Идёт шаг: номер, всего, имя. Сессия рисует это перед глазами.
+signal step(index: int, total: int, name: String)
+
+## Гнать ли замеры. Быстрый набор — при каждом запуске, полный — по требованию.
+var full := false
 
 
 func run(host: Node, menu: Menu) -> bool:
-	var checks := ["xr", "частота", "msaa", "прогрев", "глобус худший", "глобус крупный", "линза худшая",
-			"раскладки худшие", "атлас", "панель", "панель лучом", "прокрутка панели", "пропуск перерисовки",
-			"подписи", "клавиатура overlay", "PIN: время входа", "мир: свет и сетка",
-			"кадр: таблички и нить", "кадр: три правки"]
+	var checks := plan(full)
 	expected = checks.size()
-	r.note("=== САМОПРОВЕРКА ШАР-МЕНЮ ===")
+	_step_names = checks
+	r.note("=== САМОПРОВЕРКА ШАР-МЕНЮ (%s) ===" % ("полная" if full else "быстрая"))
 	r.note("ожидается исполненных проверок: %d" % expected)
 	var vp := host.get_viewport()
 	var rid := vp.get_viewport_rid()
 	RenderingServer.viewport_set_measure_render_time(rid, true)
 
+	_step("xr")
 	var iface := XRServer.find_interface("OpenXR")
 	if iface != null and iface.is_initialized() and vp.use_xr:
 		r.pass_("XR: интерфейс поднят, вьюпорт в шлем")
 	else:
 		r.fail("XR: интерфейс %s, use_xr=%s" % ["нет" if iface == null else "не поднят", vp.use_xr])
 
+	_step("частота")
 	var hz := ProbeBudget.current_hz()
 	if ProbeBudget.same_hz(hz, ProbeBudget.TARGET_HZ):
 		r.pass_("частота %.1f Гц — цель ADR-0007" % hz)
@@ -73,6 +104,7 @@ func run(host: Node, menu: Menu) -> bool:
 		r.fail("частота %.1f Гц вместо %.0f" % [hz, ProbeBudget.TARGET_HZ])
 	var budget := ProbeBudget.ms_for_hz(hz if hz > 1.0 else ProbeBudget.TARGET_HZ)
 
+	_step("msaa")
 	if vp.msaa_3d == Viewport.MSAA_2X:
 		r.pass_("MSAA 2x на XR-вьюпорте (ADR-0003 п. 6)")
 	else:
@@ -84,6 +116,7 @@ func run(host: Node, menu: Menu) -> bool:
 	st.values["radius_cm"] = Settings.SPEC["radius_cm"]["max"]
 	st.values["cell_cm"] = Settings.SPEC["cell_cm"]["min"]
 	menu.apply_settings()
+	_step("прогрев")
 	var before := _counters()
 	menu.toggle()
 	var first := ProbeStats.new()
@@ -97,51 +130,60 @@ func run(host: Node, menu: Menu) -> bool:
 	else:
 		r.fail("прогрев: за 30 кадров первого открытия %s — конвейер собирался в кадре; пик CPU+скрипты %.1f мс" % [str(compiled), first.maximum()])
 
-	menu.debug_spin = WORST_SPIN
-	var g: Dictionary = await _measure(host, rid, budget)
-	_budget_check("глобус уровень %d, %d ячеек, вращение" % [st.globe_frequency(), menu.renderer.drawn], g, budget)
+	# Замер: гоняется только в полном наборе (окна по секундам).
+	if full and _step("глобус худший"):
+		menu.debug_spin = WORST_SPIN
+		var g: Dictionary = await _measure(host, rid, budget)
+		_budget_check("глобус уровень %d, %d ячеек, вращение" % [st.globe_frequency(), menu.renderer.drawn], g, budget)
 
-	# Крупный глобус (шаг 1в, до ~7 ячеек на виду): ячеек мало, но каждая — большой
-	# квад во весь шар; связывать может заполнение, а не вызовы.
-	st.values["cell_cm"] = Settings.SPEC["cell_cm"]["max"]
-	menu.apply_settings()
-	await ProbeWindow.settle(host, 0.5)
-	var big: Dictionary = await _measure(host, rid, budget)
-	_budget_check("глобус крупный: уровень %d, %d ячеек, радиус %s см, вращение" % [st.globe_frequency(), menu.renderer.drawn, st.get_value("radius_cm")], big, budget)
-	st.values["cell_cm"] = Settings.SPEC["cell_cm"]["min"]
-
-	st.values["surface"] = "lens"
-	menu.apply_settings()
-	await ProbeWindow.settle(host, 0.5)
-	var l: Dictionary = await _measure(host, rid, budget)
-	_budget_check("линза α=%.3f, %d ячеек, вращение" % [st.lens_alpha(), menu.renderer.drawn], l, budget)
-
-	# Раскладки шага 1г в худшем уровне (самые мелкие ячейки при самом большом радиусе),
-	# при вращении. Одна проверка: связывающее и худшая раскладка называются поимённо.
-	var worst := ""
-	var worst_ms := 0.0
-	var over := PackedStringArray()
-	var seen := PackedStringArray()
-	for surf in ["globe_hex", "octa", "rings", "fib"]:
-		st.values["surface"] = surf
+	# Замер: гоняется только в полном наборе (окна по секундам).
+	if full and _step("глобус крупный"):
+		# Крупный глобус (шаг 1в, до ~7 ячеек на виду): ячеек мало, но каждая — большой
+		# квад во весь шар; связывать может заполнение, а не вызовы.
+		st.values["cell_cm"] = Settings.SPEC["cell_cm"]["max"]
 		menu.apply_settings()
 		await ProbeWindow.settle(host, 0.5)
-		var m: Dictionary = await _measure(host, rid, budget)
-		var g95: float = (m["gpu"] as ProbeStats).percentile(0.95)
-		var c95: float = (m["cpu"] as ProbeStats).percentile(0.95) + (m["process"] as ProbeStats).percentile(0.95)
-		var line := "%s %d ячеек: GPU %.2f / CPU+скрипты %.2f мс (%s)" % [surf, menu.renderer.drawn, g95, c95, "GPU" if g95 >= c95 else "CPU"]
-		seen.append(line)
-		if maxf(g95, c95) > worst_ms:
-			worst_ms = maxf(g95, c95)
-			worst = surf
-		if maxf(g95, c95) > budget or int(m["over"]) > 0:
-			over.append(line)
-	if over.is_empty():
-		r.pass_("раскладки худшие, вращение, бюджет %.2f мс: %s; худшая %s" % [budget, "; ".join(seen), worst])
-	else:
-		r.fail("раскладки худшие вне бюджета %.2f мс: %s (все: %s)" % [budget, "; ".join(over), "; ".join(seen)])
-	menu.debug_spin = 0.0
+		var big: Dictionary = await _measure(host, rid, budget)
+		_budget_check("глобус крупный: уровень %d, %d ячеек, радиус %s см, вращение" % [st.globe_frequency(), menu.renderer.drawn, st.get_value("radius_cm")], big, budget)
+		st.values["cell_cm"] = Settings.SPEC["cell_cm"]["min"]
 
+	# Замер: гоняется только в полном наборе (окна по секундам).
+	if full and _step("линза худшая"):
+		st.values["surface"] = "lens"
+		menu.apply_settings()
+		await ProbeWindow.settle(host, 0.5)
+		var l: Dictionary = await _measure(host, rid, budget)
+		_budget_check("линза α=%.3f, %d ячеек, вращение" % [st.lens_alpha(), menu.renderer.drawn], l, budget)
+
+	# Замер: гоняется только в полном наборе (окна по секундам).
+	if full and _step("раскладки худшие"):
+		# Раскладки шага 1г в худшем уровне (самые мелкие ячейки при самом большом радиусе),
+		# при вращении. Одна проверка: связывающее и худшая раскладка называются поимённо.
+		var worst := ""
+		var worst_ms := 0.0
+		var over := PackedStringArray()
+		var seen := PackedStringArray()
+		for surf in ["globe_hex", "octa", "rings", "fib"]:
+			st.values["surface"] = surf
+			menu.apply_settings()
+			await ProbeWindow.settle(host, 0.5)
+			var m: Dictionary = await _measure(host, rid, budget)
+			var g95: float = (m["gpu"] as ProbeStats).percentile(0.95)
+			var c95: float = (m["cpu"] as ProbeStats).percentile(0.95) + (m["process"] as ProbeStats).percentile(0.95)
+			var line := "%s %d ячеек: GPU %.2f / CPU+скрипты %.2f мс (%s)" % [surf, menu.renderer.drawn, g95, c95, "GPU" if g95 >= c95 else "CPU"]
+			seen.append(line)
+			if maxf(g95, c95) > worst_ms:
+				worst_ms = maxf(g95, c95)
+				worst = surf
+			if maxf(g95, c95) > budget or int(m["over"]) > 0:
+				over.append(line)
+		if over.is_empty():
+			r.pass_("раскладки худшие, вращение, бюджет %.2f мс: %s; худшая %s" % [budget, "; ".join(seen), worst])
+		else:
+			r.fail("раскладки худшие вне бюджета %.2f мс: %s (все: %s)" % [budget, "; ".join(over), "; ".join(seen)])
+		menu.debug_spin = 0.0
+
+	_step("атлас")
 	# Подписи шейдером: атлас глифов нарисован, иконки загружаются, строки данных собраны.
 	var lt = menu.label_text
 	var gtex: Texture2D = lt.glyph_texture()
@@ -151,6 +193,7 @@ func run(host: Node, menu: Menu) -> bool:
 	else:
 		r.fail("атлас: глифы %s, сборок данных %d, иконки %s" % [gtex, lt.rebuilds, icon_ok])
 
+	_step("панель")
 	var pnl = menu.panel
 	var img: Texture2D = pnl.preview_of(menu.catalog.items["img_map"]) if pnl != null else null
 	if pnl != null and pnl.renders > 0 and img != null and pnl.viewport.get_texture() != null:
@@ -158,6 +201,7 @@ func run(host: Node, menu: Menu) -> bool:
 	else:
 		r.fail("панель: %s, перерисовок %s, предпросмотр %s" % [pnl, pnl.renders if pnl != null else -1, img])
 
+	_step("панель лучом")
 	# Панель лучом: правка открыта, луч из точки перед панелью на ползунок, нажатие и
 	# перетаскивание — значение меняется, панель перерисована. Проверяет путь
 	# push_input в XR-сборке, а не в безголовом прогоне.
@@ -193,6 +237,7 @@ func run(host: Node, menu: Menu) -> bool:
 	else:
 		r.fail("панель лучом: панель без правки (%s)" % pnl)
 
+	_step("прокрутка панели")
 	# Прокрутка панели: длинное содержимое едет, и панель перерисовывается ТОЛЬКО на
 	# кадрах, где она сдвинулась. Иначе SubViewport рисуется каждый кадр — цена
 	# прокрутки была бы постоянной, а не за движение.
@@ -242,71 +287,76 @@ func run(host: Node, menu: Menu) -> bool:
 	else:
 		r.fail("прокрутка панели: панель без прокрутки (%s)" % pnl)
 
-	# Пропуск перерисовки: ни неподвижный, ни вращающийся глобус ячейки не пересчитывает —
-	# вращение поворачивает узел. Отказ — только по МЕХАНИЗМУ (§3.10): сравнение скриптов
-	# держится на структуре расходов и переворачивается молча. Прежняя версия сравнивала
-	# неподвижный глобус в конце прогона с вращающимся в начале, и дрейф до 13% переворачивал
-	# сравнение (сессия 6, §3.5). Теперь окна чередуются подряд, сравнение — числом рядом.
-	st.values["surface"] = "globe"
-	menu.apply_settings()
-	await ProbeWindow.settle(host, 0.8)
-	var redrawn := 0
-	var diffs := PackedFloat32Array()
-	var pairs := PackedStringArray()
-	for _p in REDRAW_PAIRS:
-		menu.debug_spin = 0.0
-		await ProbeWindow.settle(host, 0.3)
-		var redraws0: int = menu.renderer.redraws
-		var still: Dictionary = await _measure(host, rid, budget)
-		redrawn += menu.renderer.redraws - redraws0
-		menu.debug_spin = WORST_SPIN
-		await ProbeWindow.settle(host, 0.3)
-		redraws0 = menu.renderer.redraws
-		var spin: Dictionary = await _measure(host, rid, budget)
-		redrawn += menu.renderer.redraws - redraws0
-		var s95: float = (still["process"] as ProbeStats).percentile(0.95)
-		var v95: float = (spin["process"] as ProbeStats).percentile(0.95)
-		diffs.append(v95 - s95)
-		pairs.append("%.2f/%.2f" % [s95, v95])
-	menu.debug_spin = 0.0
-	diffs.sort()
-	var med: float = (diffs[diffs.size() / 2 - 1] + diffs[diffs.size() / 2]) * 0.5
-	var cmp_line := "скрипты p95 неподвижно/вращение по парам подряд: %s; разность вращение − покой медиана %+.2f мс, разброс %+.2f…%+.2f" % [
-			", ".join(pairs), med, diffs[0], diffs[diffs.size() - 1]]
-	if redrawn <= 2:
-		r.pass_("пропуск перерисовки: глобус за %d пар окон (покой и вращение) пересчитан %d раз; %s" % [REDRAW_PAIRS, redrawn, cmp_line])
-	else:
-		r.fail("пропуск перерисовки: глобус за %d пар окон пересчитан %d раз — вращение пересчитывает ячейки; %s" % [REDRAW_PAIRS, redrawn, cmp_line])
-
-	# Подписи шейдером в большой папке: «Много файлов» (128 подписей сразу) на худшем глобусе и
-	# худшей линзе при вращении. Сессия 9 выбрала этот режим: 3.03 мс CPU на глобусе, 8.22 на линзе.
-	var lab_seen := PackedStringArray()
-	var lab_over := PackedStringArray()
-	for surf in ["globe", "lens"]:
-		st.values["surface"] = surf
-		st.values["radius_cm"] = Settings.SPEC["radius_cm"]["max"]
-		st.values["cell_cm"] = Settings.SPEC["cell_cm"]["min"]
+	# Замер: гоняется только в полном наборе (окна по секундам).
+	if full and _step("пропуск перерисовки"):
+		# Пропуск перерисовки: ни неподвижный, ни вращающийся глобус ячейки не пересчитывает —
+		# вращение поворачивает узел. Отказ — только по МЕХАНИЗМУ (§3.10): сравнение скриптов
+		# держится на структуре расходов и переворачивается молча. Прежняя версия сравнивала
+		# неподвижный глобус в конце прогона с вращающимся в начале, и дрейф до 13% переворачивал
+		# сравнение (сессия 6, §3.5). Теперь окна чередуются подряд, сравнение — числом рядом.
+		st.values["surface"] = "globe"
 		menu.apply_settings()
-		_open_folder(menu, ["files", "bulk"])
-		menu.debug_spin = WORST_SPIN
-		await ProbeWindow.settle(host, 0.5)
-		var lm: Dictionary = await _measure(host, rid, budget)
-		var lg95: float = (lm["gpu"] as ProbeStats).percentile(0.95)
-		var lc95: float = (lm["cpu"] as ProbeStats).percentile(0.95) + (lm["process"] as ProbeStats).percentile(0.95)
-		var line := "%s %d на странице: GPU %.2f / CPU+скрипты %.2f мс (%s), промахов %d" % [
-				surf, menu.nav.items().size(), lg95, lc95, "GPU" if lg95 >= lc95 else "CPU", int(lm["over"])]
-		lab_seen.append(line)
-		if maxf(lg95, lc95) > budget or int(lm["over"]) > 0:
-			lab_over.append(line)
-	menu.debug_spin = 0.0
-	st.values["surface"] = "globe"
-	menu.apply_settings()
-	_open_folder(menu, [])
-	if lab_over.is_empty():
-		r.pass_("подписи, бюджет %.2f мс: %s" % [budget, "; ".join(lab_seen)])
-	else:
-		r.fail("подписи вне бюджета %.2f мс: %s (все: %s)" % [budget, "; ".join(lab_over), "; ".join(lab_seen)])
+		await ProbeWindow.settle(host, 0.8)
+		var redrawn := 0
+		var diffs := PackedFloat32Array()
+		var pairs := PackedStringArray()
+		for _p in REDRAW_PAIRS:
+			menu.debug_spin = 0.0
+			await ProbeWindow.settle(host, 0.3)
+			var redraws0: int = menu.renderer.redraws
+			var still: Dictionary = await _measure(host, rid, budget)
+			redrawn += menu.renderer.redraws - redraws0
+			menu.debug_spin = WORST_SPIN
+			await ProbeWindow.settle(host, 0.3)
+			redraws0 = menu.renderer.redraws
+			var spin: Dictionary = await _measure(host, rid, budget)
+			redrawn += menu.renderer.redraws - redraws0
+			var s95: float = (still["process"] as ProbeStats).percentile(0.95)
+			var v95: float = (spin["process"] as ProbeStats).percentile(0.95)
+			diffs.append(v95 - s95)
+			pairs.append("%.2f/%.2f" % [s95, v95])
+		menu.debug_spin = 0.0
+		diffs.sort()
+		var med: float = (diffs[diffs.size() / 2 - 1] + diffs[diffs.size() / 2]) * 0.5
+		var cmp_line := "скрипты p95 неподвижно/вращение по парам подряд: %s; разность вращение − покой медиана %+.2f мс, разброс %+.2f…%+.2f" % [
+				", ".join(pairs), med, diffs[0], diffs[diffs.size() - 1]]
+		if redrawn <= 2:
+			r.pass_("пропуск перерисовки: глобус за %d пар окон (покой и вращение) пересчитан %d раз; %s" % [REDRAW_PAIRS, redrawn, cmp_line])
+		else:
+			r.fail("пропуск перерисовки: глобус за %d пар окон пересчитан %d раз — вращение пересчитывает ячейки; %s" % [REDRAW_PAIRS, redrawn, cmp_line])
 
+	# Замер: гоняется только в полном наборе (окна по секундам).
+	if full and _step("подписи"):
+		# Подписи шейдером в большой папке: «Много файлов» (128 подписей сразу) на худшем глобусе и
+		# худшей линзе при вращении. Сессия 9 выбрала этот режим: 3.03 мс CPU на глобусе, 8.22 на линзе.
+		var lab_seen := PackedStringArray()
+		var lab_over := PackedStringArray()
+		for surf in ["globe", "lens"]:
+			st.values["surface"] = surf
+			st.values["radius_cm"] = Settings.SPEC["radius_cm"]["max"]
+			st.values["cell_cm"] = Settings.SPEC["cell_cm"]["min"]
+			menu.apply_settings()
+			_open_folder(menu, ["files", "bulk"])
+			menu.debug_spin = WORST_SPIN
+			await ProbeWindow.settle(host, 0.5)
+			var lm: Dictionary = await _measure(host, rid, budget)
+			var lg95: float = (lm["gpu"] as ProbeStats).percentile(0.95)
+			var lc95: float = (lm["cpu"] as ProbeStats).percentile(0.95) + (lm["process"] as ProbeStats).percentile(0.95)
+			var line := "%s %d на странице: GPU %.2f / CPU+скрипты %.2f мс (%s), промахов %d" % [
+					surf, menu.nav.items().size(), lg95, lc95, "GPU" if lg95 >= lc95 else "CPU", int(lm["over"])]
+			lab_seen.append(line)
+			if maxf(lg95, lc95) > budget or int(lm["over"]) > 0:
+				lab_over.append(line)
+		menu.debug_spin = 0.0
+		st.values["surface"] = "globe"
+		menu.apply_settings()
+		_open_folder(menu, [])
+		if lab_over.is_empty():
+			r.pass_("подписи, бюджет %.2f мс: %s" % [budget, "; ".join(lab_seen)])
+		else:
+			r.fail("подписи вне бюджета %.2f мс: %s (все: %s)" % [budget, "; ".join(lab_over), "; ".join(lab_seen)])
+
+	_step("клавиатура overlay")
 	# Клавиатура overlay (ADR-0009, пересмотр 2026-09-17): платформа отдаёт виртуальную
 	# клавиатуру, и открытие поиска запрашивает её показ. Слабая проверка: видна ли клавиатура
 	# поверх сцены и доходит ли текст, изнутри не проверить — это интерактивная часть сессии.
@@ -330,9 +380,13 @@ func run(host: Node, menu: Menu) -> bool:
 		r.fail("клавиатура overlay: FEATURE_VIRTUAL_KEYBOARD %s, запросов показа %d из 1" % [has_vk, req])
 
 	menu.close()
+	_step("мир: свет и сетка")
 	await _world_cost(host, menu, rid, budget)
-	await _frame_extras(host, menu, rid, budget)
-	await _frame_three(host, menu, rid, budget)
+	if full and _step("кадр: таблички и нить"):
+		await _frame_extras(host, menu, rid, budget)
+	if full and _step("кадр: три правки"):
+		await _frame_three(host, menu, rid, budget)
+	_step("PIN: время входа")
 	_pin_time()
 	return _verdict()
 

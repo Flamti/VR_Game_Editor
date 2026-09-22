@@ -52,6 +52,26 @@ var falsify_no_step := false
 ## Фальсификатор «ghost»: тело перестаёт быть сплошным — маска столкновений снимается, и стены
 ## проходятся насквозь (следование за головой при этом остаётся: ломать надо именно сплошность).
 var falsify_ghost := false
+## Кто может сказать, что человек сейчас ЛЕЗЕТ. Спрашиваем состояние каждый такт, а не копим флаг
+## по событиям: флаг, поставленный событием без парного снятия, залипает насовсем (сессия 30).
+var climbing: Callable = func() -> bool: return false
+
+## Фальсификатор «spawnblind»: посадка по геометрии не считается — тело ставится ровно в точку из
+## данных, как до сессии 32, и висит или тонет вместе с ней.
+static var falsify_spawn_blind := false
+
+## Фальсификатор «maskclimb»: страховка возврата маски стоит после раннего выхода лазанья и не
+## срабатывает, пока человек лезет, — тело остаётся бесплотным и проваливается сквозь пол.
+static var falsify_guard_late := false
+
+## Фальсификатор «carryghost»: сшивка перед перевалом идёт присваиванием, без проверки
+## столкновений, — накопленные за подъём метры разом вносят тело внутрь дома.
+static var falsify_carry_ghost := false
+
+## Фальсификатор «climbpush»: возврат остатка работает и во время лазанья — origin уезжает от
+## стены, кисть уходит от зафиксированного зацепа, лазанье дожимает тело в стену и рвёт хват.
+static var falsify_climb_push := false
+
 ## Фальсификатор «headchase»: origin не компенсирует шаг тела — возвращает дефект сессии 15, когда
 ## тело гналось за собственной головой и уносило человека со сцены.
 var falsify_head_chase := false
@@ -119,6 +139,45 @@ func set_crouch(depth: float) -> void:
 
 ## Перенести человека (телепорт): тело едет так, чтобы ГОЛОВА оказалась над точкой.
 ## `yaw_deg` — куда смотреть после переноса; NAN — курс не менять.
+## Опустить тело на поверхность под точкой и вернуть, куда встали.
+##
+## Точка старта в данных уровня говорит ГДЕ человек появляется, а не на какой высоте: высоту и
+## посадку считает геометрия (решение владельца 2026-09-22). Иначе всякая правка уровня — поднял
+## тротуар, положил крыльцо — молча оставляет точку старта висеть или тонуть.
+##
+## Ищем сверху вниз настоящей капсулой, а не лучом: луч проходит там, где тело не помещается.
+## Если под точкой пусто (яма, край сцены), остаёмся на месте и говорим об этом — молчаливое
+## «поставили как есть» выглядит как провал сквозь пол.
+func drop_to_ground(at: Vector3, up := 2.0, down := 40.0) -> Dictionary:
+	if falsify_spawn_blind:
+		global_position = at
+		return {"ok": false, "pos": at, "why": "посадка не считалась"}
+	var from := at + Vector3.UP * up
+	global_position = from
+	# Вверх тоже пробуем: точка могла оказаться в толще пола или в ступени.
+	var stuck := move_and_collide(Vector3.ZERO, true) != null
+	if stuck:
+		for lift in [0.2, 0.5, 1.0, 2.0]:
+			global_position = from + Vector3.UP * lift
+			if move_and_collide(Vector3.ZERO, true) == null:
+				break
+	var hit := move_and_collide(Vector3.DOWN * (down + up))
+	if hit == null:
+		return {"ok": false, "pos": global_position, "why": "под точкой нет опоры на %.0f м" % down}
+	# Дожать до поверхности. Одного `move_and_collide` мало: форму он останавливает с запасом, и
+	# ноги повисают на 10–19 см — на глаз это «парит», а на лестнице ещё и ступенью выше.
+	# Точка касания даёт саму поверхность; опускаемся к ней и проверяем, что не увязли.
+	var surface := (hit.get_position() as Vector3).y
+	var want := global_position
+	want.y = surface
+	var back := global_position
+	global_position = want
+	if move_and_collide(Vector3.ZERO, true) != null:
+		# Увязли — значит запас был не лишним: возвращаемся на то, что дал движок.
+		global_position = back
+	return {"ok": true, "pos": global_position, "why": "опора на %.2f м" % global_position.y}
+
+
 func teleport_to(point: Vector3, yaw_deg := NAN) -> void:
 	if not is_nan(yaw_deg):
 		# Поворот вокруг ГОЛОВЫ, а не начала координат: иначе человека уносит по дуге.
@@ -142,6 +201,23 @@ func shift(delta_pos: Vector3) -> void:
 ## Сдвиг при лазанье — через столкновение. Кинематическое лазанье само по себе проносит капсулу
 ## сквозь стены (минус подхода, названный владельцем): рука тянет тело внутрь геометрии, и никакая
 ## физика этому не мешает. `move_and_collide` останавливает тело о поверхность, по которой лезут.
+## Перенести накопленное origin-смещение в позицию тела — ПОДВИЖКОЙ, а не присваиванием.
+## Возвращает пройденное на самом деле: непройденное обязано остаться в origin, иначе тело и origin
+## разъедутся на разную величину и вид дёрнется (сессия 22 — обнуление origin швыряло вбок).
+##
+## Присваиванием сюда нельзя: к верху стены накапливаются метры, а следом с тела снимают маску
+## столкновений — тело стартовало бы перевал изнутри дома.
+func carry_shift(delta_pos: Vector3) -> Vector3:
+	if delta_pos.length() < 0.0001:
+		return Vector3.ZERO
+	if falsify_carry_ghost:
+		global_position += delta_pos
+		return delta_pos
+	var before := global_position
+	move_and_collide(delta_pos)
+	return global_position - before
+
+
 func climb_shift(delta_pos: Vector3) -> void:
 	if delta_pos.length() < 0.0001:
 		return
@@ -151,10 +227,24 @@ func climb_shift(delta_pos: Vector3) -> void:
 func _physics_process(dt: float) -> void:
 	if origin == null or head == null or mantling:
 		return
-	# Страховка: перевал кончился, а столкновения остались снятыми — тело проваливается сквозь пол
-	# и летит вниз (сессия 24: глаза оказались на −2.44 м). Маска возвращается сама, как только
-	# перенос больше не идёт, чем бы он ни кончился.
-	if _mask_was != 0:
+	# Страховка ПЕРВОЙ строкой, до любых ранних выходов: перевал кончился, а столкновения остались
+	# снятыми — тело проваливается сквозь пол и летит вниз (сессия 24: глаза на −2.44 м). Маска
+	# возвращается сама, как только перенос больше не идёт, чем бы он ни кончился.
+	#
+	# Ровно это и сломалось в сессии 32: ветка лазанья стояла выше и уходила в `return`, унося с
+	# собой страховку. Перевал, начатый из лазанья и не дошедший до конца, оставлял маску нулевой —
+	# человек проваливался сквозь пол сразу после возврата в стартовую точку, снова и снова.
+	if _mask_was != 0 and not falsify_guard_late:
+		release_collisions()
+	# Пока человек лезет, телом распоряжается лазанье: тяготение и своя скорость ему только мешают
+	# — оно роняет висящего, а шаг лазанья поднимает обратно, и кто кого, зависит от порядка узлов.
+	if bool(climbing.call()):
+		velocity = Vector3.ZERO
+		_follow_head(dt)
+		return
+	# Фальсификатор «maskclimb»: страховка стоит ПОСЛЕ раннего выхода лазанья и потому до него не
+	# доходит — ровно так маска и оставалась снятой (сессия 32).
+	if _mask_was != 0 and falsify_guard_late:
 		release_collisions()
 	if global_position.y < FALL_Y and not falsify_no_fall:
 		fell.emit(global_position.y)
@@ -187,6 +277,22 @@ func _physics_process(dt: float) -> void:
 ## Остаток (тело упёрлось) гасится сдвигом origin, только если проникновение глубже PUSH_MIN —
 ## человек действительно шагнул в стену телом. Наклон до этого порога не доходит, и его больше не
 ## выталкивает.
+## На сколько origin отъезжает за такт, выталкивая человека из геометрии. `left` — остаток, который
+## тело пройти не смогло.
+##
+## Ноль в двух случаях. Первый: проникновение мельче `push_min` — это наклон у стола, а не шаг в
+## стену (сессия 17). Второй: человек ЛЕЗЕТ. Тело прижато к стене руками нарочно, а сдвиг origin
+## уводит кисть от зацепа, зафиксированного в мире, — лазанье тут же требует сдвинуть тело обратно
+## в стену, и на столько же каждый такт заново. Петля дожимает тело в геометрию и за доли секунды
+## рвёт хват на ровном месте (сессия 31: «иногда просачиваешься внутрь стены»).
+static func push_out(left: Vector3, is_climbing: bool, dt: float, push_min := PUSH_MIN) -> Vector3:
+	if is_climbing and not falsify_climb_push:
+		return Vector3.ZERO
+	if left.length() <= push_min:
+		return Vector3.ZERO
+	return left.limit_length(RETURN_SPEED * dt)
+
+
 func _follow_head(dt: float) -> void:
 	var back := head.global_basis.z          # +Z у камеры смотрит НАЗАД, за спину
 	back.y = 0.0
@@ -215,9 +321,8 @@ func _follow_head(dt: float) -> void:
 	var moved := global_position - before
 	if not falsify_head_chase:
 		origin.global_position -= moved
-	var left := to_head - moved
-	if left.length() > (0.0 if falsify_push_lean else PUSH_MIN):
-		origin.global_position -= left.limit_length(RETURN_SPEED * dt)
+	origin.global_position -= push_out(to_head - moved, bool(climbing.call()), dt,
+			0.0 if falsify_push_lean else PUSH_MIN)
 
 
 ## Ступень: подняться на STEP_MAX, шагнуть вперёд, опуститься.

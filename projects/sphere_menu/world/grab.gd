@@ -14,8 +14,13 @@ const MAX_THROW := 6.0
 
 ## Фальсификатор «grabstick»: предмет не отпускается — прилипает к руке навсегда.
 var falsify_sticky := false
+## Фальсификатор «handgreedy»: занятая рука берёт ещё один предмет — их становится два на руку.
+var falsify_greedy := false
+## Фальсификатор «heldsolid»: предмет в руке остаётся препятствием и выталкивает человека (дефект
+## сессии 31: «они сталкиваются, из-за чего всего пользователя мотает туда-сюда»).
+var falsify_held_solid := false
 
-## рука → {node, offset: Transform3D, recent: Array}
+## рука → {node, offset: Transform3D, recent: Array, layer: int}
 var held: Dictionary = {}
 
 
@@ -31,12 +36,29 @@ static func nearest(nodes: Array, pos: Vector3) -> Node3D:
 	return best
 
 
-func grab(hand: String, node: Node3D, hand_xf: Transform3D) -> void:
-	if node == null or held.has(hand):
-		return
+## Взять предмет. Возвращает, состоялось ли: рука, которая уже держит, ЗАНЯТА (решение владельца
+## 2026-09-22). Раньше отказ был молчаливым — ни возврата, ни записи, и вызывающий писал в журнал
+## «взят», когда ничего не произошло.
+func grab(hand: String, node: Node3D, hand_xf: Transform3D) -> bool:
+	if node == null:
+		return false
+	if held.has(hand) and not falsify_greedy:
+		return false
 	if node is RigidBody3D:
 		(node as RigidBody3D).freeze = true
-	held[hand] = {"node": node, "offset": hand_xf.affine_inverse() * node.global_transform, "recent": []}
+	# Предмет в руке НЕ участвует в столкновениях. Он ведётся присваиванием трансформа, то есть
+	# протыкает всё на своём пути, а замороженное тело — статическое препятствие: оказавшись внутри
+	# капсулы, оно выталкивает человека, и два предмета в двух руках мотают его вдвоём (сессия 31).
+	# Отвергнуто: свой слой для тела игрока и выборочная маска — это правка всех тел сцены ради
+	# одного случая; плата за нынешнее решение в том, что предмет в руке проходит сквозь стены.
+	var layer := 0
+	if node is CollisionObject3D and not falsify_held_solid:
+		var co: CollisionObject3D = node
+		layer = co.collision_layer
+		co.collision_layer = 0
+	held[hand] = {"node": node, "offset": hand_xf.affine_inverse() * node.global_transform,
+			"recent": [], "layer": layer}
+	return true
 
 
 ## Кадр удержания: предмет едет за рукой, копится скорость для броска.
@@ -67,5 +89,24 @@ func release(hand: String) -> Vector3:
 		var rb: RigidBody3D = node
 		rb.freeze = false
 		rb.linear_velocity = throw_v
+	_restore_layer(rec)
 	held.erase(hand)
 	return throw_v
+
+
+## Вернуть предмету участие в столкновениях. Отдельно, потому что зовётся и из release, и из
+## страховки: снятое состояние обязано возвращаться само, а не по событию (ловушка 46).
+static func _restore_layer(rec: Dictionary) -> void:
+	var node: Node3D = rec.get("node", null)
+	var layer := int(rec.get("layer", 0))
+	if layer != 0 and node != null and is_instance_valid(node) and node is CollisionObject3D:
+		(node as CollisionObject3D).collision_layer = layer
+
+
+## Страховка: предмет, выпавший из руки не через release (узел освободили, уровень выгрузили),
+## не должен остаться бесплотным.
+func forget(hand: String) -> void:
+	if not held.has(hand):
+		return
+	_restore_layer(held[hand])
+	held.erase(hand)

@@ -67,7 +67,14 @@ extends SceneTree
 ##                        шара»;
 ##   --falsify=signblind  подсказка в мире принимается без текста — краснеет только «подсказка в мире»;
 ##   --falsify=onehand    настройки руки не действуют, движение прибито к левому стику, поворот к
-##                        правому — краснеет только «рука движения и поворота»;
+##                        правому — краснеет «рука движения и поворота» в ДЫМОВОМ прогоне (здесь
+##                        настольной проверки с таким именем нет: обещание висело зря);
+##   --falsify=sitting    зона с полом при запуске не запрашивается — остаётся сидячая, и высота
+##                        головы считается не от земли; краснеет только «зона с полом при запуске»;
+##   --falsify=maskclimb  страховка возврата маски стоит после раннего выхода лазанья — краснеет
+##                        только «столкновения возвращаются сами»;
+##   --falsify=climbpush  возврат остатка работает и во время лазанья — краснеет только «возврат
+##                        остатка не возит лезущего»;
 ##   --falsify=joinblind  связность уровня не проверяется — «на глаз», как до 2026-09-22, когда
 ##                        лестница сидела в площадке, а площадка висела консолью; краснеет только
 ##                        «связность уровня: прибор»;
@@ -167,13 +174,14 @@ const ACCOUNT_CHECKS := ["секреты", "ключи API", "поток код�
 const EyeMeasureRes := preload("res://world/eye_measure.gd")
 const SpaceRes := preload("res://world/space.gd")
 ## Этап Ф3: пространство.
-const SPACE_CHECKS := ["высота глаз окном", "сброс пространства"]
+const SPACE_CHECKS := ["высота глаз окном", "сброс пространства", "зона с полом при запуске"]
 const TeleportRes := preload("res://locomotion/teleport.gd")
 const TurnRes := preload("res://locomotion/turn.gd")
+const PlayerBodyRes := preload("res://locomotion/player_body.gd")
+const SelfCheckRes := preload("res://session/selfcheck.gd")
 const ContinuousRes := preload("res://locomotion/continuous.gd")
 const ClimbRes := preload("res://locomotion/climb.gd")
 const VignetteRes := preload("res://locomotion/vignette.gd")
-const PlayerBodyRes := preload("res://locomotion/player_body.gd")
 const LevelRes := preload("res://world/level_loader.gd")
 const GrabRes := preload("res://world/grab.gd")
 ## Этап Ф3, часть 2: перемещение и уровень.
@@ -183,9 +191,11 @@ const MOVE_CHECKS := ["дуга телепорта", "перенос и рыво
 		"призыв предмета", "курс при телепорте", "присед и виньетка по ускорению",
 		"перевал через край", "кромка в данных", "столкновения возвращаются сами",
 		"кадр: лишняя работа", "слои объектов", "видимость групп", "снимок режима игры",
-		"связность уровня: прибор", "уровень улицы связен"]
+		"связность уровня: прибор", "уровень улицы связен", "поворот главнее хода",
+		"возврат остатка не возит лезущего", "самопроверка: быстрая и полная"]
 const LayersRes := preload("res://world/layers.gd")
 const LevelCheck := preload("res://world/level_check.gd")
+const LocomotionRes := preload("res://locomotion/locomotion.gd")
 const VisibilityRes := preload("res://world/visibility.gd")
 const MantleRes := preload("res://locomotion/mantle.gd")
 const PullRes := preload("res://world/pull.gd")
@@ -271,6 +281,10 @@ func _init() -> void:
 	_ledge_check()
 	_collision_guard_check()
 	_frame_work_check()
+	_turn_first_check()
+	_push_out_check()
+	_selfcheck_plan_check()
+	_floor_area_check()
 	_level_join_check()
 	_level_real_check()
 	_layers_check()
@@ -2980,6 +2994,7 @@ func _space_checks() -> void:
 		sp_bad.append("вызовы %s, строка «%s»" % [calls, detail])
 	if sp_bad.is_empty():
 		r.pass_("сброс пространства: режим зоны → stage, положение сброшено (center_on_hmd), высота глаз измеряется заново; в журнал — «%s»" % detail)
+
 	else:
 		r.fail("сброс пространства: %s" % "; ".join(sp_bad))
 
@@ -3720,6 +3735,18 @@ func _collision_guard_check() -> void:
 	body._physics_process(1.0 / 60.0)
 	if body.collision_mask != mask:
 		bad.append("маска не вернулась сама: %d вместо %d" % [body.collision_mask, mask])
+	# И ТО ЖЕ САМОЕ, пока человек лезет. Ранний выход ветки лазанья унёс с собой страховку, и маска
+	# оставалась нулевой: человек проваливался сквозь пол сразу после возврата в стартовую точку,
+	# четыре раза подряд (сессия 32). Страховка обязана стоять до любых ранних выходов.
+	PlayerBodyRes.falsify_guard_late = falsify == "maskclimb"
+	body.climbing = func() -> bool: return true
+	body.hold_collisions()
+	body.mantling = false
+	body._physics_process(1.0 / 60.0)
+	if body.collision_mask != mask:
+		bad.append("во время лазанья маска не вернулась: %d вместо %d" % [body.collision_mask, mask])
+	body.climbing = func() -> bool: return false
+	PlayerBodyRes.falsify_guard_late = false
 	# Повторное снятие и возврат не портят запомненное значение.
 	body.hold_collisions()
 	body.hold_collisions()
@@ -3729,7 +3756,7 @@ func _collision_guard_check() -> void:
 	root.remove_child(body)
 	body.free()
 	if bad.is_empty():
-		r.pass_("столкновения возвращаются сами: снятая на перевал маска восстанавливается первым же тактом после переноса, двойное снятие её не теряет")
+		r.pass_("столкновения возвращаются сами: снятая на перевал маска восстанавливается первым же тактом после переноса — в том числе пока человек лезет; двойное снятие её не теряет")
 	else:
 		r.fail("столкновения возвращаются сами: %s" % "; ".join(bad))
 
@@ -3973,3 +4000,151 @@ func _level_real_check() -> void:
 		r.pass_("уровень улицы связен: %d объектов в двух файлах, ни одного висящего, врезанного, недотянутого или выпавшего за край" % total)
 	else:
 		r.fail("уровень улицы: %s" % "; ".join(bad))
+
+
+## Поворот главнее движения, когда обе механики читают ОДИН стик (решение владельца 2026-09-22).
+##
+## Прежнее правило глушило «преобладающую ось» по отношению 1.6 и молчало на целом секторе: при
+## (0.8, 0.5) отношение ровно 1.6, при (0.7, 0.7) — единица, и в обоих случаях срабатывали сразу
+## поворот и ход. Пороги механик при этом разные (поворот 0.6, ход 0.15), поэтому отношение осей их
+## не разводило вовсе — «при вращении стиком так же работает движение» (сессия 31).
+##
+## Здесь проверяется чистая арифметика правила, без узлов и настроек.
+func _turn_first_check() -> void:
+	var bad: Array[String] = []
+	# [отклонение, один ли стик, ждём ли ход]
+	var cases := [
+		[Vector2(0.9, 0.25), true, false],   # крутит вбок, палец задевает вертикаль
+		[Vector2(0.8, 0.5), true, false],    # ровно на границе прежнего правила 1.6
+		[Vector2(0.7, 0.7), true, false],    # чистая диагональ — прежнее правило молчало
+		[Vector2(-0.75, 0.6), true, false],  # то же в другую сторону
+		[Vector2(0.2, 0.95), true, true],    # идёт вперёд, лёгкий занос вбок — ход остаётся
+		[Vector2(0.5, 0.5), true, true],     # вбок меньше порога поворота: стрейф цел
+		[Vector2(0.9, 0.9), false, true],    # разные стики — правило не действует
+	]
+	for c in cases:
+		var v: Vector2 = c[0]
+		var res := LocomotionRes.turn_first(v, v, bool(c[1]))
+		var moves: bool = (res["move"] as Vector2).length() > 0.01
+		if moves != bool(c[2]):
+			bad.append("%s (один стик %s): ход %s, ждали %s" % [v, c[1], moves, c[2]])
+		# Поворот не трогается никогда: он главнее, а не «тоже приглушён».
+		if res["turn"] != v:
+			bad.append("%s: поворот изменён на %s" % [v, res["turn"]])
+	# Порог — тот же, которым живёт сам поворот: два разных числа разошлись бы молча.
+	var edge := LocomotionRes.turn_first(Vector2(TurnRes.DEADZONE - 0.01, 0.9),
+			Vector2(TurnRes.DEADZONE - 0.01, 0.9), true)
+	if (edge["move"] as Vector2).length() < 0.01:
+		bad.append("чуть ниже порога поворота (%.2f) ход уже подавлен" % TurnRes.DEADZONE)
+	if bad.is_empty():
+		r.pass_("поворот главнее хода: при одном стике отклонение вбок от %.1f глушит ход целиком (проверено на 0.9/0.25, 0.8/0.5, 0.7/0.7), ниже порога стрейф цел, при разных стиках правило не действует" % TurnRes.DEADZONE)
+	else:
+		r.fail("поворот главнее хода: %s" % "; ".join(bad))
+
+
+## Возврат остатка: человека, упёршегося телом в стену, отодвигают сдвигом origin — но НЕ пока он
+## лезет. Origin несёт на себе кисти, а лазанье считает смещение от точки захвата, зафиксированной
+## в мире: уехавшая кисть тут же требует сдвинуть тело обратно в стену, и так каждый такт. Петля
+## дожимает тело в геометрию и рвёт хват (сессия 31).
+func _push_out_check() -> void:
+	PlayerBodyRes.falsify_climb_push = falsify == "climbpush"
+	var dt := 1.0 / 90.0
+	var step := PlayerBodyRes.RETURN_SPEED * dt
+	var deep := Vector3(0, 0, 0.30)     # шагнул в стену телом
+	var shallow := Vector3(0, 0, 0.20)  # наклонился у стола
+	var bad: Array[String] = []
+	var walk := PlayerBodyRes.push_out(deep, false, dt)
+	if not is_equal_approx(walk.length(), step) or walk.normalized().dot(deep.normalized()) < 0.99:
+		bad.append("при ходьбе остаток гасится на %.4f м вместо %.4f" % [walk.length(), step])
+	if PlayerBodyRes.push_out(shallow, false, dt) != Vector3.ZERO:
+		bad.append("наклон мельче порога %.2f м всё равно выталкивает" % PlayerBodyRes.PUSH_MIN)
+	if PlayerBodyRes.push_out(deep, true, dt) != Vector3.ZERO:
+		bad.append("лезущего везёт на %.4f м за такт" % PlayerBodyRes.push_out(deep, true, dt).length())
+	# Контроль: случай наклона действительно задевает порог, иначе строка выше «доказывала» бы
+	# пустоту — при нулевом пороге тот же остаток обязан гаситься.
+	if PlayerBodyRes.push_out(shallow, false, dt, 0.0) == Vector3.ZERO:
+		bad.append("контроль: при нулевом пороге наклон тоже не выталкивается — проверка пуста")
+	PlayerBodyRes.falsify_climb_push = false
+	if bad.is_empty():
+		r.pass_("возврат остатка не возит лезущего: шагнувшего в стену отодвигает на %.4f м за такт, наклон мельче %.2f м не трогает вовсе, лезущего не трогает ни на сколько" % [
+				step, PlayerBodyRes.PUSH_MIN])
+	else:
+		r.fail("возврат остатка: %s" % "; ".join(bad))
+
+
+## Самопроверка делится надвое: исправность при каждом запуске, замеры — по требованию.
+##
+## На шлеме от картинки до запроса PIN проходило 154 секунды, и всё это время человек видел одну
+## надпись «Самопроверка…»: «непонятно, всё сломалось или нужно ждать» (сессия 31). Замеры окнами —
+## восемь проверок из девятнадцати, и именно они съедали время.
+func _selfcheck_plan_check() -> void:
+	var bad: Array[String] = []
+	var quick := SelfCheckRes.plan(false)
+	var full := SelfCheckRes.plan(true)
+	if quick.size() != SelfCheckRes.HEALTH.size():
+		bad.append("быстрый набор %d шагов вместо %d" % [quick.size(), SelfCheckRes.HEALTH.size()])
+	if full.size() != SelfCheckRes.HEALTH.size() + SelfCheckRes.BENCH.size():
+		bad.append("полный набор %d шагов" % full.size())
+	# Ни один замер окнами не должен попасть в быстрый набор — иначе запуск снова замолчит.
+	for name in SelfCheckRes.BENCH:
+		if name in quick:
+			bad.append("замер «%s» остался в быстром наборе" % name)
+	# И наоборот: быстрый набор целиком входит в полный, порядок сохраняется.
+	for i in quick.size():
+		if full[i] != quick[i]:
+			bad.append("порядок разошёлся на шаге %d: «%s» против «%s»" % [i, full[i], quick[i]])
+	# Имена не повторяются: прогресс «шаг N из M» считает по этому списку.
+	var seen := {}
+	for name in full:
+		if seen.has(name):
+			bad.append("шаг «%s» назван дважды" % name)
+		seen[name] = true
+	if bad.is_empty():
+		r.pass_("самопроверка: быстрая и полная — %d шагов исправности при каждом запуске, %d замеров окнами только по требованию, порядок и имена не расходятся" % [
+				quick.size(), SelfCheckRes.BENCH.size()])
+	else:
+		r.fail("самопроверка: %s" % "; ".join(bad))
+
+
+## Зона с полом запрашивается при КАЖДОМ запуске. Сессия 32: система отдала «сидячую» зону
+## (режим 2), в ней высота головы считается от точки старта, а не от земли, — и человек оказывался
+## глазами на уровне пола. Снаружи это выглядит как «спавнюсь ниже пола», хотя тело стоит верно:
+## печать позы показала ноги 0.00, глаза 0.00, камера в origin 0.00, зона 2.
+func _floor_area_check() -> void:
+	var bad: Array[String] = []
+	var sp := SpaceRes.new()
+	sp.falsify_no_floor = falsify == "sitting"
+	var asked: Array = []
+	var now := [int(XRInterface.XR_PLAY_AREA_SITTING)]
+	sp.set_play_area = func(m: int) -> bool:
+		asked.append(m)
+		now[0] = m
+		return true
+	sp.play_area_mode = func() -> int: return now[0]
+	var got := sp.ensure_floor()
+	if not SpaceRes.has_floor(got):
+		bad.append("после запроса зона %d — без пола" % got)
+	if asked.is_empty() or asked[0] != int(XRInterface.XR_PLAY_AREA_STAGE):
+		bad.append("первой просят не stage: %s" % [asked])
+	# Если stage не дают, берём roomscale: у него тоже есть пол.
+	var sp2 := SpaceRes.new()
+	var asked2: Array = []
+	var now2 := [int(XRInterface.XR_PLAY_AREA_SITTING)]
+	sp2.set_play_area = func(m: int) -> bool:
+		asked2.append(m)
+		if m == int(XRInterface.XR_PLAY_AREA_STAGE):
+			return false
+		now2[0] = m
+		return true
+	sp2.play_area_mode = func() -> int: return now2[0]
+	if not SpaceRes.has_floor(sp2.ensure_floor()):
+		bad.append("без stage не взяли roomscale: просили %s" % [asked2])
+	# И сама таблица: какие режимы считаются «с полом».
+	if SpaceRes.has_floor(int(XRInterface.XR_PLAY_AREA_SITTING)) \
+			or SpaceRes.has_floor(int(XRInterface.XR_PLAY_AREA_3DOF)) \
+			or not SpaceRes.has_floor(int(XRInterface.XR_PLAY_AREA_ROOMSCALE)):
+		bad.append("режимы с полом определены неверно")
+	if bad.is_empty():
+		r.pass_("зона с полом при запуске: просим stage, не дали — roomscale; сидячая зона (%d) полом не считается, и её приход при запуске виден в журнале" % int(XRInterface.XR_PLAY_AREA_SITTING))
+	else:
+		r.fail("зона с полом при запуске: %s" % "; ".join(bad))

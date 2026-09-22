@@ -24,10 +24,50 @@ var set_play_area: Callable = func(mode: int) -> bool:
 var play_area_mode: Callable = func() -> int:
 	var xr := XRServer.primary_interface
 	return int(xr.get_play_area_mode()) if xr != null else -1
+## Фальсификатор «sitting»: зона с полом при запуске не запрашивается — остаётся та, что отдала
+## система. Сессия 32: пришла «сидячая» (режим 2), высота головы в ней считается от точки старта, а
+## не от пола, и человек оказывался глазами на уровне земли — «спавнюсь ниже пола».
+var falsify_no_floor := false
+
 ## Фальсификатор «noreset»: сброс не трогает ни положение, ни режим зоны — только пишет в журнал.
 var falsify_no_reset := false
 
 var last_detail := ""
+
+
+## Зона, у которой есть ПОЛ: без неё высота головы отсчитывается не от земли. Порядок проб —
+## от лучшего к худшему: stage (пол и центр зоны, как настроила система), затем roomscale
+## (пол, центр — точка старта). Возвращает режим, который получился.
+##
+## Спрашивается при каждом запуске, а не однажды: режим зоны принадлежит системе шлема, она может
+## отдать сидячую после пересборки границы, и приложение обязано это заметить.
+func ensure_floor() -> int:
+	if falsify_no_floor:
+		return int(play_area_mode.call())
+	for mode in [XRInterface.XR_PLAY_AREA_STAGE, XRInterface.XR_PLAY_AREA_ROOMSCALE]:
+		set_play_area.call(mode)
+		if has_floor(int(play_area_mode.call())):
+			break
+	return int(play_area_mode.call())
+
+
+## Дождаться, пока запрошенная зона ПРИМЕНИТСЯ. Смена асинхронна: `set_play_area_mode` лишь
+## помечает пространство «грязным» (`openxr_api.cpp:1590`), а новое создаётся на следующем кадре.
+## Чтение сразу после запроса возвращает старый режим и превращает успех в ложный отказ — ровно то
+## же, что с частотой кадров (ловушка 11). Возвращает режим, который получился.
+func ensure_floor_wait(host: Node, frames := 30) -> int:
+	var got := ensure_floor()
+	for _i in frames:
+		if has_floor(got):
+			break
+		await host.get_tree().process_frame
+		got = int(play_area_mode.call())
+	return got
+
+
+## Есть ли у режима зоны пол, то есть отсчитывается ли высота головы от земли.
+static func has_floor(mode: int) -> bool:
+	return mode == XRInterface.XR_PLAY_AREA_STAGE or mode == XRInterface.XR_PLAY_AREA_ROOMSCALE
 
 
 ## Сбросить пространство. on_measure — запуск замера высоты глаз (profile/profile_ui.gd).

@@ -91,8 +91,6 @@ var _hand_was: Dictionary = {}
 var _vis_nodes: Dictionary = {}
 ## Снимок видимости, снятый при входе в режим игры.
 var _play_snapshot: Dictionary = {}
-## Открыта ли системная клавиатура: ввод в это время принадлежит ей.
-var _keyboard_open := false
 ## Предметы группы «grab» этого кадра: один обход вместо трёх.
 var _grabbable: Array = []
 ## Фальсификатор «grabthrice»: группа обходится трижды за кадр — цена этой правки не измерялась.
@@ -184,13 +182,6 @@ func _ready() -> void:
 			iface.connect(sig, _on_xr_session.bind(sig))
 	panel.edit_changed.connect(_on_edit_changed)
 	panel.button.connect(_on_panel_button)
-	# Клавиатура платформы держит ввод: пока она открыта, контроллеры до приложения не доходят
-	# (ловушка 29), и «отпустили стик» перемещение не услышит.
-	panel.keyboard.connect(func(state: String):
-		if state == "show":
-			_keyboard_open = true
-		elif state in ["hide", "unavailable"]:
-			_keyboard_open = false)
 
 	router = Router.new()
 	add_child(router)
@@ -217,10 +208,10 @@ func _ready() -> void:
 	# грузился раньше, и запись обращалась к пустому меню).
 	_load_level("res://world/levels/start_location.json")
 	locomotion.setup(player, origin, camera, menu, left, right)
-	# Кто, кроме шара, держит ввод: ожидание PIN, замок панели, системная клавиатура. Пока держат,
-	# начатое перемещение обязано остановиться — событие «отпустили стик» до нас не дойдёт.
-	locomotion.input_busy = func() -> bool:
-		return profile_ui.active() or menu.panel_locked or _keyboard_open
+	# Кто, кроме шара, держит ввод. Спрашиваем СОСТОЯНИЕ у владельцев, а не копим флаги по сигналам:
+	# «показана» без парной «скрыта» заперла перемещение на весь прогон (сессия 30).
+	locomotion.input_hold = func() -> String:
+		return Locomotion.hold_reason(profile_ui.active(), menu.panel_locked, panel.is_text_open())
 	locomotion.moved.connect(func(kind: String, detail: String):
 		journal.log("перемещение", menu.params(), "", "", -1, "%s: %s" % [kind, detail])
 		if kind == "перевал":
@@ -277,6 +268,22 @@ func _ready() -> void:
 			("; отвергнуто %s" % [rejected]) if not rejected.is_empty() else ""])
 	_prepare_tasks()
 
+	# Зона с полом — до всего остального: в «сидячей» зоне высота головы считается от точки старта,
+	# и человек оказывается глазами на уровне земли (сессия 32, зона пришла 2 = SITTING).
+	var area: int = await space.ensure_floor_wait(self)
+	journal.log("пространство", menu.params(), "", "PASS" if Space.has_floor(area) else "FAIL", -1,
+			"режим игровой зоны при запуске: %d (%s)" % [area,
+					"с полом" if Space.has_floor(area) else "БЕЗ пола — высота головы не от земли"])
+	print("зона при запуске: %d (%s)" % [area, "с полом" if Space.has_floor(area) else "БЕЗ пола"])
+	# Запасной путь: система не дала зону с полом (сидячий режим Quest). Высота головы считается от
+	# точки старта, и без поправки человек оказывается глазами в земле. Поднимаем origin на рост:
+	# камера, дающая ноль в позе старта, окажется на высоте глаз, а присядет человек — опустится.
+	if not Space.has_floor(area):
+		var eye: float = profiles.profile.eye_m if profiles.profile.eye_m > 0.0 else 1.6
+		origin.position.y = eye
+		journal.log("пространство", menu.params(), "", "", -1,
+				"зона без пола: origin поднят на рост %.2f м" % eye)
+		print("зона без пола: origin поднят на %.2f м" % eye)
 	await _warm_in_xr()
 	var res: Dictionary = await ProbeBudget.request_target(self)
 	print("частота: запрошено %.0f, получено %.1f (%s)" % [res["requested"], res["got"], res["outcome"]])
@@ -284,6 +291,11 @@ func _ready() -> void:
 		await get_tree().process_frame
 	var saved := menu.settings.values.duplicate()
 	var check := SelfCheck.new()
+	# Замеры окнами идут только по требованию: из-за них запуск молчал 154 секунды, и человек в
+	# шлеме не мог понять, сломалось или надо ждать (сессия 31). Маркер — для прогонов без рук.
+	check.full = FileAccess.file_exists("user://selfcheck_full")
+	check.step.connect(_on_check_step)
+	task_label.text = "Проверка 0/%d…" % SelfCheck.plan(check.full).size()
 	var ok: bool = await check.run(self, menu)
 	journal.log("самопроверка", menu.params(), "", "PASS" if ok else "FAIL", -1, str(check.results))
 	selfcheck_lines = check.r.lines.duplicate()
@@ -391,6 +403,7 @@ func _process(_delta: float) -> void:
 		pull_view.show_link("right", _pull_probe, right.global_position, false)
 	_unload_frame(_delta)
 	_grab_frame(_delta)
+	_watch_sink()
 	profile_ui.tick_eye(_delta)
 	if notice != null and notice.visible and Time.get_ticks_msec() > _notice_until:
 		notice.visible = false
@@ -464,7 +477,7 @@ func _load_level(path: String) -> Dictionary:
 			built["nodes"].size(), built["colors"]])
 	if built["spawn"] != Transform3D():
 		spawn_xf = built["spawn"]
-		player.global_transform = spawn_xf
+		_place_at_spawn("старт")
 	return built
 
 
@@ -489,7 +502,9 @@ func _pull_aim(hand: String, ctrl: XRController3D) -> void:
 ## Грип зажат на пустой руке: «сразу» тянет цель тут же, «жестом» ждёт рывка кистью к себе.
 func _pull_frame(hand: String, ctrl: XRController3D, dt: float) -> void:
 	var mode := str(menu.settings.get_value("pull_mode"))
-	if mode == "off" or _flying.has(hand):
+	# Занятая рука не призывает: вторая защита рядом с той, что в _grab_frame. Одной мало — сюда
+	# ведут два пути, и следующий, кто добавит третий, пройдёт мимо проверки наверху.
+	if mode == "off" or _flying.has(hand) or grab.held.has(hand):
 		return
 	var aim: Node3D = _pull_aimed.get(hand, null)
 	if aim == null or not is_instance_valid(aim):
@@ -533,9 +548,17 @@ func _pull_fly(dt: float) -> void:
 		if ctrl.is_button_pressed("grip_click"):
 			_flying.erase(hand)
 			pull_view.show_link(hand, null, Vector3.ZERO, false)
-			grab.grab(hand, node, ctrl.global_transform)
-			journal.log("предмет", menu.params(), "", "", -1, "прилетел в руку %s: %s" % [hand, node.name])
-			_scenario_event("pull_catch", {})
+			# Если рука всё-таки занята, предмет ОТПУСКАЕТСЯ, а не остаётся замороженным висеть в
+			# воздухе: прежде взятие молча не удавалось, предмет терял и полёт, и руку, а журнал
+			# писал «прилетел» — то есть врал (сессия 31).
+			if grab.grab(hand, node, ctrl.global_transform):
+				journal.log("предмет", menu.params(), "", "", -1, "прилетел в руку %s: %s" % [hand, node.name])
+				_scenario_event("pull_catch", {})
+			else:
+				if node is RigidBody3D:
+					(node as RigidBody3D).freeze = false
+				journal.log("предмет", menu.params(), "", "", -1,
+						"рука %s занята — %s отпущен" % [hand, node.name])
 		elif float(f["wait"]) > Pull.CATCH_WINDOW_S:
 			_flying.erase(hand)
 			pull_view.show_link(hand, null, Vector3.ZERO, false)
@@ -581,12 +604,23 @@ func _unload_frame(dt: float) -> void:
 
 
 ## Вернуть человека в стартовую точку уровня — положение И поворот (пункт меню, падение со сцены).
+## Поставить человека в точку старта ПО ГЕОМЕТРИИ: точка из данных говорит где, а высоту и посадку
+## считает уровень (решение владельца 2026-09-22). Курс берётся из точки, место — из-под неё.
+func _place_at_spawn(why: String) -> void:
+	player.global_transform = spawn_xf
+	player.velocity = Vector3.ZERO
+	var res := player.drop_to_ground(spawn_xf.origin)
+	journal.log("перемещение", menu.params(), "", "PASS" if res["ok"] else "FAIL", -1,
+			"%s: точка %s → ноги %.2f (%s), маска %d" % [why, spawn_xf.origin.snappedf(0.01),
+					player.global_position.y, res["why"], player.collision_mask])
+	_print_pose(why)
+
+
 func respawn(why: String) -> void:
 	if spawn_xf == Transform3D():
 		return
 	var was := camera.global_position.y
-	player.global_transform = spawn_xf
-	player.velocity = Vector3.ZERO
+	_place_at_spawn("возврат")
 	# origin внутри тела мог уехать от компенсации следования — возвращаем и его.
 	origin.transform = Transform3D()
 	# И приседание: иначе тело «помнит» его и держит взгляд ниже (сессия 23 — «респавн не сбросил
@@ -594,8 +628,12 @@ func respawn(why: String) -> void:
 	player.set_crouch(0.0)
 	player.mantling = false
 	player.release_collisions()
+	# Числа, которых не хватило в сессии 32, когда человек проваливался сквозь пол четыре раза
+	# подряд: по одной высоте глаз не отличить «провалился» от «присел».
 	journal.log("перемещение", menu.params(), "", "", -1,
-			"возврат в стартовую точку: %s, глаза %.2f → %.2f м" % [why, was, camera.global_position.y])
+			"возврат в стартовую точку: %s, глаза %.2f → %.2f м, ноги %.2f, маска %d, origin %.2f" % [
+					why, was, camera.global_position.y, player.global_position.y,
+					player.collision_mask, origin.position.y])
 	# Молча переносить человека нельзя: он не понимает, что произошло (просьба владельца, сессия 18).
 	_show_notice("Вы в стартовой точке уровня — %s" % why, Color(0.8, 1.0, 0.8))
 
@@ -625,19 +663,65 @@ func _grab_frame(dt: float) -> void:
 		if holding and not grab.held.has(hand):
 			var near := Grab.nearest(_grabbable, ctrl.global_position)
 			if near != null:
-				grab.grab(hand, near, ctrl.global_transform)
-				journal.log("предмет", menu.params(), "", "", -1, "взят %s рукой %s" % [near.name, hand])
+				if grab.grab(hand, near, ctrl.global_transform):
+					journal.log("предмет", menu.params(), "", "", -1, "взят %s рукой %s" % [near.name, hand])
 			else:
 				_pull_frame(hand, ctrl, dt)
 		elif holding:
 			grab.update(hand, ctrl.global_transform, dt)
-			_pull_frame(hand, ctrl, dt)
+			# Призыв ЗАНЯТОЙ рукой не начинается: рука, которая уже держит, занята (решение
+			# владельца 2026-09-22). Раньше призыв тикал и здесь, поэтому предметы притягивались
+			# один за другим, не выпуская прежний.
 		elif grab.held.has(hand):
 			var v := grab.release(hand)
 			journal.log("предмет", menu.params(), "", "", -1, "отпущен, скорость %.2f м/с" % v.length())
 		else:
 			_pull_aim(hand, ctrl)
 	_pull_fly(dt)
+
+
+## Где сейчас человек — в logcat, чтобы числа были видны СРАЗУ, не дожидаясь выгрузки журнала:
+## прерванная сессия журнал не пишет, а «ниже пола» без чисел не отличить от «присел» и от
+## «система дала другой пол» (сессия 32).
+## Тело уехало вниз само, без падения и без команды: печатаем ОДИН раз, чтобы не залить лог.
+var _sank := false
+
+
+func _watch_sink() -> void:
+	if _sank or player == null or spawn_xf == Transform3D():
+		return
+	if player.global_position.y < spawn_xf.origin.y - 0.5:
+		_sank = true
+		_print_pose("ушёл вниз")
+
+
+func _print_pose(why: String) -> void:
+	var iface := XRServer.find_interface("OpenXR")
+	var area := -1
+	if iface != null:
+		area = int(iface.get_play_area_mode())
+	print("ПОЗА[%s]: ноги %.2f, глаза %.2f, камера в origin %.2f, origin %.2f, маска %d, присед %.2f, зона %d, рост профиля %.2f" % [
+			why, player.global_position.y, camera.global_position.y, camera.position.y,
+			origin.position.y, player.collision_mask, player.crouch, area,
+			profiles.profile.eye_m])
+
+
+## Полный прогон замеров по требованию (пункт меню «Прогнать замеры»). Шлем должен быть надет:
+## окна меряют доставку кадров, и уснувший шлем портит числа.
+func _run_bench() -> void:
+	var check := SelfCheck.new()
+	check.full = true
+	check.step.connect(_on_check_step)
+	menu.close()
+	var saved := menu.settings.values.duplicate()
+	var ok: bool = await check.run(self, menu)
+	menu.settings.values = saved
+	menu.apply_settings()
+	selfcheck_lines = check.r.lines.duplicate()
+	journal.log("самопроверка", menu.params(), "", "PASS" if ok else "FAIL", -1, str(check.results))
+	task_label.text = ""
+	_show_notice("Замеры закончены: %s" % ("всё в бюджете" if ok else "есть отказы, смотрите журнал"),
+			Color(0.8, 1.0, 0.8) if ok else Color(1.0, 0.85, 0.7))
 
 
 ## Настройки пространства и света применяются к миру: они общие для пользователя (scope «user»).
@@ -663,6 +747,9 @@ func _on_space_action(action: String) -> void:
 			menu.nav.message = "Группа «%s»: %s" % [arg, "показана" if shown else "скрыта"]
 			journal.log("слои", menu.params(), "", "", -1,
 					"группа %s: %s" % [arg, "показана" if shown else "скрыта"])
+		"space_bench":
+			menu.nav.message = "Замеры идут — держите шлем надетым, около двух минут"
+			_run_bench()
 		"space_play":
 			set_play(not vis.playing)
 			menu.nav.message = "Режим игры включён" if vis.playing else "Режим игры выключен"
@@ -673,6 +760,12 @@ func _on_space_action(action: String) -> void:
 			var asked := room.request_capture()
 			menu.nav.message = "Открываю разметку пространства" if asked else "Шлем не отдаёт разметку: %s" % room.brief()
 			journal.log("комната", menu.params(), "", "", -1, "запрос разметки: %s, %s" % [asked, room.brief()])
+
+
+## Что сейчас проверяется — перед глазами. Молчащая надпись «Самопроверка…» не отличает работу от
+## поломки: на шлеме это две с половиной минуты неизвестности.
+func _on_check_step(index: int, total: int, name: String) -> void:
+	task_label.text = "Проверка %d/%d: %s" % [index, total, name]
 
 
 func _on_controller_models(kind: String) -> void:

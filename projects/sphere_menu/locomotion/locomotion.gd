@@ -24,8 +24,7 @@ const Menu := preload("res://menu/sphere_menu.gd")
 const REACH_M := 0.45
 ## Насколько площадка должна быть выше ног, чтобы перевал имел смысл, м.
 const MANTLE_RISE_MIN := 0.6
-## Во сколько раз одна ось стика должна превосходить другую, чтобы вторая замолчала («обе руки»).
-const AXIS_LOCK := 1.6
+
 
 var body: PlayerBody
 var origin: XROrigin3D
@@ -57,6 +56,10 @@ var _mantle: Dictionary = {}
 var falsify_ignore_menu := false
 ## Фальсификатор «walkquiet»: непрерывное движение снова не пишет в журнал (слепота сессии 17).
 var falsify_quiet_walk := false
+## Фальсификатор «holdstuck»: удержание ввода копится флагом и не снимается — перемещение
+## выключается насовсем после первого же показа клавиатуры (дефект сессии 30).
+static var falsify_hold_stuck := false
+static var _stuck := false
 ## Фальсификатор «lockdrift»: перехват ввода не гасит начатое движение — возвращается дефект
 ## сессии 29, когда человек ехал всё время, пока вводил PIN.
 var falsify_no_suspend := false
@@ -70,8 +73,9 @@ var falsify_aim_turn := false
 var falsify_climb_every := false
 ## Принудительное прицеливание для замера цены дуги: рисуется каждый такт из позы руки.
 var probe_aim := false
-## Фальсификатор «axisfree»: оси стика не глушат друг друга — поворот снова тащит человека вперёд.
-var falsify_no_axis_lock := false
+## Фальсификатор «axisfree»: приоритет поворота снят — поворот снова тащит человека вперёд, как до
+## сессии 31 («при вращении стиком так же работает движение этим же стиком»).
+var falsify_no_turn_first := false
 ## Фальсификатор «mantlefloor»: перевал срабатывает и у стоящего на полу — дефект сессии 23, когда
 ## захват нижнего зацепа мгновенно уносил наверх.
 var falsify_mantle_eager_floor := false
@@ -92,6 +96,9 @@ var falsify_fixed_hands := false
 func setup(p_body: PlayerBody, p_origin: XROrigin3D, p_head: Node3D, p_menu: Menu,
 		p_left: XRController3D, p_right: XRController3D) -> void:
 	body = p_body
+	# Тело спрашивает состояние лазанья само, каждый такт: флага, который кто-то обязан снять,
+	# здесь быть не должно (сессия 30).
+	body.climbing = func() -> bool: return climb.active
 	origin = p_origin
 	head = p_head
 	menu = p_menu
@@ -113,9 +120,14 @@ func settings_value(id: String) -> Variant:
 	return menu.settings.get_value(id)
 
 
-## Кто ещё держит ввод, кроме шара: ожидание PIN, замок панели, системная клавиатура. Задаёт
-## сессия (main.gd) — перемещение не должно знать про профили и клавиатуры, но обязано их слушать.
-var input_busy: Callable = func() -> bool: return false
+## Кто ещё держит ввод, кроме шара: ожидание PIN, замок панели, открытый ввод текста. Возвращает
+## ПРИЧИНУ (пустая строка — ввод свободен): по ней видно в журнале, кто держит, и не приходится
+## гадать. Задаёт сессия (main.gd) — перемещение не должно знать про профили и клавиатуры.
+##
+## Спрашивать надо состояние, а не копить флаг по сигналам «показана/скрыта»: сессия 30 —
+## системная клавиатура прислала «show», а «hide» не прислала (PIN набрали панелью), флаг залип, и
+## перемещение выключилось совсем на весь прогон.
+var input_hold: Callable = func() -> String: return ""
 
 
 ## Ввод разрешён перемещению: шар закрыт (стики принадлежат меню, пока он открыт) И никто другой
@@ -124,7 +136,7 @@ var input_busy: Callable = func() -> bool: return false
 func input_free() -> bool:
 	if falsify_ignore_menu:
 		return true
-	return not menu.is_open() and not bool(input_busy.call())
+	return not menu.is_open() and str(input_hold.call()) == ""
 
 
 func _physics_process(dt: float) -> void:
@@ -146,7 +158,7 @@ func _physics_process(dt: float) -> void:
 		# (сессия 29). Остановку нельзя ждать от «отпустили стик»: пока ввод перехвачен, события
 		# отпускания не приходят вовсе (ловушка 29 — при системной клавиатуре контроллеры до
 		# приложения не доходят).
-		suspend("ввод занят")
+		suspend(_hold_reason())
 		vignette.apply(vignette_math.update(0.0, 0.0, settings_value("move_vignette"), dt))
 		return
 	# Ввод снова наш: следующее прерывание опять попадёт в журнал.
@@ -156,9 +168,12 @@ func _physics_process(dt: float) -> void:
 		_draw_arc(right.global_position, -right.global_basis.z)
 	# Пока целишься телепортом, стик вбок задаёт КУРС после переноса, а не крутит на месте
 	# (сессия 20: «поворот стика поворачивает сразу, а не после телепортации»).
+	# Стики читаются один раз на такт: поворот главнее движения, и решение об отклонении должно быть
+	# у обеих механик одно (locomotion.turn_first).
+	var sticks := frame_sticks()
 	if not aiming or falsify_aim_turn:
-		_turn(dt)
-	_move(dt)
+		_turn(dt, sticks)
+	_move(dt, sticks)
 	_climb(dt)
 	_crouch()
 	var speed := Vector2(body.velocity.x, body.velocity.z).length()
@@ -171,24 +186,52 @@ func _physics_process(dt: float) -> void:
 var stick_source: Callable = func(who: String) -> Vector2:
 	return (left if who == "left" else right).get_vector2("primary")
 
+## Откуда берётся грип. Отдельным полем по той же причине, что и стик: без трекинга XRController3D
+## отдаёт false, и проверить лазанье через настоящий такт иначе нечем.
+var grip_source: Callable = func(who: String) -> bool:
+	return (left if who == "left" else right).is_button_pressed("grip_click")
 
-## Стик выбранной руки. Настройка «обе» складывает стики: при обеих «обе» поворот забирает ось X,
-## движение — ось Y, иначе одна рука спорила бы сама с собой.
+
+## Стик выбранной руки. Настройка «обе» складывает стики: любой из них ведёт.
 func hand_stick(setting_id: String, fallback: String) -> Vector2:
 	var who: String = fallback if falsify_fixed_hands else str(settings_value(setting_id))
 	if who == "left" or who == "right":
 		return stick_source.call(who)
 	var sum: Vector2 = stick_source.call("left") + stick_source.call("right")
-	sum = Vector2(clampf(sum.x, -1.0, 1.0), clampf(sum.y, -1.0, 1.0))
-	# ДОМИНИРУЮЩАЯ ОСЬ. При «обе» один и тот же стик кормит и поворот (X), и ход (Y), а палец редко
-	# ведёт строго по оси: сессия 24 — каждый поворот сопровождался отрезком ходьбы по 5–15 см
-	# («при повороте происходит и движение»). Явно преобладающая ось глушит вторую.
-	if not falsify_no_axis_lock:
-		if absf(sum.x) > absf(sum.y) * AXIS_LOCK:
-			sum.y = 0.0
-		elif absf(sum.y) > absf(sum.x) * AXIS_LOCK:
-			sum.x = 0.0
-	return sum
+	return Vector2(clampf(sum.x, -1.0, 1.0), clampf(sum.y, -1.0, 1.0))
+
+
+## Читают ли поворот и движение ОДИН И ТОТ ЖЕ физический стик. «Обе» включает оба, поэтому
+## пересекается с чем угодно.
+func same_stick() -> bool:
+	var m: String = "left" if falsify_fixed_hands else str(settings_value("move_hand"))
+	var t: String = "right" if falsify_fixed_hands else str(settings_value("turn_hand"))
+	return m == t or m == "both" or t == "both"
+
+
+## ПОВОРОТ ГЛАВНЕЕ ДВИЖЕНИЯ (решение владельца 2026-09-22). Пока стик уведён вбок выше порога
+## поворота, движение и прицел телепорта от ЭТОГО ЖЕ стика не работают.
+##
+## До этого глушилась «явно преобладающая ось» по отношению 1.6, и правило молчало ровно там, где
+## палец бывает чаще всего: при (0.8, 0.5) и (0.7, 0.7) срабатывали обе механики сразу — сектор
+## около 30° из 90°. Пороги у механик разные (поворот 0.6, движение 0.15), поэтому отношение осей
+## их и не разводило. Одно сравнение с одним порогом объяснимо человеку и проверяемо числом.
+##
+## Когда стики разные, правило не применяется вовсе: стрейф на ходу сохраняется.
+static func turn_first(turn: Vector2, move: Vector2, one_stick: bool) -> Dictionary:
+	if one_stick and absf(turn.x) >= Turn.DEADZONE:
+		return {"turn": turn, "move": Vector2.ZERO}
+	return {"turn": turn, "move": move}
+
+
+## Отклонения стиков на этот такт. Считаются ОДИН раз и раздаются обеим механикам: два независимых
+## чтения могли дать разные решения об одном и том же отклонении.
+func frame_sticks() -> Dictionary:
+	var turn := hand_stick("turn_hand", "right")
+	var move := hand_stick("move_hand", "left")
+	if falsify_no_turn_first:
+		return {"turn": turn, "move": move}
+	return turn_first(turn, move, same_stick())
 
 
 ## Рука, из которой летит дуга телепорта: та, чей стик отклонён сильнее (при «обе» — любая).
@@ -201,8 +244,8 @@ func aiming_hand() -> XRController3D:
 	return right if absf(stick_source.call("right").y) > absf(stick_source.call("left").y) else left
 
 
-func _turn(dt: float) -> void:
-	var x: float = hand_stick("turn_hand", "right").x
+func _turn(dt: float, sticks: Dictionary = {}) -> void:
+	var x: float = (sticks["turn"] as Vector2).x if sticks.has("turn") else hand_stick("turn_hand", "right").x
 	var deg := 0.0
 	if settings_value("turn_mode") == "snap":
 		deg = turn.snap(x, float(settings_value("snap_angle")), dt)
@@ -225,8 +268,8 @@ func _turn(dt: float) -> void:
 	moved.emit("поворот", "%s %.0f°, голова ушла %.3f м" % [settings_value("turn_mode"), deg, drift])
 
 
-func _move(dt: float) -> void:
-	var stick: Vector2 = hand_stick("move_hand", "left")
+func _move(dt: float, sticks: Dictionary = {}) -> void:
+	var stick: Vector2 = (sticks["move"] as Vector2) if sticks.has("move") else hand_stick("move_hand", "left")
 	var hand: XRController3D = aiming_hand()
 	var mode: String = settings_value("move_mode")
 	if mode in ["head", "hand"]:
@@ -313,7 +356,7 @@ func _climb(dt: float) -> void:
 		var hand: String = pair[0]
 		var ctrl: XRController3D = pair[1]
 		positions[hand] = ctrl.global_position
-		var holding: bool = ctrl.is_button_pressed("grip_click")
+		var holding: bool = grip_source.call(hand)
 		# Зацеп ищем только с нажатым грипом: обход группы из 14 брусков на каждую руку каждый такт
 		# шёл и тогда, когда человек просто шёл мимо (сессия 24, цена кадра).
 		var hold_node: Node3D = _climbable_near(ctrl.global_position) if (holding or falsify_climb_every) else null
@@ -418,8 +461,10 @@ func _try_mantle(dt: float, positions: Dictionary) -> void:
 	# на накопленное («телепортировало куда-то далеко в сторону», сессия 22). Переносим смещение в
 	# позицию тела: тело и origin компенсируют друг друга, и картинка не меняется вовсе.
 	var carry := Vector3(origin.position.x, 0.0, origin.position.z)
-	body.global_position += carry
-	origin.position -= carry
+	# Сколько тело прошло — столько и снимаем с origin: непройденное остаётся в нём и разойдётся
+	# само обычным следованием за головой уже на площадке.
+	var done := body.carry_shift(carry)
+	origin.position -= Vector3(done.x, 0.0, done.z)
 	# Цель — так, чтобы над точкой приземления оказалась ГОЛОВА: под ней и встанет капсула.
 	var head_off := head.global_position - body.global_position
 	_mantle = {"from": body.global_position,
@@ -476,6 +521,33 @@ func _climbable_near(pos: Vector3) -> Node3D:
 			best_d = d
 			best = node
 	return best
+
+
+## Кто держит ввод, кроме шара, — одним правилом на приложение и на прибор. Раньше правило жило
+## только в main.gd, и проверка могла подтвердить лишь свою копию: копия осталась бы зелёной, даже
+## если бы приложение спрашивало залипший флаг (сессия 30).
+static func hold_reason(pin_waiting: bool, panel_locked: bool, text_open: bool) -> String:
+	if falsify_hold_stuck:
+		# Признак копится флагом по сигналам «показана/скрыта»: «показана» пришла, парная «скрыта» —
+		# нет, и удержание не снимается уже никогда (сессия 30).
+		_stuck = _stuck or text_open
+		if _stuck:
+			return "открыт ввод текста"
+	if pin_waiting:
+		return "ждём PIN"
+	if panel_locked:
+		return "панель заперта"
+	if text_open:
+		return "открыт ввод текста"
+	return ""
+
+
+## Кто сейчас держит ввод — словами, для журнала.
+func _hold_reason() -> String:
+	var why := str(input_hold.call())
+	if why != "":
+		return why
+	return "шар открыт" if menu != null and menu.is_open() else "ввод занят"
 
 
 ## Остановить всё начатое перемещение: скорость, прицел телепорта, запись отрезка ходьбы.

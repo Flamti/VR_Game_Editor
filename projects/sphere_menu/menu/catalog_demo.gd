@@ -137,6 +137,13 @@ func _init() -> void:
 	# Группы объектов уровня. Пусты до загрузки уровня: имена групп приходят из данных, а не из
 	# каталога (set_groups), — поэтому папка строится, а наполняется на ходу.
 	_folder("settings_layers", "settings_groups", "Группы", "Группы")
+	# Замеры производительности: при запуске они больше не идут (154 секунды молчания, сессия 31),
+	# и прогнать их можно отсюда. Имя действия — с префиксом «space_»: навигатор рассылает по
+	# префиксу, пункт с чужим именем молча ничего не делает (ловушка 41).
+	var bench_it: Item = Item.make("space_bench", "Прогнать замеры", K.ACTION, P.CLOSE, "Замеры")
+	bench_it.action = "space_bench"
+	bench_it.type_label = "действие"
+	_add("settings_space", bench_it)
 	var play_it: Item = Item.make("layers_play", "Режим игры", K.ACTION, P.CLOSE, "Игра")
 	play_it.action = "space_play"
 	play_it.type_label = "действие"

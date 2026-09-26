@@ -45,7 +45,7 @@ tools/make_start_location.py           # собрать стартовую ло�
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
     --script res://tests/run_tests.gd [-- --falsify=<имя>]    # пол 142, 94 фальсификатора
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
-    --script res://tests/smoke_menu.gd [-- --falsify=<имя>]   # интеграция, пол 82, 65 фальсификаторов
+    --script res://tests/smoke_menu.gd [-- --falsify=<имя>]   # интеграция, пол 83, 66 фальсификаторов
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
     --script res://tests/boot_main.gd [-- --falsify=<имя>]    # main.tscn целиком и старт, пол 5, 4 фальсификатора; ПЕРЕД КАЖДЫМ ЭКСПОРТОМ
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
@@ -468,6 +468,13 @@ tools/         сборка, деплой, проверка артефактов
     10 кадров без `pose_recentered`), головой над точкой с её курсом (`_center_player_on`, как у
     XR Tools), за экраном «Загрузка». На столе это не воспроизводится: там голова не двигается —
     стенды двигают голову сами (`spawnhead`: человек в 0.8 м от origin с поворотом 40°).
+
+61. **Где кромка — не значит на какой высоте площадка.** Перевал брал высоту приземления из точки,
+    которую нашёл луч, а луч упал на зацеп, торчащий из стены на 4 см дальше края крыши: «на
+    площадку 3.05» у крыши 3.60, тело внутри края, выталкивание +0.55 м (сессия 25). Высота — с
+    поверхности ПОД ТОЧКОЙ ПРИЗЕМЛЕНИЯ, зацепы опорой не считаются. Стенд перевала обязан проходить
+    выбор площадки (`_try_mantle`) на настоящей геометрии: прежний задавал цель из данных и выбор не
+    видел (фальсификатор `mantlespot`).
 
 ## Архитектурные правила
 

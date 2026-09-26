@@ -94,6 +94,9 @@ var falsify_turn_spam := false
 ## Фальсификатор «walkjitter»: отрезок ходьбы заявляется с первого такта, любым дёрганьем.
 var falsify_walk_jitter := false
 ## Фальсификатор «mantlesticks»: отмена перевала ничего не отменяет.
+## Фальсификатор «mantlespot» (tests/smoke_menu.gd): высота приземления — из найденной точки (верх
+## зацепа или кромки), а не с поверхности под точкой приземления, как до 2026-09-26.
+var falsify_mantle_spot := false
 var falsify_mantle_sticks := false
 ## Фальсификатор «menustick»: перемещение слушает стики и при открытом шаре — спорит с меню.
 var falsify_ignore_menu := false
@@ -542,18 +545,40 @@ func _try_mantle(dt: float, positions: Dictionary) -> void:
 		if ahead.length() < 0.01:
 			_ledge_held = 0.0
 			return
-		var probe := head_pos + ahead.normalized() * Mantle.PROBE_AHEAD_M
 		var space := get_viewport().world_3d.direct_space_state
-		var q := PhysicsRayQueryParameters3D.create(probe + Vector3.UP * 0.05, probe - Vector3.UP * 1.2)
-		q.exclude = [body.get_rid()]
-		var hit := space.intersect_ray(q)
-		if hit.is_empty() or not Mantle.fits(head_pos.y, (hit["position"] as Vector3).y, hit["normal"]):
+		# Лесенкой вперёд: первая годная площадка. Одной пробы на PROBE_AHEAD_M мало — край крыши
+		# может кончаться раньше, чем выступает зацеп, и под пробой оказывается пустота (стена
+		# лазанья улицы: зацепы торчат за край крыши на 4 см), и человек с глазами над крышей не
+		# мог на неё забраться.
+		var hit := {}
+		var steps := [Mantle.PROBE_AHEAD_M] if falsify_mantle_spot else Mantle.PROBE_STEPS
+		for d in steps:
+			var probe := head_pos + ahead.normalized() * float(d)
+			var q := PhysicsRayQueryParameters3D.create(probe + Vector3.UP * 0.05, probe - Vector3.UP * 1.2)
+			# Зацепы площадкой не бывают: они торчат из стены, и луч, упавший на верх зацепа,
+			# принимал его за край крыши (шлем 2026-09-26: «на площадку 3.05» у крыши 3.60).
+			q.exclude = [body.get_rid()] if falsify_mantle_spot else _not_ground()
+			var h := space.intersect_ray(q)
+			if not h.is_empty() and Mantle.fits(head_pos.y, (h["position"] as Vector3).y, h["normal"]):
+				hit = h
+				break
+		if hit.is_empty():
 			_ledge_held = 0.0
 			return
 		spot = hit["position"]
 		target = Mantle.landing(spot, look)
+	# Приземление — НА ПОВЕРХНОСТЬ под точкой приземления (владелец 2026-09-26: «на площадку, на рост
+	# пользователя»). Найденная точка говорит, ГДЕ кромка, но её высота — не высота площадки: зацеп
+	# под кромкой, выступ стены, верх бордюра. Тело, поставленное на неё, оказывалось внутри
+	# площадки, и физика выталкивала его рывком (+0.55 м на шлеме).
+	if not falsify_mantle_spot:
+		var ground := _ground_under(target)
+		if is_nan(ground):
+			_ledge_held = 0.0
+			return
+		target.y = ground
 	# Площадка должна быть выше НОГ: иначе «перевалом» окажется всё, на что человек смотрит сверху.
-	if spot.y - body.global_position.y < MANTLE_RISE_MIN and not falsify_mantle_eager_floor:
+	if target.y - body.global_position.y < MANTLE_RISE_MIN and not falsify_mantle_eager_floor:
 		_ledge_held = 0.0
 		return
 	# Намерение: копим время у кромки и смотрим на рывок кисти вниз.
@@ -590,6 +615,24 @@ func _try_mantle(dt: float, positions: Dictionary) -> void:
 	climb.velocity = Vector3.ZERO
 	body.velocity = Vector3.ZERO
 	moved.emit("перевал", "на площадку %.2f м (голова была на %.2f)" % [target.y, head_pos.y])
+
+
+## Поверхность, на которую встанут ноги в точке `at`: луч сверху вниз, мимо тела и зацепов. NAN —
+## опоры нет (под точкой пустота или только зацепы).
+func _ground_under(at: Vector3) -> float:
+	var q := PhysicsRayQueryParameters3D.create(at + Vector3.UP * 1.0, at - Vector3.UP * 2.0)
+	q.exclude = _not_ground()
+	var hit := get_viewport().world_3d.direct_space_state.intersect_ray(q)
+	return NAN if hit.is_empty() else (hit["position"] as Vector3).y
+
+
+## Что опорой для ног не считается: само тело и зацепы лазанья.
+func _not_ground() -> Array[RID]:
+	var out: Array[RID] = [body.get_rid()]
+	for node in get_tree().get_nodes_in_group("climb"):
+		if node is CollisionObject3D:
+			out.append((node as CollisionObject3D).get_rid())
+	return out
 
 
 ## Бросить начатый перевал. Состояние перевала живёт ЗДЕСЬ, в `_mantle`, а не в теле: возврат в

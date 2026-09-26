@@ -126,6 +126,9 @@ extends SceneTree
 ##                         поворот отрезками»;
 ##   --falsify=walkjitter  отрезок ходьбы заявляется любым дёрганьем стика — краснеет только
 ##                         «короткие рывки ходьбы»;
+##   --falsify=mantlespot  высота приземления перевала берётся из найденной точки (верх зацепа), а не
+##                         с поверхности под точкой приземления — краснеет только «перевал ставит на
+##                         площадку, а не на зацеп»;
 ##   --falsify=triggergame коробка зоны подгрузки строится на слое игры — игрок видит разметку
 ##                         автора; краснеет только «зона видна и работает скрытой»;
 ##   --falsify=playmask    маска камеры не смотрит на режим игры — краснеет только «режим игры
@@ -203,6 +206,7 @@ const STEPS := ["открыть", "войти коротким", "действи
 		"предмет из комнаты остаётся в руке при выгрузке",
 		"телепорт по видимой дуге", "курс не обрывает прицел", "возврат отменяет перевал",
 		"плавный поворот отрезками", "короткие рывки ходьбы", "догон головы не двигает вид по вертикали",
+		"перевал ставит на площадку, а не на зацеп",
 		"меню групп из уровня",
 		"раскладки", "выход удержанием"]
 
@@ -285,6 +289,7 @@ func _initialize() -> void:
 		[642, _carry_prep], [646, _carry_check],
 		[650, _tp_prep], [654, _tp_seen], [655, _tp_side], [656, _mantle_cancel], [657, _turn_segments],
 		[658, _walk_jitter], [660, _follow_y_prep], [664, _follow_y_jump], [720, _follow_y_check],
+		[722, _mantle_top_prep], [728, _mantle_top_check],
 		[310, _layouts], [314, _exit_hold], [320, _finish],
 	]
 
@@ -3837,3 +3842,104 @@ func _follow_y_check() -> void:
 		r.pass_("догон головы не двигает вид по вертикали: %s" % "; ".join(got))
 	else:
 		r.fail("догон головы не двигает вид по вертикали: %s" % "; ".join(bad))
+
+
+
+## Перевал ставит НА ПЛОЩАДКУ: ноги на её поверхности, глаза выше на рост (владелец, 2026-09-26).
+##
+## Шлем 2026-09-26 17:51: «перевал: на площадку 3.05 м» у крыши высотой 3.60, и через кадр тело
+## вытолкнуло на +0.55. Рука держала зацеп climb7 (верх 3.04) — ниже зоны размеченной кромки, и
+## сработал запасной луч вниз перед головой: он упал на ТОРЧАЩИЙ из стены зацеп и принял его за
+## площадку. Прежний стенд перевала этого не видел: он задавал перенос сразу, с целью из данных, и
+## `_try_mantle` не вызывал вовсе.
+##
+## Геометрия — настоящая улица из данных; такты намерения идут через `_try_mantle`, перенос — через
+## `_mantle_tick`, потом физика тела. Два случая: рука на climb7 (луч) и рука в зоне кромки (данные).
+var _mt: Dictionary = {}
+
+func _mantle_top_prep() -> void:
+	var street := "res://world/levels/start_location.json"
+	var res := LevelLoader.parse(FileAccess.get_file_as_string(street))
+	if not res["ok"]:
+		return
+	var root := Node3D.new()
+	head.get_parent().add_child(root)
+	LevelLoader.build(root, res["data"])
+	_mt = {"root": root}
+
+
+func _mantle_top_case(hold_uuid: String, head_y: float) -> Dictionary:
+	var loco := LocomotionRes.new()
+	var body := PlayerBody.new()
+	var origin := XROrigin3D.new()
+	var m_head := Node3D.new()
+	(_mt["root"] as Node).add_child(body)
+	body.add_child(origin)
+	origin.add_child(m_head)
+	m_head.position = Vector3(0, 1.6, 0)
+	body.setup(origin, m_head)
+	body.set_eye_height(1.6)
+	loco.body = body
+	loco.head = m_head
+	loco.origin = origin
+	loco.falsify_mantle_spot = falsify == "mantlespot"
+	(_mt["root"] as Node).add_child(loco)
+	loco.set_physics_process(false)
+	# Висит снаружи стены лицом к ней (стена — в −X), глаза на head_y. Голова так, чтобы луч поиска
+	# (PROBE_AHEAD_M перед ней) пришёлся на торчащий зацеп — как на шлеме.
+	var hold := _obj_pos(hold_uuid)
+	body.global_position = Vector3(hold.x + MantleRes.PROBE_AHEAD_M, head_y - 1.6, hold.z)
+	m_head.rotation = Vector3(0.0, deg_to_rad(90.0), 0.0)
+	loco.climb.grab("right", hold)
+	var said: Array = []
+	loco.moved.connect(func(kind: String, d: String):
+		if kind == "перевал":
+			said.append(d))
+	var dt := 1.0 / 90.0
+	for i in 60:
+		if not loco._mantle.is_empty():
+			break
+		loco._try_mantle(dt, {"right": hold})
+	var started := not loco._mantle.is_empty()
+	for i in 60:
+		if loco._mantle.is_empty():
+			break
+		loco._mantle_tick(dt)
+	var feet_after_mantle := body.global_position.y
+	# Физика тела после переноса: вытолкнет ли из геометрии.
+	body.set_physics_process(false)
+	for i in 20:
+		body.velocity = Vector3(0, -1.0, 0)
+		body.move_and_slide()
+	var out := {"started": started, "said": said, "feet_mantle": feet_after_mantle,
+			"feet": body.global_position.y, "eyes": m_head.global_position.y}
+	loco.queue_free()
+	body.queue_free()
+	return out
+
+
+func _mantle_top_check() -> void:
+	if _mt.is_empty():
+		r.fail("перевал ставит на площадку, а не на зацеп: уровень не собран")
+		return
+	var roof_top := _obj_pos("hclimb_roof").y + float((_obj("hclimb_roof").get("size", [0, 0.2, 0]) as Array)[1]) * 0.5
+	var ledge := _obj("ledge_roof")
+	var ledge_y := float((ledge.get("pos") as Array)[1])
+	var cases := [["рука на climb7, под кромкой (луч)", "climb7", 3.98], ["рука на climb8, в зоне кромки (данные)", "climb8", ledge_y + 0.3]]
+	var bad: Array[String] = []
+	var got: Array[String] = []
+	for c in cases:
+		var o: Dictionary = _mantle_top_case(c[1], c[2])
+		var feet: float = o["feet"]
+		var line := "%s: перенос до %.2f, после физики ноги %.2f, глаза над ногами %.2f" % [c[0], o["feet_mantle"], feet, float(o["eyes"]) - feet]
+		got.append(line)
+		if not o["started"]:
+			bad.append("%s — перевал не начался" % c[0])
+		elif absf(float(o["feet_mantle"]) - roof_top) > 0.05 or absf(feet - roof_top) > 0.05 or absf(float(o["eyes"]) - feet - 1.6) > 0.05:
+			bad.append("%s — крыша на %.2f (%s)" % [line, roof_top, "; ".join(o["said"])])
+	(_mt["root"] as Node).queue_free()
+	_mt = {}
+	if bad.is_empty():
+		r.pass_("перевал ставит на площадку, а не на зацеп: крыша %.2f — %s" % [roof_top, "; ".join(got)])
+	else:
+		r.fail("перевал ставит на площадку, а не на зацеп: %s" % "; ".join(bad))

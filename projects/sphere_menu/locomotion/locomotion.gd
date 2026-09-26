@@ -52,6 +52,49 @@ var _climb_from := Vector3.ZERO
 var _climb_ms := 0
 ## Перевал через край: {from, to, t} пока идёт, иначе пусто.
 var _mantle: Dictionary = {}
+## Прицел последнего кадра: {points, hit, pos, normal, ok}. Перенос идёт ПО НЕМУ — по дуге, которую
+## человек видел, — а не по прицелу, посчитанному заново на кадре отпускания: тот стоит ещё 12 лучей
+## и берётся из позы руки, которая в момент отпускания уже дёрнулась.
+var _last_aim: Dictionary = {}
+## Откуда брошен `_last_aim`: [рука, направление, поза origin]. Пока они не разошлись, дуга не
+## пересчитывается — ни лучи, ни меш (ловушка 48: работа — когда что-то сдвинулось).
+var _aim_key: Array = []
+## Отклонение стика вбок на ПОСЛЕДНЕМ кадре прицеливания — из него курс после переноса. На кадре
+## отпускания палец уже возвращается к центру, и `x` там около нуля: курс, который человек задавал,
+## терялся (открытый дефект сессии 22).
+var _aim_x := 0.0
+## Сколько раз дуга считалась по-настоящему (лучи и меш) — свидетель для прибора.
+var arc_rebuilds := 0
+## Насколько должны разойтись рука или origin, чтобы дугу пересчитать: м и радианы (~0.3°). Форма,
+## а не измерение: меньше, чем видно глазом на конце семиметровой дуги.
+const ARC_MOVE_EPS := 0.005
+const ARC_TURN_EPS := 0.005
+## Плавный поворот идёт отрезком, как ходьба: сумма градусов и наибольший уход головы.
+var _turning := false
+var _turn_sum := 0.0
+var _turn_drift := 0.0
+## Отрезок ходьбы заявляется в журнал, только пройдя столько, м. Форма: дёрганье стика давало
+## отрезки по 5–15 см — в журнале сессии 21:15 из 846 отрезков 529 короче 30 см.
+const WALK_CLAIM_M := 0.3
+var _walk_claimed := false
+## Сколько коротких отрезков набралось до ближайшего заявленного: они не пропадают, а уходят числом
+## в его строку «встал» — иначе свидетель слеп к дёрганью вовсе.
+var _walk_short := 0
+## Фальсификатор «yawlate»: курс снова читается на кадре отпускания — около нуля.
+var falsify_yaw_late := false
+## Фальсификатор «aimside»: «поворот главнее» действует и при прицеливании — отклонение вбок
+## обнуляет ход, и прицел обрывается переносом.
+var falsify_aim_side := false
+## Фальсификатор «aimtwice»: на отпускании прицел считается заново из позы руки.
+var falsify_aim_twice := false
+## Фальсификатор «arcrebuild»: дуга — лучи и новый меш — каждый кадр, как до правки.
+var falsify_arc_every := false
+## Фальсификатор «turnspam»: плавный поворот пишет строку на каждый такт.
+var falsify_turn_spam := false
+## Фальсификатор «walkjitter»: отрезок ходьбы заявляется с первого такта, любым дёрганьем.
+var falsify_walk_jitter := false
+## Фальсификатор «mantlesticks»: отмена перевала ничего не отменяет.
+var falsify_mantle_sticks := false
 ## Фальсификатор «menustick»: перемещение слушает стики и при открытом шаре — спорит с меню.
 var falsify_ignore_menu := false
 ## Фальсификатор «walkquiet»: непрерывное движение снова не пишет в журнал (слепота сессии 17).
@@ -164,8 +207,9 @@ func _physics_process(dt: float) -> void:
 	# Ввод снова наш: следующее прерывание опять попадёт в журнал.
 	_suspended = false
 	# Принудительное прицеливание — только для замера цены дуги самопроверкой.
+	# Мерит ВЕРХНЮЮ границу (ловушка 49): дуга пересчитывается каждый такт, даже если рука стоит.
 	if probe_aim:
-		_draw_arc(right.global_position, -right.global_basis.z)
+		_draw_arc(right.global_position, -right.global_basis.z, true)
 	# Пока целишься телепортом, стик вбок задаёт КУРС после переноса, а не крутит на месте
 	# (сессия 20: «поворот стика поворачивает сразу, а не после телепортации»).
 	# Стики читаются один раз на такт: поворот главнее движения, и решение об отклонении должно быть
@@ -173,6 +217,8 @@ func _physics_process(dt: float) -> void:
 	var sticks := frame_sticks()
 	if not aiming or falsify_aim_turn:
 		_turn(dt, sticks)
+	else:
+		_end_smooth_turn()
 	_move(dt, sticks)
 	_climb(dt)
 	_crouch()
@@ -229,7 +275,15 @@ static func turn_first(turn: Vector2, move: Vector2, one_stick: bool) -> Diction
 func frame_sticks() -> Dictionary:
 	var turn := hand_stick("turn_hand", "right")
 	var move := hand_stick("move_hand", "left")
-	if falsify_no_turn_first:
+	# Пока целишься, отклонение вбок — это КУРС после переноса, а не поворот (поворот при прицеле и
+	# так не работает). Примени здесь «поворот главнее» — и при одном стике на обе механики курс
+	# сильнее 0.6 обнулял бы ход, а обнулённый ход читается как отпускание: человека переносило
+	# посреди прицеливания.
+	# Решение владельца 2026-09-26, сверено с Meta: «users can tilt the forward pushed thumbstick to
+	# the side to rotate their target orientation» (Locomotion user preferences), а в раскладке
+	# Interaction SDK телепорт и поворот живут на одном стике. Отвергнуто: «поворот главнее» и при
+	# прицеле — курс сильнее 0.6 недостижим, попытка его задать переносит.
+	if falsify_no_turn_first or (aiming and not falsify_aim_side):
 		return {"turn": turn, "move": move}
 	return turn_first(turn, move, same_stick())
 
@@ -252,6 +306,7 @@ func _turn(dt: float, sticks: Dictionary = {}) -> void:
 	else:
 		deg = Turn.smooth(x, float(settings_value("turn_speed")), dt)
 	if is_zero_approx(deg):
+		_end_smooth_turn()
 		return
 	# Поворот вокруг ГОЛОВЫ, а не начала координат: иначе человека уносит по дуге.
 	# Стик вправо — взгляд вправо, то есть тело поворачивается на -deg вокруг вертикали.
@@ -265,7 +320,27 @@ func _turn(dt: float, sticks: Dictionary = {}) -> void:
 	# Смещение головы за поворот — в журнал: поворот вокруг головы обязан оставлять её на месте, и
 	# «при повороте происходит и движение» (сессия 23) должно подтверждаться числом, а не ощущением.
 	var drift := Vector2(head.global_position.x - pivot.x, head.global_position.z - pivot.z).length()
-	moved.emit("поворот", "%s %.0f°, голова ушла %.3f м" % [settings_value("turn_mode"), deg, drift])
+	# Щелчок — событие, строка на щелчок. Плавный поворот ненулевой КАЖДЫЙ такт выше мёртвой зоны,
+	# и строка на такт — это 90 строк в секунду, ровно то, что запрещено ходьбе (`_track_walk`).
+	# Поэтому он пишется отрезком: начало и конец с суммой градусов.
+	if settings_value("turn_mode") == "snap" or falsify_turn_spam:
+		moved.emit("поворот", "%s %.0f°, голова ушла %.3f м" % [settings_value("turn_mode"), deg, drift])
+		return
+	if not _turning:
+		_turning = true
+		_turn_sum = 0.0
+		_turn_drift = 0.0
+		moved.emit("поворот", "плавный: начат")
+	_turn_sum += deg
+	_turn_drift = maxf(_turn_drift, drift)
+
+
+## Конец отрезка плавного поворота: одна строка с суммой. Молчит, если отрезка не было.
+func _end_smooth_turn() -> void:
+	if not _turning:
+		return
+	_turning = false
+	moved.emit("поворот", "плавный %.0f°, голова ушла до %.3f м" % [_turn_sum, _turn_drift])
 
 
 func _move(dt: float, sticks: Dictionary = {}) -> void:
@@ -285,15 +360,22 @@ func _move(dt: float, sticks: Dictionary = {}) -> void:
 	# Телепорт: пока стик вперёд — дуга, отпустили — перенос.
 	if stick.y > 0.6:
 		aiming = true
+		_aim_x = stick.x
 		_draw_arc(hand.global_position, -hand.global_basis.z)
 	elif aiming:
 		aiming = false
 		arc_line.visible = false
-		# Курс после переноса — из отклонения стика вбок при прицеливании (HL:A, перечень Meta).
+		# Курс после переноса — из отклонения стика вбок при прицеливании (HL:A, перечень Meta), и
+		# именно ПРИ ПРИЦЕЛИВАНИИ: здесь, на отпускании, палец уже у центра.
 		var yaw := NAN
 		if bool(settings_value("teleport_turn")):
-			yaw = Teleport.aim_yaw(stick.x, rad_to_deg(head.global_rotation.y))
-		_do_teleport(hand.global_position, -hand.global_basis.z, mode, yaw)
+			yaw = Teleport.aim_yaw(stick.x if falsify_yaw_late else _aim_x, rad_to_deg(head.global_rotation.y))
+		var aim: Dictionary = _last_aim
+		if falsify_aim_twice or aim.is_empty():
+			aim = _aim(hand.global_position, -hand.global_basis.z)
+		_last_aim = {}
+		_aim_key = []
+		_do_teleport(aim, mode, yaw)
 
 
 ## Дуга и её конец: луч физики ищет площадку.
@@ -309,24 +391,52 @@ func _aim(from: Vector3, dir: Vector3) -> Dictionary:
 	return {"points": pts, "hit": false, "pos": pts[pts.size() - 1], "normal": Vector3.ZERO}
 
 
-func _draw_arc(from: Vector3, dir: Vector3) -> void:
+## Совпадает ли поза прицела с той, из которой считана `_last_aim`. Мир при этом считается
+## неподвижным: площадка, уехавшая из-под неподвижной руки, увидится, как только рука дрогнет.
+func _aim_same(key: Array) -> bool:
+	if _aim_key.size() != 3 or _last_aim.is_empty():
+		return false
+	var o: Transform3D = key[2]
+	var was: Transform3D = _aim_key[2]
+	return (key[0] as Vector3).distance_to(_aim_key[0]) < ARC_MOVE_EPS \
+			and (key[1] as Vector3).angle_to(_aim_key[1]) < ARC_TURN_EPS \
+			and o.origin.distance_to(was.origin) < ARC_MOVE_EPS \
+			and o.basis.z.angle_to(was.basis.z) < ARC_TURN_EPS
+
+
+## `force` — пересчитать, даже если рука стоит: так мерится верхняя граница цены дуги.
+func _draw_arc(from: Vector3, dir: Vector3, force := false) -> void:
+	var key := [from, dir, origin.global_transform]
+	if not force and not falsify_arc_every and _aim_same(key):
+		arc_line.visible = true
+		return
+	_aim_key = key
 	var aim := _aim(from, dir)
 	var ok: bool = aim["hit"] and Teleport.landing_ok(aim["normal"])
+	aim["ok"] = ok
+	_last_aim = aim
+	arc_rebuilds += 1
 	# Линия рисуется гуще, чем идут лучи: точки — чистая арифметика, а запросы к физике дороги.
 	# Если дуга упёрлась, показываем ровно её пройденную часть, иначе линия уходила бы сквозь стену.
 	var line_pts: PackedVector3Array = aim["points"] if aim["hit"] else Teleport.arc_line(from, dir, float(settings_value("teleport_range")))
-	var im := ImmediateMesh.new()
+	# Меш один на всю жизнь дуги: у ImmediateMesh для этого есть clear_surfaces() (ловушка 48, тот же
+	# приём, что у нити призыва в world/pull_view.gd). Раньше — новый меш и новый RID каждый кадр.
+	var im := arc_line.mesh as ImmediateMesh
+	if im == null or falsify_arc_every:
+		im = ImmediateMesh.new()
+		arc_line.mesh = im
+	else:
+		im.clear_surfaces()
 	im.surface_begin(Mesh.PRIMITIVE_LINE_STRIP)
 	for p in line_pts:
 		im.surface_add_vertex(origin.to_local(p))
 	im.surface_end()
-	arc_line.mesh = im
 	(arc_line.material_override as StandardMaterial3D).albedo_color = Color(0.3, 0.9, 0.5) if ok else Color(0.9, 0.3, 0.3)
 	arc_line.visible = true
 
 
-func _do_teleport(from: Vector3, dir: Vector3, mode: String, yaw := NAN) -> void:
-	var aim := _aim(from, dir)
+## Перенос по готовому прицелу — тому, что человек видел последним кадром.
+func _do_teleport(aim: Dictionary, mode: String, yaw := NAN) -> void:
 	if not aim["hit"] or not Teleport.landing_ok(aim["normal"]):
 		moved.emit("телепорт", "площадка не годится")
 		return
@@ -482,6 +592,17 @@ func _try_mantle(dt: float, positions: Dictionary) -> void:
 	moved.emit("перевал", "на площадку %.2f м (голова была на %.2f)" % [target.y, head_pos.y])
 
 
+## Бросить начатый перевал. Состояние перевала живёт ЗДЕСЬ, в `_mantle`, а не в теле: возврат в
+## стартовую точку снимал `body.mantling`, но словарь оставался, и следующий же такт `_mantle_tick`
+## возвращал тело на траекторию перевала — возврат отменялся (окно Mantle.RISE_S, аудит 2026-09-23).
+## Маску столкновений возвращает вызывающий (`release_collisions`), как и при обычном конце.
+func cancel_mantle() -> void:
+	if falsify_mantle_sticks or _mantle.is_empty():
+		return
+	_mantle.clear()
+	moved.emit("перевал", "отменён")
+
+
 ## Кадр перевала: тело идёт «вверх и вперёд». Пока идёт, остальное перемещение молчит.
 func _mantle_tick(dt: float) -> void:
 	_mantle["t"] = float(_mantle["t"]) + dt / Mantle.RISE_S
@@ -571,6 +692,7 @@ func suspend(why: String) -> void:
 		arc_line.visible = false
 	if menu != null:
 		_track_walk(str(settings_value("move_mode")), false)
+	_end_smooth_turn()
 	if was_moving and not _suspended:
 		moved.emit("перемещение прервано", why)
 		_suspended = true
@@ -578,18 +700,32 @@ func suspend(why: String) -> void:
 
 ## Отрезок непрерывного движения: строка в журнал на старте и на остановке. Событие на каждый кадр
 ## залило бы журнал (90 строк в секунду), а молчание — лишило бы свидетеля вовсе.
+##
+## Отрезок заявляется, только когда себя доказал — прошёл WALK_CLAIM_M. Недоказавшийся не пишет ни
+## «пошёл», ни «встал», а считается и уходит числом в ближайшую строку «встал».
 func _track_walk(mode: String, moving: bool) -> void:
 	if falsify_quiet_walk:
 		return
 	if moving and not _walking:
 		_walking = true
+		_walk_claimed = false
 		_walk_from = body.global_position
 		_walk_ms = Time.get_ticks_msec()
-		moved.emit("ходьба", "пошёл: %s" % mode)
+	if moving and not _walk_claimed:
+		var gone := body.global_position - _walk_from
+		gone.y = 0.0
+		if falsify_walk_jitter or gone.length() >= WALK_CLAIM_M:
+			_walk_claimed = true
+			moved.emit("ходьба", "пошёл: %s" % mode)
 	elif _walking and not moving:
 		_walking = false
+		if not _walk_claimed:
+			_walk_short += 1
+			return
 		var way := body.global_position - _walk_from
 		var secs := (Time.get_ticks_msec() - _walk_ms) / 1000.0
 		way.y = 0.0
-		moved.emit("ходьба", "встал: %s, %.2f м за %.1f с, средняя %.2f м/с" % [
-				mode, way.length(), secs, way.length() / maxf(secs, 0.001)])
+		var short := "" if _walk_short == 0 else ", перед этим коротких рывков %d" % _walk_short
+		_walk_short = 0
+		moved.emit("ходьба", "встал: %s, %.2f м за %.1f с, средняя %.2f м/с%s" % [
+				mode, way.length(), secs, way.length() / maxf(secs, 0.001), short])

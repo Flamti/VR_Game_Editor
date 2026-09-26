@@ -18,6 +18,9 @@ const UNLOAD_DELAY_S := 2.0
 ## Фальсификатор «keeploaded»: выход из зоны не начинает отсчёт — интерьер остаётся навсегда
 ## (поведение сессии 17).
 var falsify_never_unload := false
+## Фальсификатор «stickynodes»: `detach` докладывает «убрал» и не убирает — вынесенный из комнаты
+## предмет всё равно попадает под выгрузку вместе с ней.
+var falsify_sticky_nodes := false
 
 ## файл → узлы, которые он построил
 var loaded: Dictionary = {}
@@ -32,6 +35,33 @@ func is_loaded(file: String) -> bool:
 func add(file: String, nodes: Array) -> void:
 	loaded[file] = nodes
 	_timers.erase(file)
+
+
+## Исключить элемент из набора файла: предмет вынесли из комнаты, и с ней он больше не выгружается.
+## Возвращает, был ли он в наборе.
+##
+## Элемент — `Variant`, а не `Node`, нарочно: файл остаётся слеп к тому, что он считает, и настольная
+## проверка по-прежнему гоняет его на числах, без сцены (см. шапку).
+func detach(file: String, item: Variant) -> bool:
+	var nodes: Array = loaded.get(file, [])
+	var at := nodes.find(item)
+	if at < 0:
+		return false
+	if not falsify_sticky_nodes:
+		nodes.remove_at(at)
+	return true
+
+
+## Добавить элемент в набор файла: предмет принесли в комнату и оставили. Файл не загружен — отказ,
+## иначе набор завёлся бы сам собой и ожил бы при следующей выгрузке.
+func attach(file: String, item: Variant) -> bool:
+	if not loaded.has(file):
+		return false
+	var nodes: Array = loaded[file]
+	if nodes.has(item):
+		return false
+	nodes.append(item)
+	return true
 
 
 ## Человек вошёл в зону: отсчёт выгрузки отменяется (если шёл).

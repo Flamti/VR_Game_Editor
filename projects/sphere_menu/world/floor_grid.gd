@@ -28,6 +28,28 @@ const SHADER_XRAY := preload("res://world/floor_grid_xray.gdshader")
 const MARGIN := 1.3
 ## «Вся сцена» — квад такого размера, м.
 const SCENE_SIZE := 60.0
+## Насколько сетка приподнята над нулём уровня, м.
+##
+## Пол стартовой локации кладёт свою ВЕРХНЮЮ грань ровно на Y = 0.000 (`start_location.json`: floor
+## pos −0.1, size 0.2), и плоскость сетки лежала там же. Две копланарные поверхности на 100×100 м —
+## это совпадение глубины бит в бит, и кто из них окажется ближе, решает точность вычислений, а в
+## шлеме ещё и своя матрица на каждый глаз: сетка мерцала (владелец, 2026-09-23).
+##
+## Это форма, а не измерение: миллиметры выбраны так, чтобы уйти от копланарности и не дать сетке
+## «висеть» над полом заметно для глаза. Отвергнуто: рентген (`grid_xray`) — он снимает проверку
+## глубины насовсем, и сетка становится видна сквозь дома, а это отдельный режим осмотра, а не
+## обычный вид; и сетка по геометрии пола — она отложена в `docs/design/space-and-light.md` §3 и
+## требует своего замера.
+const LIFT_M := 0.004
+## Фальсификатор «gridflush»: подъёма нет — сетка снова ложится ровно на верхнюю грань пола, и
+## возвращается мерцание.
+static var falsify_flush := false
+
+## Насколько сетка стоит выше нуля уровня сейчас. Отдельной функцией, чтобы «подъём есть» можно было
+## опровергнуть: константу фальсификатором не подменить.
+static func lift() -> float:
+	return 0.0 if falsify_flush else LIFT_M
+
 
 var around: MeshInstance3D
 var origin_grid: MeshInstance3D
@@ -75,7 +97,7 @@ func apply(settings: Settings) -> void:
 	# «На месте»: квад стоит на нуле уровня и круг видимости не двигается — сетка как инструмент
 	# редактора, который не ходит за человеком.
 	if mode == "fixed":
-		around.position = Vector3.ZERO
+		around.position = Vector3(0.0, lift(), 0.0)
 		(around.material_override as ShaderMaterial).set_shader_parameter("center", Vector3.ZERO)
 	origin_grid.visible = mode != "off" and bool(settings.get_value("grid_origin"))
 	var side := SCENE_SIZE if scene_wide else radius * 2.0 * MARGIN
@@ -91,18 +113,19 @@ func apply(settings: Settings) -> void:
 		# (свечение, будущие эффекты уровня) на неё не влияет (решение владельца, сессия 14).
 		mat.set_shader_parameter("emission_boost", 1.0 if bool(settings.get_value("grid_glow")) else 0.0)
 		mat.shader = SHADER_XRAY if bool(settings.get_value("grid_xray")) else SHADER
-	origin_grid.position = Vector3.ZERO
+	origin_grid.position = Vector3(0.0, lift(), 0.0)
 	(origin_grid.material_override as ShaderMaterial).set_shader_parameter("center", Vector3.ZERO)
 
 
 ## Кадр: у сетки «вокруг меня» за головой едет круг видимости. Позиция берётся МИРОВАЯ: локальная
 ## (в origin) не меняется при ходьбе тела, и сетка вместо этого ездила вместе с человеком.
-## Высота — ноль уровня всегда: на платформе сетка остаётся на полу, а не поднимается с ним.
+## Высота — ноль уровня всегда (плюс `LIFT_M`): на платформе сетка остаётся на полу, а не
+## поднимается с ним. Центр затухания считается по плоскости нуля — подъём на него не влияет.
 func follow() -> void:
 	if head == null or not around.visible or falsify_no_follow or _mode == "fixed":
 		return
 	var p := head.global_position if not falsify_ride else head.position
-	around.global_position = Vector3(p.x, 0.0, p.z)
+	around.global_position = Vector3(p.x, lift(), p.z)
 	(around.material_override as ShaderMaterial).set_shader_parameter("center", around.global_position)
 
 

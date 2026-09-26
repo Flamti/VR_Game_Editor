@@ -16,6 +16,10 @@ const MAX_THROW := 6.0
 var falsify_sticky := false
 ## Фальсификатор «handgreedy»: занятая рука берёт ещё один предмет — их становится два на руку.
 var falsify_greedy := false
+## Фальсификатор «deadhand»: узел пропал, но запись о нём в руке ОСТАЁТСЯ — рука занята мёртвым
+## предметом навсегда. Нарочно не снимает `is_instance_valid`: сними проверку — и фальсифицированный
+## прогон падал бы в движке вместо точечного покраснения.
+var falsify_keep_dead := false
 ## Фальсификатор «heldsolid»: предмет в руке остаётся препятствием и выталкивает человека (дефект
 ## сессии 31: «они сталкиваются, из-за чего всего пользователя мотает туда-сюда»).
 var falsify_held_solid := false
@@ -66,6 +70,10 @@ func update(hand: String, hand_xf: Transform3D, dt: float) -> void:
 	if not held.has(hand) or dt <= 0.0:
 		return
 	var rec: Dictionary = held[hand]
+	if not _alive(rec):
+		if not falsify_keep_dead:
+			forget(hand)
+		return
 	var node: Node3D = rec["node"]
 	var was := node.global_position
 	node.global_transform = hand_xf * (rec["offset"] as Transform3D)
@@ -80,6 +88,10 @@ func release(hand: String) -> Vector3:
 	if not held.has(hand) or falsify_sticky:
 		return Vector3.ZERO
 	var rec: Dictionary = held[hand]
+	if not _alive(rec):
+		if not falsify_keep_dead:
+			forget(hand)
+		return Vector3.ZERO
 	var node: Node3D = rec["node"]
 	var sum := Vector3.ZERO
 	for v in rec["recent"]:
@@ -94,10 +106,23 @@ func release(hand: String) -> Vector3:
 	return throw_v
 
 
+## Жив ли ещё предмет в руке. Узел могут освободить и помимо отпускания — выгрузили часть уровня,
+## перестроили сцену. Прежде `update` и `release` трогали его без спроса, падали на
+## «Trying to assign invalid previously freed instance» и **оставляли запись в `held`**: рука была
+## занята мёртвым предметом до конца сессии и больше ничего не брала и не призывала.
+##
+## Выход — всегда через `forget`, а не через `held.erase`: у возврата слоя столкновений одна дорога,
+## и вторая здесь развела бы её надвое.
+static func _alive(rec: Dictionary) -> bool:
+	var node: Variant = rec.get("node", null)
+	return node != null and is_instance_valid(node)
+
+
 ## Вернуть предмету участие в столкновениях. Отдельно, потому что зовётся и из release, и из
 ## страховки: снятое состояние обязано возвращаться само, а не по событию (ловушка 46).
 static func _restore_layer(rec: Dictionary) -> void:
-	var node: Node3D = rec.get("node", null)
+	# Сначала жив ли, потом тип: освобождённый узел в типизированную переменную не положить вовсе.
+	var node: Variant = rec.get("node", null)
 	var layer := int(rec.get("layer", 0))
 	if layer != 0 and node != null and is_instance_valid(node) and node is CollisionObject3D:
 		(node as CollisionObject3D).collision_layer = layer

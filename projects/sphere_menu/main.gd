@@ -20,6 +20,7 @@ const Space := preload("res://world/space.gd")
 const Room := preload("res://world/room.gd")
 const LevelLoader := preload("res://world/level_loader.gd")
 const LevelStream := preload("res://world/level_stream.gd")
+const RoomItems := preload("res://world/room_items.gd")
 const Layers := preload("res://world/layers.gd")
 const Visibility := preload("res://world/visibility.gd")
 const SignFace := preload("res://world/sign_face.gd")
@@ -42,6 +43,7 @@ const SettingEdit := preload("res://menu/setting_edit.gd")
 const Demo := preload("res://menu/demo.gd")
 const Goldberg := preload("res://menu/goldberg.gd")
 const Export := preload("res://session/export.gd")
+const SettingsApply := preload("res://session/settings_apply.gd")
 
 ## Шар над ладонью левого контроллера, в его координатах (поза grip).
 const BALL_OFFSET := Vector3(0.0, 0.06, -0.10)
@@ -100,8 +102,17 @@ var _pull_probe: Node3D = null
 var pull_view: PullView = PullView.new()
 ## Учёт загруженных частей уровня и отложенной выгрузки (world/level_stream.gd).
 var stream: LevelStream = LevelStream.new()
+## Кому принадлежит предмет и что комната помнит о своём содержимом (world/room_items.gd).
+var rooms: RoomItems = RoomItems.new()
+## Основная сцена — приёмник для всего, что вынесли из комнат. Её саму никто не выгружает.
+var _main_path := ""
+## файл комнаты → её зона подгрузки. Нужна, чтобы спросить, где предмет положили.
+var _zones: Dictionary = {}
 ## Кому что видно: слои маской камеры, группы и объекты — своим флагом (world/visibility.gd).
 var vis: Visibility = Visibility.new()
+## Что применять после правки настройки — одним правилом на приложение и прибор
+## (session/settings_apply.gd).
+var applier: SettingsApply = SettingsApply.new()
 ## Куда возвращает «в стартовую точку» и падение: положение И поворот при загрузке уровня.
 var spawn_xf := Transform3D()
 var journal: Journal = Journal.new()
@@ -219,6 +230,16 @@ func _ready() -> void:
 	# Упал со сцены (сессия 17: за краем площадки можно падать вечно) — возврат в стартовую точку.
 	player.fell.connect(func(depth: float): respawn("падение с %.0f м" % depth))
 	profile_ui.eye_rejected.connect(func(): _scenario_event("eye_rejected", {}))
+	# Единая точка применения настроек. Собирается здесь, потому что раньше нет ни меню, ни мира.
+	applier.menu = menu
+	applier.world_env = world_env
+	applier.floor_grid = floor_grid
+	applier.vis = vis
+	applier.camera = camera
+	applier.level_nodes = _vis_nodes
+	# Подсказка называет текущий способ перемещения и угол поворота: правка настройки на панели
+	# обязана её пересобрать, иначе она остаётся старой до следующего события меню.
+	applier.after = _show_help
 	_apply_world()
 	var http := HttpTransport.new()
 	add_child(http)
@@ -317,8 +338,13 @@ func _ready() -> void:
 ## Подсказка пересобирается при каждом переключении шара: при открытом шаре перемещение заперто
 ## (ADR-0013 п. 6), и человеку надо сказать, что для ходьбы шар закрывают (сессия 16 — текст этого
 ## не говорил, и перемещение не испытали за всю сессию).
+## Фальсификатор «helpearly» (tests/boot_main.gd): подсказка снова зовётся раньше своей надписи.
+static var falsify_help_early := false
+
 func _show_help() -> void:
-	if scenario.active or _task_id != "":
+	# Применение настроек зовёт подсказку и из `_ready`, раньше, чем создана надпись: там её покажет
+	# сам ход запуска (мастер или `_show_help` после профиля).
+	if (task_label == null and not falsify_help_early) or scenario.active or _task_id != "":
 		return
 	task_label.text = HelpText.text(router.current() == Arbiter.HANDS, menu.is_open(),
 			str(menu.settings.get_value("move_mode")), str(menu.settings.get_value("turn_mode")),
@@ -398,7 +424,8 @@ func _take_screenshot() -> void:
 
 func _process(_delta: float) -> void:
 	floor_grid.follow()
-	SignFace.face_all(get_tree().get_nodes_in_group("sign"), camera.global_position)
+	if SignFace.due(camera.global_position):
+		SignFace.face_all(get_tree().get_nodes_in_group("sign"), camera.global_position)
 	if _pull_probe != null and is_instance_valid(_pull_probe):
 		pull_view.show_link("right", _pull_probe, right.global_position, false)
 	_unload_frame(_delta)
@@ -447,10 +474,18 @@ func _load_level(path: String) -> Dictionary:
 		journal.log("уровень", menu.params(), "", "FAIL", -1, "%s: %s" % [path, res["error"]])
 		push_warning("уровень %s: %s" % [path, res["error"]])
 		return {}
-	var built := LevelLoader.build(level, res["data"])
+	# Первый загруженный файл — основная сцена: её никто не выгружает, и в неё уходит всё, что
+	# человек вынес из комнат.
+	if _main_path == "":
+		_main_path = path
+	# Комната строится по ПАМЯТИ, а не по данным: вынесенный предмет не создаётся заново (иначе при
+	# возврате в комнату он оказался бы там вторым), а оставленный встаёт туда, где его оставили.
+	var built := LevelLoader.build(level, res["data"],
+			{"skip": rooms.skipped(path), "extra": rooms.recall(path)})
 	stream.add(path, built["nodes"])
 	for entry in built["index"]:
 		vis.register(entry)
+		rooms.register(path, entry)
 	_vis_nodes[path] = built["index"]
 	menu.catalog.set_groups(vis.group_names(), vis.group_on)
 	_apply_visibility()
@@ -459,6 +494,8 @@ func _load_level(path: String) -> Dictionary:
 	for t in built["triggers"]:
 		var file: String = t["file"]
 		var area := t["area"] as Area3D
+		# Зона нужна не только для подписки: по ней решается, в какой комнате предмет положили.
+		_zones[file] = area
 		area.body_entered.connect(func(node: Node3D):
 			if node != player:
 				return
@@ -533,7 +570,10 @@ func _pull_fly(dt: float) -> void:
 		var node := f["node"] as Node3D
 		var ctrl: XRController3D = left if hand == "left" else right
 		if not is_instance_valid(node):
+			# Узла не стало (выгрузили часть уровня, перестроили сцену) — нить обязана погаснуть:
+			# иначе она остаётся натянутой в пустоту до следующего наведения.
 			_flying.erase(hand)
+			pull_view.show_link(hand, null, Vector3.ZERO, false)
 			continue
 		f["t"] = float(f["t"]) + dt / Pull.FLY_S
 		node.global_position = Pull.fly_point(f["from"], ctrl.global_position, f["t"])
@@ -557,6 +597,7 @@ func _pull_fly(dt: float) -> void:
 			else:
 				if node is RigidBody3D:
 					(node as RigidBody3D).freeze = false
+				_settle(node)
 				journal.log("предмет", menu.params(), "", "", -1,
 						"рука %s занята — %s отпущен" % [hand, node.name])
 		elif float(f["wait"]) > Pull.CATCH_WINDOW_S:
@@ -564,6 +605,8 @@ func _pull_fly(dt: float) -> void:
 			pull_view.show_link(hand, null, Vector3.ZERO, false)
 			if node is RigidBody3D:
 				(node as RigidBody3D).freeze = false
+			# Не поймали — предмет остался у ладони, то есть его положили здесь.
+			_settle(node)
 			journal.log("предмет", menu.params(), "", "", -1, "не пойман рукой %s: %s" % [hand, node.name])
 
 
@@ -590,6 +633,23 @@ func set_play(on: bool) -> void:
 ## Кадр выгрузки: файл, из зоны которого человек вышел и не вернулся, снимается со сцены.
 func _unload_frame(dt: float) -> void:
 	for file in stream.tick(dt):
+		# Подвижное содержимое решает `RoomItems.unload_plan` — чистая функция, ту же гоняет прибор.
+		# Занятый предмет не выгружается никогда, ушедший из зоны достаётся улице, оставшийся
+		# запоминается вместе с местом и вернётся при следующем входе.
+		var items := RoomItems.survey(_vis_nodes.get(file, []),
+				_zones.get(file, null) as Area3D, _busy_item)
+		var plan := rooms.unload_plan(file, _main_path, items)
+		var spared := {}
+		for uuid in plan["keep"]:
+			spared[str(uuid)] = true
+		for it in items:
+			var uuid := str((it as Dictionary)["uuid"])
+			if not spared.has(uuid):
+				continue
+			var saved := (it as Dictionary)["node"] as Node3D
+			stream.detach(file, saved)
+			stream.attach(_main_path, saved)
+			_move_entry(uuid, file, _main_path)
 		var gone: Array = []
 		for entry in _vis_nodes.get(file, []):
 			gone.append(str(entry["uuid"]))
@@ -599,8 +659,65 @@ func _unload_frame(dt: float) -> void:
 		for n in nodes:
 			if is_instance_valid(n):
 				(n as Node).queue_free()
+		# Ремень поверх подтяжек: при верной работе плана предмет из руки сюда не попадёт никогда,
+		# но если попадёт — рука обязана освободиться, а не остаться занятой мёртвым узлом.
+		for hand in grab.held.keys():
+			if nodes.has((grab.held[hand] as Dictionary).get("node", null)):
+				grab.forget(str(hand))
+		# Групп в уровне стало меньше: список в меню строится из него и обязан следовать за ним.
+		menu.catalog.set_groups(vis.group_names(), vis.group_on)
 		journal.log("уровень", menu.params(), "", "", -1,
-				"выгружено по триггеру: %s, узлов %d" % [file.get_file(), nodes.size()])
+				"выгружено по триггеру: %s, узлов %d, осталось у человека %d" % [
+						file.get_file(), nodes.size(), (plan["keep"] as Array).size()])
+
+
+## Предмет занят человеком: он в руке или летит к ней. Такой не выгружается НИКОГДА — правило
+## сильнее геометрии. Человек, держащий предмет, стоя в дверях, не должен обнаружить пустую руку:
+## ровно так `grab.update` и падал на освобождённом узле (проверено исполнением 2026-09-23).
+func _busy_item(node: Node3D) -> bool:
+	for hand in grab.held:
+		if (grab.held[hand] as Dictionary).get("node", null) == node:
+			return true
+	for hand in _flying:
+		if (_flying[hand] as Dictionary).get("node", null) == node:
+			return true
+	return false
+
+
+## Предмет положили — пересчитать, чей он теперь. Комнату называет ящик её зоны подгрузки, ничья
+## земля — основная сцена. Единственное место, где владелец меняется ПО НАМЕРЕНИЮ человека; второе
+## и последнее — обход при выгрузке.
+func _settle(node: Node3D) -> void:
+	if node == null or not is_instance_valid(node) or _main_path == "":
+		return
+	var uuid := str(node.get_meta("uuid", ""))
+	if uuid == "":
+		return
+	var res := rooms.settle(uuid, RoomItems.file_at(_zones, node.global_position), _main_path)
+	if not bool(res["changed"]):
+		return
+	var from := str(res["from"])
+	var to := str(res["to"])
+	stream.detach(from, node)
+	stream.attach(to, node)
+	_move_entry(uuid, from, to)
+	journal.log("предмет", menu.params(), "", "", -1,
+			"%s перешёл: %s → %s" % [node.name, from.get_file(), to.get_file()])
+
+
+## Перенести запись об объекте между наборами файлов. Без этого выгрузка комнаты «забудет» живой
+## предмет — `vis.forget` идёт по её списку, — и он выпал бы и из учёта видимости, и из меню групп.
+func _move_entry(uuid: String, from: String, to: String) -> void:
+	if not _vis_nodes.has(to):
+		return
+	var src: Array = _vis_nodes.get(from, [])
+	for i in src.size():
+		if str((src[i] as Dictionary)["uuid"]) != uuid:
+			continue
+		var rec: Dictionary = src[i]
+		src.remove_at(i)
+		(_vis_nodes[to] as Array).append(rec)
+		return
 
 
 ## Вернуть человека в стартовую точку уровня — положение И поворот (пункт меню, падение со сцены).
@@ -609,7 +726,7 @@ func _unload_frame(dt: float) -> void:
 func _place_at_spawn(why: String) -> void:
 	player.global_transform = spawn_xf
 	player.velocity = Vector3.ZERO
-	var res := player.drop_to_ground(spawn_xf.origin)
+	var res: Dictionary = player.drop_to_ground(spawn_xf.origin)
 	journal.log("перемещение", menu.params(), "", "PASS" if res["ok"] else "FAIL", -1,
 			"%s: точка %s → ноги %.2f (%s), маска %d" % [why, spawn_xf.origin.snappedf(0.01),
 					player.global_position.y, res["why"], player.collision_mask])
@@ -626,6 +743,9 @@ func respawn(why: String) -> void:
 	# И приседание: иначе тело «помнит» его и держит взгляд ниже (сессия 23 — «респавн не сбросил
 	# высоту, всё ещё глаза на уровне пола»).
 	player.set_crouch(0.0)
+	# Перевал бросается у ВЛАДЕЛЬЦА его состояния: снятый здесь только `mantling` оставлял словарь
+	# перевала в locomotion, и следующий такт уносил тело обратно на траекторию.
+	locomotion.cancel_mantle()
 	player.mantling = false
 	player.release_collisions()
 	# Числа, которых не хватило в сессии 32, когда человек проваливался сквозь пол четыре раза
@@ -673,7 +793,11 @@ func _grab_frame(dt: float) -> void:
 			# владельца 2026-09-22). Раньше призыв тикал и здесь, поэтому предметы притягивались
 			# один за другим, не выпуская прежний.
 		elif grab.held.has(hand):
+			# Узел берём ДО отпускания: после него записи в руке уже нет, и спрашивать будет не о чем.
+			var put := (grab.held[hand] as Dictionary).get("node", null) as Node3D
 			var v := grab.release(hand)
+			# Где положили, тому и принадлежит: оставил в комнате — уйдёт с ней, вынес — останется.
+			_settle(put)
 			journal.log("предмет", menu.params(), "", "", -1, "отпущен, скорость %.2f м/с" % v.length())
 		else:
 			_pull_aim(hand, ctrl)
@@ -724,10 +848,12 @@ func _run_bench() -> void:
 			Color(0.8, 1.0, 0.8) if ok else Color(1.0, 0.85, 0.7))
 
 
-## Настройки пространства и света применяются к миру: они общие для пользователя (scope «user»).
+## Применить ВСЁ, что зависит от настроек: шар, свет, сетку пола, слои, подсказку. Правило живёт в
+## `session/settings_apply.gd` — одно на приложение и на прибор (урок ловушки 33): пока оно было
+## размазано по обработчикам, правка на панели доходила только до шара, и свет с сеткой ждали
+## повторного открытия пункта меню (жалоба владельца 2026-09-23).
 func _apply_world() -> void:
-	world_env.apply(menu.settings)
-	floor_grid.apply(menu.settings)
+	applier.apply_all()
 
 
 func _on_space_action(action: String) -> void:
@@ -853,7 +979,7 @@ func _finish_edit() -> void:
 
 
 func _on_edit_changed() -> void:
-	menu.apply_settings()
+	applier.apply_all()
 	var e: SettingEdit = panel.edit
 	if e == null:
 		return
@@ -1056,12 +1182,8 @@ func _next_task() -> void:
 func _on_menu_event(name: String, data: Dictionary) -> void:
 	_scenario_event(name, data)
 	# Настройка пространства или света изменилась — мир перестраивается сразу, как шар.
-	if data.get("setting", "") in Settings.SPACE:
-		_apply_world()
-	if data.get("setting", "") in Settings.LAYERS:
-		vis.layer_on["editor"] = bool(menu.settings.get_value("layer_editor"))
-		vis.layer_on["debug"] = bool(menu.settings.get_value("layer_debug"))
-		_apply_visibility()
+	if data.get("setting", "") in Settings.SPACE or data.get("setting", "") in Settings.LAYERS:
+		applier.apply_all()
 	var hit := ""
 	var since := -1
 	if _task_id != "":

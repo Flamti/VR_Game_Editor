@@ -43,9 +43,11 @@ tools/make_start_location.py           # собрать стартовую ло�
 
 ```bash
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
-    --script res://tests/run_tests.gd [-- --falsify=<имя>]    # пол 131, 83 фальсификатора
+    --script res://tests/run_tests.gd [-- --falsify=<имя>]    # пол 141, 93 фальсификатора
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
-    --script res://tests/smoke_menu.gd [-- --falsify=<имя>]   # интеграция, пол 74, 54 фальсификатора
+    --script res://tests/smoke_menu.gd [-- --falsify=<имя>]   # интеграция, пол 81, 64 фальсификатора
+godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
+    --script res://tests/boot_main.gd [-- --falsify=helpearly|bootblind]  # main.tscn целиком, пол 3; ПЕРЕД КАЖДЫМ ЭКСПОРТОМ
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
     --script res://tests/bench_menu.gd                         # замер кадра меню: глобус и линза
 # сверки КАРТИНКОЙ — нужен дисплей, без --headless (GLSL в headless не компилируется):
@@ -439,6 +441,16 @@ tools/         сборка, деплой, проверка артефактов
     Две тонкости: `move_and_collide` останавливает форму **с запасом** (ноги повисали на 10–19 см,
     на лестнице это ступень), поэтому нужно дожать до точки касания; и «под точкой нет опоры»
     обязано быть честным отказом, а не тихим «поставили как есть» (фальсификатор `spawnblind`).
+
+59. **Ни настольный, ни дымовой прибор не поднимают `main.tscn` целиком — и `main.gd`, который не
+    разбирается, проходит оба зелёным.** Сессия 23: `var res := player.drop_to_ground(...)` при
+    `player: CharacterBody3D` — тип не выводится (метода у базового класса нет), разбор падает, сцена
+    встаёт **без скрипта**, XR-вывод не включается: на шлеме чёрный экран и в logcat только
+    «No viewport was marked with use_xr» 70 раз в секунду, вытеснивший из буфера саму ошибку.
+    Перед экспортом — `tests/boot_main.gd` (штатный `Logger`, ошибки скрипта по имени файла и
+    строки). И отдельно: вывод `--check-only` читать **целиком** — первые строки там всегда ошибки
+    OpenXR-загрузчика без шлема, и `head -3` показал только их, спрятав `Parse Error`. Текст ошибки
+    скрипта `Logger._log_error` отдаёт в `code`, а не в `rationale`.
 
 ## Архитектурные правила
 

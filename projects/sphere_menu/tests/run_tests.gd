@@ -120,7 +120,30 @@ extends SceneTree
 ##                        поворотом шлема, а не смотрят на него — краснеет только «подсказка
 ##                        смотрит на человека»;
 ##   --falsify=keeploaded выход из зоны не начинает отсчёт выгрузки — часть уровня остаётся навсегда
-##                        (поведение сессии 17); краснеет только «подгрузка и выгрузка по зоне».
+##                        (поведение сессии 17); краснеет только «подгрузка и выгрузка по зоне»;
+##   --falsify=stickynodes `detach` докладывает «убрал» и не убирает — предмет, вынесенный из
+##                        комнаты, всё равно выгружается вместе с ней; краснеет только «узлы части
+##                        уровня по одному»;
+##   --falsify=roomkeeps  вынесенный предмет остаётся за комнатой — краснеет только «вынесенное
+##                        уходит из комнаты»;
+##   --falsify=roomlost   принесённый в комнату предмет ей не достаётся и с ней не уходит —
+##                        краснеет только «принесённое достаётся комнате»;
+##   --falsify=onebucket  у комнат один общий набор на всех — краснеет только «у каждой комнаты
+##                        свой набор»;
+##   --falsify=edgeout    точка ровно на грани зоны считается снаружи — краснеет только «граница
+##                        зоны принадлежит комнате»;
+##   --falsify=takenagain вынесенное не исключается из постройки — при возврате в комнату предмет
+##                        появляется вторым; краснеет только «вынесенный не строится заново»;
+##   --falsify=shelfback  комната отдаёт место из данных, а не запомненное, — оставленный на полу
+##                        предмет возвращается на полку; краснеет только «комната помнит место и
+##                        поворот»;
+##   --falsify=deadhand   узел пропал, а запись о нём в руке остаётся — рука занята мёртвым
+##                        предметом навсегда; краснеет только «рука не держит исчезнувший узел»;
+##   --falsify=gridflush  сетка снова ложится ровно на верхнюю грань пола — возвращается
+##                        копланарность и мерцание; краснеет только «сетка не копланарна полу
+##                        уровня»;
+##   --falsify=signscan   порог табличек спрашивается ПОСЛЕ сбора группы — `due` всегда «да»;
+##                        краснеет только «группа табличек не собирается без сдвига головы».
 
 const Report := preload("res://probe_report.gd")
 const Goldberg := preload("res://menu/goldberg.gd")
@@ -184,10 +207,18 @@ const ClimbRes := preload("res://locomotion/climb.gd")
 const VignetteRes := preload("res://locomotion/vignette.gd")
 const LevelRes := preload("res://world/level_loader.gd")
 const GrabRes := preload("res://world/grab.gd")
+const RoomItemsRes := preload("res://world/room_items.gd")
+const FloorGridRes := preload("res://world/floor_grid.gd")
 ## Этап Ф3, часть 2: перемещение и уровень.
 const MOVE_CHECKS := ["дуга телепорта", "перенос и рывок", "повороты", "непрерывное движение",
 		"виньетка", "лазанье", "разбор уровня", "подсказка в мире",
-		"подгрузка и выгрузка по зоне", "подсказка смотрит на человека",
+		"подгрузка и выгрузка по зоне", "узлы части уровня по одному",
+		"вынесенное уходит из комнаты", "принесённое достаётся комнате",
+		"у каждой комнаты свой набор", "граница зоны принадлежит комнате",
+		"вынесенный не строится заново", "комната помнит место и поворот",
+		"рука не держит исчезнувший узел", "сетка не копланарна полу уровня",
+		"группа табличек не собирается без сдвига головы",
+		"подсказка смотрит на человека",
 		"призыв предмета", "курс при телепорте", "присед и виньетка по ускорению",
 		"перевал через край", "кромка в данных", "столкновения возвращаются сами",
 		"кадр: лишняя работа", "слои объектов", "видимость групп", "снимок режима игры",
@@ -3296,6 +3327,278 @@ func _move_checks() -> void:
 	else:
 		r.fail("подгрузка и выгрузка по зоне: %s" % "; ".join(st_bad))
 
+	# 9а. Набор файла меняется поштучно: предмет, вынесенный из комнаты, обязан уйти из её набора,
+	# принесённый — войти. Без этого выгрузка комнаты освобождает узел прямо из руки человека, и
+	# рука остаётся занятой мёртвым предметом до конца сессии (проверено исполнением 2026-09-23).
+	# Элементы — числа: учёт узлов не знает, и это его главное свойство.
+	var one: LevelStreamRes = LevelStreamRes.new()
+	one.falsify_sticky_nodes = falsify == "stickynodes"
+	var one_bad: Array[String] = []
+	var room := "res://world/levels/start_interior.json"
+	var street := "res://world/levels/start_location.json"
+	one.add(street, [10, 11])
+	one.add(room, [1, 2, 3])
+	if not one.detach(room, 2):
+		one_bad.append("вынос не признан")
+	if one.loaded[room] != [1, 3]:
+		one_bad.append("после выноса в комнате %s" % [one.loaded[room]])
+	# Ушедшее из набора не возвращается выгрузкой: take отдаёт ровно остаток.
+	if not one.attach(street, 2) or one.loaded[street] != [10, 11, 2]:
+		one_bad.append("принятое улицей %s" % [one.loaded[street]])
+	# Чужого не убрать и дважды не принять — иначе один узел освободили бы вторично.
+	if one.detach(room, 99):
+		one_bad.append("убрал то, чего в наборе нет")
+	if one.attach(street, 2):
+		one_bad.append("принял один узел дважды")
+	# Незагруженный файл набора не заводит: иначе он ожил бы при первой же выгрузке.
+	if one.attach("res://нет.json", 7) or one.is_loaded("res://нет.json"):
+		one_bad.append("завёл набор на файл, который не грузился")
+	one.exit(room)
+	one.tick(LevelStreamRes.UNLOAD_DELAY_S * 1.1)
+	if one.take(room) != [1, 3]:
+		one_bad.append("к выгрузке ушёл не остаток")
+	if one_bad.is_empty():
+		r.pass_("узлы части уровня по одному: вынесенный уходит из набора комнаты и принимается улицей, чужой и повторный отвергнуты, к выгрузке идёт только остаток")
+	else:
+		r.fail("узлы части уровня по одному: %s" % "; ".join(one_bad))
+
+	_room_items_checks(street, room)
+
+
+## Владение предметами по комнатам (`world/room_items.gd`, решение владельца 2026-09-23): взял в
+## комнате и вынес — предмет уходит из её набора; принёс и оставил — входит. У каждой комнаты свой
+## набор, и она помнит содержимое на сеанс.
+##
+## Всё на значениях: узлов этот раздел не трогает, кроме двух проверок постройки, где узлы нужны по
+## существу — и там берутся ЛОКАЛЬНЫЕ координаты (ловушка 37).
+func _room_items_checks(street: String, room: String) -> void:
+	var rooms: RoomItemsRes = RoomItemsRes.new()
+	rooms.falsify_room_keeps = falsify == "roomkeeps"
+	rooms.falsify_room_lost = falsify == "roomlost"
+	rooms.falsify_one_bucket = falsify == "onebucket"
+	rooms.falsify_rebuild_taken = falsify == "takenagain"
+	rooms.falsify_shelf_back = falsify == "shelfback"
+	var cube := {"uuid": "c_room", "type": "box", "body": "grab", "pos": [1.0, 0.5, 1.0]}
+	var can := {"uuid": "c_street", "type": "box", "body": "grab", "pos": [8.0, 0.5, 0.0]}
+	rooms.register(room, {"uuid": "c_room", "obj": cube})
+	rooms.register(street, {"uuid": "c_street", "obj": can})
+
+	# 1. Вынесенное уходит из комнаты и больше не строится ею из данных.
+	var out_bad: Array[String] = []
+	var moved := rooms.settle("c_room", "", street)
+	if not bool(moved["changed"]) or rooms.owner_of("c_room") != street:
+		out_bad.append("владелец после выноса %s" % rooms.owner_of("c_room"))
+	# Родина не меняется: вернув предмет, комната обязана снова считать его своим.
+	if str(rooms.home["c_room"]) != room:
+		out_bad.append("родина съехала на %s" % rooms.home["c_room"])
+	# Повторное «положили там же» владельца не трогает: иначе каждый кадр покоя считался бы
+	# переносом и вызывающий без конца правил бы наборы.
+	if bool(rooms.settle("c_room", "", street)["changed"]):
+		out_bad.append("тот же пол засчитан за перенос")
+	# О том, что вынесенное не строится заново, свидетельствует отдельная проверка: здесь спрашивать
+	# `skipped` значило бы дать её фальсификатору краснить две проверки сразу.
+	if out_bad.is_empty():
+		r.pass_("вынесенное уходит из комнаты: владелец — улица, родина не съехала, покой на месте переносом не считается")
+	else:
+		r.fail("вынесенное уходит из комнаты: %s" % "; ".join(out_bad))
+
+	# 2. Принесённое достаётся комнате: она им владеет, выгружает и запоминает место.
+	var in_bad: Array[String] = []
+	rooms.settle("c_street", room, street)
+	if rooms.owner_of("c_street") != room:
+		in_bad.append("владелец после вноса %s" % rooms.owner_of("c_street"))
+	var plan := rooms.unload_plan(room, street, [{"uuid": "c_street",
+			"pos": Vector3(2.0, 0.25, 3.0), "rot": Vector3(0.0, 0.5, 0.0), "busy": false, "inside": true}])
+	if plan["free"] != ["c_street"] or not (plan["keep"] as Array).is_empty():
+		in_bad.append("план выгрузки %s" % plan)
+	# Вернулся именно он. ГДЕ он встанет — свидетельство отдельной проверки: спрашивать место здесь
+	# значило бы дать её фальсификатору краснить две проверки сразу.
+	var back := rooms.recall(room)
+	if back.size() != 1 or str((back[0] as Dictionary).get("uuid", "")) != "c_street":
+		in_bad.append("комната вернула %s" % back)
+	if in_bad.is_empty():
+		r.pass_("принесённое достаётся комнате: владелец — комната, уходит с ней при выгрузке и возвращается при следующем входе")
+	else:
+		r.fail("принесённое достаётся комнате: %s" % "; ".join(in_bad))
+
+	# 3. У каждой комнаты свой набор: оставленное в одной не всплывает в другой.
+	var second := "res://world/levels/второй_дом.json"
+	var mine_bad: Array[String] = []
+	if not rooms.recall(second).is_empty():
+		mine_bad.append("чужая комната вернула %s" % [rooms.recall(second)])
+	if rooms.recall(room).size() != 1:
+		mine_bad.append("своя комната забыла своё")
+	if mine_bad.is_empty():
+		r.pass_("у каждой комнаты свой набор: оставленное в одной не всплывает в другой")
+	else:
+		r.fail("у каждой комнаты свой набор: %s" % "; ".join(mine_bad))
+
+	# 4. Грань зоны принадлежит комнате. Ящик обведён по стенам, и куб, приставленный к стене,
+	# разумнее выгрузить со стеной, чем оставить висеть в воздухе посреди улицы.
+	var edge_bad: Array[String] = []
+	RoomItemsRes.falsify_edge_out = falsify == "edgeout"
+	var c := Vector3(0.0, 1.0, 0.0)
+	var size := Vector3(4.0, 2.0, 6.0)
+	if not RoomItemsRes.in_box(c, size, Basis(), Vector3(0.0, 1.0, 0.0)):
+		edge_bad.append("середина снаружи")
+	if not RoomItemsRes.in_box(c, size, Basis(), Vector3(2.0, 1.0, 0.0)):
+		edge_bad.append("точка ровно на грани не в комнате")
+	if RoomItemsRes.in_box(c, size, Basis(), Vector3(2.01, 1.0, 0.0)):
+		edge_bad.append("точка за гранью внутри")
+	# Повёрнутая комната: точка лежит внутри только с учётом поворота.
+	var turned := Basis(Vector3.UP, PI * 0.5)
+	if not RoomItemsRes.in_box(c, size, turned, Vector3(2.9, 1.0, 0.0)):
+		edge_bad.append("поворот зоны не учтён")
+	if RoomItemsRes.in_box(c, size, Basis(), Vector3(2.9, 1.0, 0.0)):
+		edge_bad.append("без поворота та же точка тоже внутри — проверка ничего не различает")
+	RoomItemsRes.falsify_edge_out = false
+	if edge_bad.is_empty():
+		r.pass_("граница зоны принадлежит комнате: грань считается своей, за гранью — чужой, поворот зоны учтён")
+	else:
+		r.fail("граница зоны принадлежит комнате: %s" % "; ".join(edge_bad))
+
+	_room_build_checks(street, room)
+
+
+## Постройка с поправками: вынесенный предмет не строится заново, оставленный встаёт туда, где его
+## оставили. Два свидетеля на решение «комната помнит содержимое» — без них перенос предметов хуже
+## своего отсутствия: при каждом входе комната строилась бы из данных, и вынесенный куб появлялся бы
+## вторым.
+func _room_build_checks(street: String, room: String) -> void:
+	var rooms: RoomItemsRes = RoomItemsRes.new()
+	rooms.falsify_rebuild_taken = falsify == "takenagain"
+	rooms.falsify_shelf_back = falsify == "shelfback"
+	var res := LevelRes.parse(FileAccess.get_file_as_string(room))
+	if not res["ok"]:
+		r.fail("вынесенный не строится заново: интерьер не разобран — %s" % res["error"])
+		r.fail("комната помнит место и поворот: интерьер не разобран")
+		return
+	var root := Node3D.new()
+	var built := LevelRes.build(root, res["data"])
+	for entry in built["index"]:
+		rooms.register(room, entry)
+	var was: int = (built["nodes"] as Array).size()
+	root.free()
+
+	# Вынесли один куб — комната строит на один узел меньше, и именно его среди построенных нет.
+	rooms.settle("in_box00", "", street)
+	var root2 := Node3D.new()
+	var again := LevelRes.build(root2, res["data"], {"skip": rooms.skipped(room)})
+	var taken_here := false
+	for entry in again["index"]:
+		if str(entry["uuid"]) == "in_box00":
+			taken_here = true
+	var now: int = (again["nodes"] as Array).size()
+	root2.free()
+	if not taken_here and now == was - 1:
+		r.pass_("вынесенный не строится заново: комната построила %d узлов вместо %d, вынесенного среди них нет" % [now, was])
+	else:
+		r.fail("вынесенный не строится заново: узлов %d (было %d), вынесенный построен %s" % [now, was, taken_here])
+
+	# Оставленный в комнате куб сдвинут физикой: возвращается туда, где лежал, а не на полку.
+	var left := Vector3(-8.0, 0.13, -4.2)
+	rooms.unload_plan(room, street, [{"uuid": "in_box01", "pos": left,
+			"rot": Vector3(0.0, 0.7, 0.0), "busy": false, "inside": true}])
+	var root3 := Node3D.new()
+	LevelRes.build(root3, res["data"], {"skip": rooms.skipped(room), "extra": rooms.recall(room)})
+	var found: Node3D = null
+	for child in root3.get_children():
+		if (child as Node).get_meta("uuid", "") == "in_box01":
+			found = child as Node3D
+	# Локальная позиция: узел вне дерева сцены отдаёт мировое (0,0,0) при любом положении.
+	# И вердикт снимается ДО `free()`: освобождённая ссылка сравнивается с null как равная, и
+	# проверка докладывала бы «куб не построен» про куб, который она только что нашла.
+	var stands := found != null
+	var where := found.position if stands else Vector3(9e9, 0, 0)
+	root3.free()
+	if stands and where.is_equal_approx(left):
+		r.pass_("комната помнит место и поворот: оставленный куб вернулся на %s, а не в точку из данных" % [where.snappedf(0.01)])
+	else:
+		r.fail("комната помнит место и поворот: куб %s, место %s вместо %s" % [
+				"построен" if stands else "не построен", where.snappedf(0.01), left])
+
+	_dead_hand_check()
+	_grid_lift_check()
+	_sign_scan_check()
+
+
+## Плоскость сетки не совпадает с верхней гранью пола уровня. Владелец 2026-09-23: сетка мерцает.
+## Причина — копланарность: пол кладёт верх ровно на Y = 0.000, и сетка лежала там же; на 100×100 м
+## глубина совпадает бит в бит, и кто ближе, решает точность вычислений, а в шлеме ещё и своя
+## матрица на каждый глаз.
+##
+## Высота пола берётся ИЗ ДАННЫХ, а не из числа в приборе: стенд, знающий координаты наизусть,
+## краснеет на верном коде при первой же перестройке уровня (сессия 21).
+##
+## Это доказывает зазор, а не отсутствие мерцания: настоящий свидетель — шлем.
+func _grid_lift_check() -> void:
+	FloorGridRes.falsify_flush = falsify == "gridflush"
+	var bad: Array[String] = []
+	var res := LevelRes.parse(FileAccess.get_file_as_string("res://world/levels/start_location.json"))
+	var floor_top := 9e9
+	for o in (res["data"] as Dictionary).get("objects", []) if res["ok"] else []:
+		var obj: Dictionary = o
+		# `size` у части объектов — число (радиус), поэтому тип проверяется, а не объявляется.
+		var size: Variant = obj.get("size", [])
+		if str(obj.get("uuid", "")) != "floor" or not size is Array or (size as Array).size() < 3:
+			continue
+		floor_top = float((obj.get("pos", [0, 0, 0]) as Array)[1]) + float((size as Array)[1]) * 0.5
+	if floor_top > 8e8:
+		bad.append("в данных не найден пол")
+	var holder := Node3D.new()
+	var fake_head := Node3D.new()
+	holder.add_child(fake_head)
+	var grid: FloorGridRes = FloorGridRes.new()
+	grid.setup(holder, fake_head)
+	var st := SettingsRes.new()
+	st.reset()
+	st.values["grid_mode"] = "fixed"
+	grid.apply(st)
+	var grid_y: float = grid.around.position.y
+	var gap: float = grid_y - floor_top
+	holder.free()
+	FloorGridRes.falsify_flush = false
+	if gap <= 0.0:
+		bad.append("сетка на %.4f м относительно верха пола — копланарна или утоплена" % gap)
+	# И не настолько высоко, чтобы линия заметно висела над полом.
+	if gap > 0.01:
+		bad.append("сетка поднята на %.3f м — это уже видно глазом" % gap)
+	if bad.is_empty():
+		r.pass_("сетка не копланарна полу уровня: верх пола %.3f м, сетка на %.3f м, зазор %.1f мм" % [
+				floor_top, grid_y, gap * 1000.0])
+	else:
+		r.fail("сетка не копланарна полу уровня: %s" % "; ".join(bad))
+
+
+## Рука не держит исчезнувший узел. Предмет могут освободить и помимо отпускания: выгрузили комнату,
+## перестроили сцену. Прежде `update` и `release` трогали мёртвый узел, падали и **оставляли запись
+## в руке** — рука была занята до конца сессии и больше ничего не брала и не призывала (проверено
+## исполнением 2026-09-23). Свидетель — свободная рука, а не отсутствие ошибки: ошибку прибор не
+## видит, а занятую руку видит.
+func _dead_hand_check() -> void:
+	var grab: GrabRes = GrabRes.new()
+	grab.falsify_keep_dead = falsify == "deadhand"
+	var bad: Array[String] = []
+	var cube := RigidBody3D.new()
+	if not grab.grab("right", cube, Transform3D()):
+		bad.append("предмет не взялся")
+	cube.free()
+	grab.update("right", Transform3D(), 1.0 / 90.0)
+	if grab.held.has("right"):
+		bad.append("после кадра удержания рука всё ещё занята пропавшим предметом")
+	# И тот же путь через отпускание: вторая дорога к той же записи.
+	var cube2 := RigidBody3D.new()
+	grab.grab("left", cube2, Transform3D())
+	cube2.free()
+	if grab.release("left") != Vector3.ZERO:
+		bad.append("бросок пропавшего предмета дал скорость")
+	if grab.held.has("left"):
+		bad.append("после отпускания рука всё ещё занята пропавшим предметом")
+	if bad.is_empty():
+		r.pass_("рука не держит исчезнувший узел: и кадр удержания, и отпускание освобождают руку, бросок пустой")
+	else:
+		r.fail("рука не держит исчезнувший узел: %s" % "; ".join(bad))
+
 
 # --- журнал сессии ----------------------------------------------------------------
 
@@ -4148,3 +4451,31 @@ func _floor_area_check() -> void:
 		r.pass_("зона с полом при запуске: просим stage, не дали — roomscale; сидячая зона (%d) полом не считается, и её приход при запуске виден в журнале" % int(XRInterface.XR_PLAY_AREA_SITTING))
 	else:
 		r.fail("зона с полом при запуске: %s" % "; ".join(bad))
+
+
+## Группа табличек не собирается, пока голова стоит. `face_all` выходила по порогу, но вызывающий
+## (`main.gd:_process`) до этого уже строил массив группы — каждый кадр (аудит 2026-09-23). Свидетель —
+## ответ `due`, по которому вызывающий решает, собирать ли группу: стоячая голова и сдвиг меньше
+## порога — «нет», шаг — «да».
+func _sign_scan_check() -> void:
+	SignFaceRes.falsify_scan = falsify == "signscan"
+	var bad: Array[String] = []
+	var signs: Array = [Node3D.new()]
+	var head := Vector3(0, 1.6, 3.0)
+	SignFaceRes.forget()
+	if not SignFaceRes.due(head):
+		bad.append("после забывания разворот не нужен — таблички не развернутся вовсе")
+	SignFaceRes.face_all(signs, head)
+	if SignFaceRes.due(head):
+		bad.append("голова стоит, а группа собирается")
+	if SignFaceRes.due(head + Vector3(SignFaceRes.HEAD_EPS * 0.4, 0, 0)):
+		bad.append("сдвиг меньше порога, а группа собирается")
+	if not SignFaceRes.due(head + Vector3(0.5, 0, 0)):
+		bad.append("голова ушла на 0.5 м, а разворот не нужен")
+	(signs[0] as Node3D).free()
+	SignFaceRes.falsify_scan = false
+	if bad.is_empty():
+		r.pass_("группа табличек не собирается без сдвига головы: стоя и на %.1f см — нет, на 50 см — да" % (
+				SignFaceRes.HEAD_EPS * 40.0))
+	else:
+		r.fail("группа табличек не собирается без сдвига головы: %s" % "; ".join(bad))

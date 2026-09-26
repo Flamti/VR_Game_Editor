@@ -91,10 +91,24 @@ static func _v3(a: Variant, fallback := Vector3.ZERO) -> Vector3:
 
 ## Построить уровень под parent. Возвращает {nodes, spawn: Transform3D, triggers: [{area, file}],
 ## colors: сколько материалов}.
-static func build(parent: Node3D, data: Dictionary) -> Dictionary:
+## `opts` — необязательные поправки к данным, обе нужны памяти комнат (`world/room_items.gd`):
+##   `skip: {uuid → true}` — этих не строить: их либо вынесли из комнаты, либо построит `extra`;
+##   `extra: [словарь объекта]` — построить ещё и вот этих: содержимое, оставленное в комнате.
+## Без `opts` поведение прежнее до буквы, поэтому все нынешние вызовы и проверки не трогаются.
+static func build(parent: Node3D, data: Dictionary, opts: Dictionary = {}) -> Dictionary:
 	var out := {"nodes": [], "spawn": Transform3D(), "triggers": [], "colors": 0, "index": []}
 	var materials := {}
-	for o in data.get("objects", []):
+	# `skip` гасит объекты ДАННЫХ, но не `extra`: оставленный в комнате предмет стоит в обоих
+	# списках сразу — из данных он не строится (иначе встал бы на своё исходное место вторым
+	# экземпляром), а из памяти строится там, где его оставили. Общий проход по склеенному списку
+	# гасил бы и то, и другое, и комната возвращалась бы пустой.
+	var skip: Dictionary = opts.get("skip", {})
+	var objects: Array = []
+	for o in data.get("objects", []) as Array:
+		if not skip.has(str((o as Dictionary).get("uuid", ""))):
+			objects.append(o)
+	objects.append_array(opts.get("extra", []) as Array)
+	for o in objects:
 		var obj: Dictionary = o
 		match str(obj.get("type", "")):
 			"spawn":
@@ -135,9 +149,14 @@ static func build(parent: Node3D, data: Dictionary) -> Dictionary:
 
 
 ## Запись об объекте для учёта видимости: кто он, на каком слое, в каких группах.
+##
+## `obj` — копия исходного словаря: по ней комната строит предмет, который человек в неё принёс, не
+## перечитывая чужой файл (`world/room_items.gd`). `Visibility.register` читает только
+## `uuid/layer/groups`, и лишний ключ его не трогает.
 static func _entry(obj: Dictionary, node: Node) -> Dictionary:
 	return {"uuid": str(obj.get("uuid", "")), "layer": Layers.of(obj),
-			"groups": (obj.get("groups", []) as Array).duplicate(), "node": node}
+			"groups": (obj.get("groups", []) as Array).duplicate(), "node": node,
+			"obj": obj.duplicate(true)}
 
 
 ## Лесенка из ступеней: подъём и глубина ступени постоянны, число — из размера.
@@ -187,6 +206,10 @@ static func _box(parent: Node3D, obj: Dictionary, pos: Vector3, size: Vector3, m
 			sb.add_child(shape)
 			body = sb
 	body.name = "Obj_" + str(obj.get("uuid", "")).substr(0, 8)
+	# Узел обязан уметь назвать себя: предмет, найденный в руке человека, опознаётся по uuid, а имя
+	# для этого не годится — оно обрезано до восьми знаков. Только здесь: лесенка даёт много узлов из
+	# одного объекта и в `index` не попадает вовсе, а предметы в руку — всегда одиночные коробки.
+	body.set_meta("uuid", str(obj.get("uuid", "")))
 	body.position = pos
 	body.rotation = _v3(obj.get("rot")) * (PI / 180.0)
 	for tag in obj.get("tags", []):

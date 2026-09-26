@@ -104,6 +104,28 @@ extends SceneTree
 ##   --falsify=grabstick   предмет не отпускается — краснеет только «предмет в руке»;
 ##   --falsify=pullnoline  нить от ладони к предмету не строится — краснеет только «связь при призыве»;
 ##   --falsify=pullnohl    предмет не выделяется накладкой — краснеет только «связь при призыве»;
+##   --falsify=applyball   правка на панели применяет только шар, как до 2026-09-23, — свет и сетка
+##                         ждут повторного открытия пункта меню; краснеет только «правка на панели
+##                         доходит до мира»;
+##   --falsify=handdrops   обход выгрузки не считает занятым ничего — предмет выгружается прямо из
+##                         руки человека; краснеет только «предмет из комнаты остаётся в руке при
+##                         выгрузке»;
+##   --falsify=yawlate     курс телепорта читается на кадре отпускания, где палец уже у центра, —
+##                         краснеет только «телепорт по видимой дуге»;
+##   --falsify=aimtwice    на отпускании прицел считается заново из дёрнувшейся руки — краснеет
+##                         только «телепорт по видимой дуге»;
+##   --falsify=arcrebuild  дуга — лучи и новый меш — каждый кадр при неподвижной руке; краснеет
+##                         только «телепорт по видимой дуге»;
+##   --falsify=aimside     «поворот главнее» действует и при прицеливании — курс вбок обрывает
+##                         прицел переносом; краснеет только «курс не обрывает прицел»;
+##   --falsify=aimturn     поворот работает и при прицеливании — человек крутится вместо курса;
+##                         краснеет только «курс не обрывает прицел»;
+##   --falsify=mantlesticks отмена перевала ничего не отменяет — тело уносит обратно на траекторию;
+##                         краснеет только «возврат отменяет перевал»;
+##   --falsify=turnspam    плавный поворот пишет строку на каждый такт — краснеет только «плавный
+##                         поворот отрезками»;
+##   --falsify=walkjitter  отрезок ходьбы заявляется любым дёрганьем стика — краснеет только
+##                         «короткие рывки ходьбы»;
 ##   --falsify=triggergame коробка зоны подгрузки строится на слое игры — игрок видит разметку
 ##                         автора; краснеет только «зона видна и работает скрытой»;
 ##   --falsify=playmask    маска камеры не смотрит на режим игры — краснеет только «режим игры
@@ -147,6 +169,9 @@ const PlayerBody := preload("res://locomotion/player_body.gd")
 const PullViewRes := preload("res://world/pull_view.gd")
 const MantleRes := preload("res://locomotion/mantle.gd")
 const GrabRes := preload("res://world/grab.gd")
+const RoomItems := preload("res://world/room_items.gd")
+const LevelStreamRes := preload("res://world/level_stream.gd")
+const SettingsApply := preload("res://session/settings_apply.gd")
 const LocomotionRes := preload("res://locomotion/locomotion.gd")
 const RoomRes := preload("res://world/room.gd")
 const SpaceRes := preload("res://world/space.gd")
@@ -174,6 +199,10 @@ const STEPS := ["открыть", "войти коротким", "действи
 		"лазанье у стены: хват держится, мир не едет", "старт стоит на полу",
 		"зона с полом: смена асинхронна", "посадка считается геометрией",
 		"зона видна и работает скрытой", "режим игры прячет и возвращает", "скрытая группа держит",
+		"правка на панели доходит до мира",
+		"предмет из комнаты остаётся в руке при выгрузке",
+		"телепорт по видимой дуге", "курс не обрывает прицел", "возврат отменяет перевал",
+		"плавный поворот отрезками", "короткие рывки ходьбы",
 		"меню групп из уровня",
 		"раскладки", "выход удержанием"]
 
@@ -215,7 +244,15 @@ func _initialize() -> void:
 	menu.edit_requested.connect(func(id: String):
 		menu.panel_locked = true
 		panel.open_editor(SettingEdit.new(menu.settings, id), id, ["default", "done"]))
-	panel.edit_changed.connect(menu.apply_settings)
+	# Минимум сессии: правка на панели применяет ВСЁ — шар, свет, сетку, слои. Раньше здесь стояло
+	# `menu.apply_settings`, то есть обвязка прибора повторяла дефект приложения и потому не могла
+	# его увидеть: она подтверждала собственную копию ошибки (урок ловушки 33).
+	_applier_grid = FloorGrid.new()
+	_applier_grid.setup(root3d, head)
+	_applier.menu = menu
+	_applier.floor_grid = _applier_grid
+	_applier.falsify_ball_only = falsify == "applyball"
+	panel.edit_changed.connect(_applier.apply_all)
 	menu.search_requested.connect(func(): panel.open_text("Поиск", ["done"], menu.settings.get_value("search_keyboard")))
 	menu.search_closed.connect(func(): if panel.is_text_open(): panel.close_editor())
 	panel.text_changed.connect(menu.set_search_query)
@@ -242,9 +279,12 @@ func _initialize() -> void:
 		[293, _edit_scroll_open], [296, _edit_scroll_move], [299, _edit_scroll_check],
 		[301, _panel_layout_open], [304, _panel_layout], [307, _panel_show], [307, _pages], [307, _big_folder_labels], [306, _gesture_choice], [308, _shake_root],
 		[309, _hands_fist_touch], [309, _hands_drag], [309, _hands_handoff],
-		[309, _router_ready], [309, _router_visuals], [309, _router_settings], [309, _router_done], [309, _profile_switch], [309, _pui_new], [309, _pui_pin], [309, _pui_body], [309, _acc_key], [309, _acc_google], [309, _acc_pin], [309, _pui_done], [310, _world_light], [310, _world_grid], [310, _grid_fixed], [311, _level_build], [312, _phys_setup],
+		[309, _router_ready], [309, _router_visuals], [309, _router_settings], [309, _router_done], [309, _profile_switch], [309, _pui_new], [309, _pui_pin], [309, _pui_body], [309, _acc_key], [309, _acc_google], [309, _acc_pin], [309, _pui_done], [310, _world_light], [310, _world_grid], [310, _grid_fixed], [310, _apply_now], [311, _level_build], [312, _phys_setup],
 		[330, _phys_head_prep], [360, _phys_head_check], [380, _phys_step], [470, _phys_wall], [500, _lean_prep], [520, _mantle_floor_check], [545, _lean_check], [556, _mantle_floor_result], [558, _climb_prep], [570, _climb_check], [572, _mantle_prep], [563, _spawn_prep], [568, _spawn_check], [573, _climb_wall_prep], [576, _climb_wall_check], [577, _drop_check], [577, _held_ghost_prep], [579, _held_ghost_check], [580, _grab_check], [580, _pull_link], [581, _stick_owner], [581, _walk_log], [581, _hand_choice], [582, _fall_home], [592, _fall_check], [600, _mantle_check], [601, _mantle_view_check], [582, _room_node],
 		[582, _input_lock], [583, _zone_prep], [615, _zone_check], [616, _play_mode], [617, _group_solid], [618, _group_menu], [620, _area_wait_prep], [640, _area_wait_check],
+		[642, _carry_prep], [646, _carry_check],
+		[650, _tp_prep], [654, _tp_seen], [655, _tp_side], [656, _mantle_cancel], [657, _turn_segments],
+		[658, _walk_jitter],
 		[310, _layouts], [314, _exit_hold], [320, _finish],
 	]
 
@@ -1937,7 +1977,10 @@ func _world_grid() -> void:
 	head.position = Vector3(0, 0, 0.4)
 	grid.around.queue_free()
 	grid.origin_grid.queue_free()
-	var follows: bool = is_equal_approx(pos.x, 3.0) and is_equal_approx(pos.z, -2.0) and is_zero_approx(pos.y) \
+	# Высота — НЕ ноль: сетка приподнята на FloorGrid.LIFT_M над полом уровня, иначе она копланарна
+	# его верхней грани (обе на Y=0) и мерцает в шлеме (владелец, 2026-09-23).
+	var follows: bool = is_equal_approx(pos.x, 3.0) and is_equal_approx(pos.z, -2.0) \
+			and is_equal_approx(pos.y, FloorGrid.LIFT_M) \
 			and center.distance_to(Vector3(3.0, 0.0, -2.0)) < 0.01
 	if uniforms == [0.5, 0.004, 0.35, 6.0, true] and follows and both_visible and hidden \
 			and scene_side > 50.0:
@@ -2302,13 +2345,13 @@ func _grid_fixed() -> void:
 	grid.apply(st)
 	grid.follow()
 	var bad: Array = []
-	if not grid.around.global_position.is_equal_approx(Vector3.ZERO):
+	if not grid.around.global_position.is_equal_approx(Vector3(0.0, FloorGrid.LIFT_M, 0.0)):
 		bad.append("вид «на месте» уехал в %s" % grid.around.global_position)
 	st.values["grid_mode"] = "around"
 	grid.apply(st)
 	grid.follow()
 	var c := grid.around.global_position
-	if not is_equal_approx(c.x, 5.3) or not is_zero_approx(c.y) or not is_equal_approx(c.z, 0.4):
+	if not is_equal_approx(c.x, 5.3) or not is_equal_approx(c.y, FloorGrid.LIFT_M) or not is_equal_approx(c.z, 0.4):
 		bad.append("вид «вокруг меня»: центр %s, ожидался (5.3, 0, 0.4)" % c)
 	if not grid.center_of(grid.around).is_equal_approx(c):
 		bad.append("центр затухания разошёлся с квадом")
@@ -3266,3 +3309,447 @@ func _drop_check() -> void:
 		r.pass_("посадка считается геометрией: в точке старта, на 5 м выше и на метр ниже ноги встают на землю %.2f; на крыльце — на его верх; над пустотой — честный отказ" % ground)
 	else:
 		r.fail("посадка: %s" % "; ".join(bad))
+
+
+## Предмет, взятый в комнате, остаётся в руке при её выгрузке; вынесенный на улицу — не пропадает
+## (решение владельца 2026-09-23).
+##
+## РЕШЕНИЕ о том, кого выгружать, — чистая функция `RoomItems.unload_plan`, и её свидетельствуют
+## настольные проверки. Здесь свидетельствуется ЖИВОЕ, чего на столе не бывает: ящик зоны на
+## настоящем `Area3D`, выживание узла и свободная рука. Прежде такой предмет освобождали прямо из
+## руки, `grab.update` падал на мёртвом узле и ОСТАВЛЯЛ запись — рука была занята до конца сессии
+## (проверено исполнением 2026-09-23).
+##
+## Подготовка и проверка разнесены по кадрам: `queue_free` освобождает узел только в конце кадра, и
+## проверка, сделанная подряд, зеленела бы и с фальсификатором.
+var _carry: Dictionary = {}
+
+
+func _carry_prep() -> void:
+	RoomItems.falsify_hand_drops = falsify == "handdrops"
+	var room := "res://world/levels/start_interior.json"
+	var street := "res://world/levels/start_location.json"
+	var res := LevelLoader.parse(FileAccess.get_file_as_string(room))
+	var street_res := LevelLoader.parse(FileAccess.get_file_as_string(street))
+	if not res["ok"] or not street_res["ok"]:
+		_carry = {"error": "уровень не разобран"}
+		return
+	# Свой корень: общий (_level_root) освобождается раньше, на шаге «предмет в руке».
+	var root := Node3D.new()
+	head.get_parent().add_child(root)
+	# Зона берётся из ДАННЫХ улицы, а не задаётся числами в стенде: стенд, знающий координаты
+	# наизусть, краснеет на верном коде при первой же перестройке уровня (сессия 21).
+	var only_zone := {"objects": []}
+	for o in (street_res["data"] as Dictionary).get("objects", []):
+		if str((o as Dictionary).get("type", "")) == "trigger":
+			(only_zone["objects"] as Array).append(o)
+	var zone_built := LevelLoader.build(root, only_zone)
+	var zone: Area3D = null
+	for t in zone_built["triggers"]:
+		if str((t as Dictionary)["file"]) == room:
+			zone = (t as Dictionary)["area"] as Area3D
+	var rooms: RoomItems = RoomItems.new()
+	var stream: LevelStreamRes = LevelStreamRes.new()
+	var built := LevelLoader.build(root, res["data"])
+	var entries: Array = built["index"]
+	stream.add(street, [])
+	stream.add(room, (built["nodes"] as Array).duplicate())
+	for entry in entries:
+		rooms.register(room, entry)
+	var cubes: Array = []
+	for entry in entries:
+		var node := (entry as Dictionary).get("node", null) as Node3D
+		if node != null and node.is_in_group("grab"):
+			cubes.append(node)
+	if cubes.size() < 3 or zone == null:
+		_carry = {"error": "кубов %d, зона %s" % [cubes.size(), zone]}
+		return
+	# Один взят в руку, второй вынесен на улицу и оставлен там, третий остался в комнате.
+	var in_hand: Node3D = cubes[0]
+	var carried_out: Node3D = cubes[1]
+	var stayed: Node3D = cubes[2]
+	var grab := GrabRes.new()
+	grab.grab("right", in_hand, in_hand.global_transform)
+	carried_out.global_position = Vector3(0.0, 0.5, 4.0)
+	var items := RoomItems.survey(entries, zone, func(n: Node3D) -> bool:
+		return (grab.held.get("right", {}) as Dictionary).get("node", null) == n)
+	var seen := {}
+	for it in items:
+		seen[str((it as Dictionary)["uuid"])] = it
+	var plan := rooms.unload_plan(room, street, items)
+	# Та же сантехника, что в сессии: спасённые переходят улице, остальные освобождаются.
+	var spared := {}
+	for uuid in plan["keep"]:
+		spared[str(uuid)] = true
+	for n in stream.take(room):
+		var node := n as Node3D
+		if node != null and is_instance_valid(node) and not spared.has(str(node.get_meta("uuid", ""))):
+			node.queue_free()
+	_carry = {"grab": grab, "rooms": rooms, "street": street, "root": root,
+			"hand": in_hand, "out": carried_out, "stayed": stayed,
+			"seen": seen, "keep": plan["keep"], "free": plan["free"],
+			"hand_uuid": str(in_hand.get_meta("uuid", "")),
+			"out_uuid": str(carried_out.get_meta("uuid", "")),
+			"stayed_uuid": str(stayed.get_meta("uuid", ""))}
+
+
+func _carry_check() -> void:
+	var bad: Array[String] = []
+	if _carry.has("error"):
+		r.fail("предмет из комнаты остаётся в руке при выгрузке: %s" % _carry["error"])
+		_carry.clear()
+		return
+	var seen: Dictionary = _carry["seen"]
+	var hand_uuid := str(_carry["hand_uuid"])
+	var out_uuid := str(_carry["out_uuid"])
+	var stayed_uuid := str(_carry["stayed_uuid"])
+	# Живое свидетельство ящика зоны: оставшийся в комнате внутри, вынесенный на улицу — снаружи.
+	if not bool((seen.get(stayed_uuid, {}) as Dictionary).get("inside", false)):
+		bad.append("оставшийся в комнате куб не признан внутри зоны")
+	if bool((seen.get(out_uuid, {}) as Dictionary).get("inside", true)):
+		bad.append("вынесенный на улицу куб признан внутри зоны")
+	if not bool((seen.get(hand_uuid, {}) as Dictionary).get("busy", false)):
+		bad.append("куб в руке не признан занятым")
+	var keep: Array = _carry["keep"]
+	if not keep.has(hand_uuid) or not keep.has(out_uuid) or keep.has(stayed_uuid):
+		bad.append("план выгрузки спас %s" % [keep])
+	# Узлы: спасённые живы, оставшийся в комнате ушёл вместе с ней.
+	var hand_node: Variant = _carry["hand"]
+	var out_node: Variant = _carry["out"]
+	var stayed_node: Variant = _carry["stayed"]
+	if not is_instance_valid(hand_node) or not is_instance_valid(out_node):
+		bad.append("спасённый узел освобождён: в руке %s, на улице %s" % [
+				is_instance_valid(hand_node), is_instance_valid(out_node)])
+	if is_instance_valid(stayed_node):
+		bad.append("оставшийся в комнате не выгрузился")
+	# И главное: рука. Кадр удержания на живом узле её не освобождает.
+	var grab: GrabRes = _carry["grab"]
+	grab.update("right", Transform3D(), 1.0 / 90.0)
+	var still_holds: bool = grab.held.has("right")
+	var rooms: RoomItems = _carry["rooms"]
+	if rooms.owner_of(hand_uuid) != str(_carry["street"]):
+		bad.append("владелец спасённого %s" % rooms.owner_of(hand_uuid))
+	if not still_holds:
+		bad.append("рука опустела")
+	var root: Node3D = _carry.get("root", null)
+	if root != null and is_instance_valid(root):
+		root.queue_free()
+	_carry.clear()
+	RoomItems.falsify_hand_drops = false
+	if bad.is_empty():
+		r.pass_("предмет из комнаты остаётся в руке при выгрузке: взятый и вынесенный спасены и перешли улице, оставшийся ушёл с комнатой, рука цела")
+	else:
+		r.fail("предмет из комнаты остаётся в руке при выгрузке: %s" % "; ".join(bad))
+
+
+## Правка настройки на панели применяется СРАЗУ, а не при повторном открытии пункта меню.
+##
+## Жалоба владельца 2026-09-23: «настройки применяются при повторном открытии этих настроек, а не
+## сразу». Правка доходила только до шара, а свет, сетка пола и слои применялись в обработчике
+## события меню — а событие это порождало ОТКРЫТИЕ пункта. Задеты были все тринадцать настроек из
+## `Settings.SPACE` и `Settings.LAYERS`.
+##
+## Свидетель — шейдер сетки: значение правится тем же путём, что и у человека (редактор панели), и
+## уния обязана измениться, пока пункт открыт, без второго захода.
+var _applier: SettingsApply = SettingsApply.new()
+var _applier_grid: FloorGrid
+
+
+func _apply_now() -> void:
+	var st := menu.settings
+	st.values["grid_mode"] = "fixed"
+	st.values["grid_cell_cm"] = 50.0
+	# Исходное состояние ставится напрямую: иначе фальсификатор, который не доводит настройки до
+	# сетки, оставил бы материал несозданным, и шаг упал бы вместо точечного покраснения.
+	_applier_grid.apply(st)
+	var mat: ShaderMaterial = _applier_grid.around.material_override
+	var before := float(mat.get_shader_parameter("cell_m"))
+	# Правим так же, как человек: открываем редактор и двигаем ползунок. Присваивание в настройки
+	# прошло бы мимо всей проводки, и проверка ничего бы не значила.
+	var p3 := menu.panel
+	p3.open_editor(SettingEdit.new(st, "grid_cell_cm"), "правка", ["done"])
+	var edit: SettingEdit = p3.edit
+	var bad: Array[String] = []
+	if edit == null:
+		bad.append("редактор не открылся")
+	else:
+		edit.slider(1.0)                 # до верхнего предела настройки
+		p3.edit_changed.emit()
+	var after := float(mat.get_shader_parameter("cell_m"))
+	var want := float(st.get_value("grid_cell_cm")) / 100.0
+	p3.close_editor()
+	if not is_equal_approx(before, 0.5):
+		bad.append("до правки в шейдере %.3f вместо 0.5" % before)
+	if not is_equal_approx(after, want):
+		bad.append("после правки в шейдере %.3f, а в настройках %.3f — значение ждёт повторного открытия" % [after, want])
+	if is_equal_approx(after, before):
+		bad.append("шейдер не заметил правки вовсе")
+	if bad.is_empty():
+		r.pass_("правка на панели доходит до мира: ползунок сдвинул ячейку сетки %.2f → %.2f м прямо в шейдере, без повторного открытия пункта" % [before, after])
+	else:
+		r.fail("правка на панели доходит до мира: %s" % "; ".join(bad))
+
+
+
+## Стенд перемещения с настоящей физикой: пол в пустом углу площади (ловушка 38), тело, origin,
+## голова и руки — как в приложении, через `Locomotion.setup`. Собственная обработка locomotion
+## выключена: такты даёт шаг прибора, иначе движок гонял бы их вперемешку (ловушка 28).
+## Пол строится за кадры до замера: запрос к физике должен видеть уже зарегистрированную форму.
+var _tp: Dictionary = {}
+
+func _tp_prep() -> void:
+	var at := Vector3(-40.0, 0.0, 40.0)
+	var holder := Node3D.new()
+	head.get_parent().add_child(holder)
+	var ground := StaticBody3D.new()
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(20.0, 0.2, 20.0)
+	shape.shape = box
+	ground.add_child(shape)
+	holder.add_child(ground)
+	ground.global_position = at + Vector3(0.0, -0.1, 0.0)
+	var body := PlayerBody.new()
+	var origin := XROrigin3D.new()
+	var lk_head := Node3D.new()
+	holder.add_child(body)
+	body.add_child(origin)
+	origin.add_child(lk_head)
+	lk_head.position = Vector3(0, 1.6, 0)
+	body.global_position = at
+	var l := XRController3D.new()
+	var rr := XRController3D.new()
+	holder.add_child(l)
+	holder.add_child(rr)
+	# Рука на высоте 1.2 м смотрит вперёд (−Z): дуга ложится на пол примерно в 3.6 м.
+	l.global_position = at + Vector3(0.0, 1.2, 0.0)
+	rr.global_position = at + Vector3(0.3, 1.2, 0.0)
+	var loco := LocomotionRes.new()
+	holder.add_child(loco)
+	loco.set_physics_process(false)
+	loco.setup(body, origin, lk_head, menu, l, rr)
+	loco.falsify_yaw_late = falsify == "yawlate"
+	loco.falsify_aim_twice = falsify == "aimtwice"
+	loco.falsify_arc_every = falsify == "arcrebuild"
+	loco.falsify_aim_side = falsify == "aimside"
+	loco.falsify_mantle_sticks = falsify == "mantlesticks"
+	loco.falsify_turn_spam = falsify == "turnspam"
+	loco.falsify_walk_jitter = falsify == "walkjitter"
+	var st := menu.settings
+	var keep := {}
+	for k in ["move_mode", "move_hand", "turn_hand", "turn_mode", "teleport_turn"]:
+		keep[k] = st.values.get(k, null)
+	st.values["move_mode"] = "blink"
+	st.values["move_hand"] = "left"
+	st.values["turn_hand"] = "right"
+	st.values["teleport_turn"] = true
+	var stick := {"left": Vector2.ZERO, "right": Vector2.ZERO}
+	loco.stick_source = func(who: String) -> Vector2: return stick[who]
+	loco.grip_source = func(_who: String) -> bool: return false
+	var log: Array = []
+	loco.moved.connect(func(kind: String, detail: String): log.append("%s|%s" % [kind, detail]))
+	_tp = {"holder": holder, "loco": loco, "body": body, "left": l, "stick": stick, "log": log,
+			"keep": keep, "at": at}
+
+
+## Телепорт идёт по дуге, которую человек ВИДЕЛ, с курсом, который он ЗАДАЛ.
+##
+## Три дефекта одного места (аудит 2026-09-23): курс читался на кадре отпускания, где палец уже у
+## центра, — ноль; прицел на отпускании считался заново из позы руки, которая в этот миг дёрнулась, —
+## переносило не туда, куда показывала дуга; и дуга каждый кадр строила новый меш и пускала 12 лучей
+## при неподвижной руке (ловушка 48). Стенд держит руку, потом отпускает стик с рывком руки вбок.
+func _tp_seen() -> void:
+	var bad: Array[String] = []
+	if _tp.is_empty():
+		r.fail("телепорт по видимой дуге: стенд не собран")
+		return
+	var loco: LocomotionRes = _tp["loco"]
+	var l: XRController3D = _tp["left"]
+	var stick: Dictionary = _tp["stick"]
+	var dt := 1.0 / 90.0
+	stick["left"] = Vector2(0.7, 0.7)
+	for i in 4:
+		loco._move(dt, {"move": stick["left"]})
+	var seen: Dictionary = loco._last_aim
+	# Стенд обязан доказать, что видит пол (ловушка 45): иначе «перенесло не туда» ничего не значит.
+	if seen.is_empty() or not bool(seen.get("hit", false)):
+		bad.append("дуга не нашла пол стенда — проверять нечего")
+	var mesh_id := loco.arc_line.mesh.get_instance_id() if loco.arc_line.mesh != null else 0
+	var still_rebuilds := loco.arc_rebuilds
+	if still_rebuilds != 1:
+		bad.append("рука стоит 4 кадра, а дуга считалась %d раз" % still_rebuilds)
+	# Рука сдвинулась — дуга обязана пересчитаться, а меш — остаться тем же.
+	l.global_position += Vector3(0.02, 0.0, 0.0)
+	loco._move(dt, {"move": stick["left"]})
+	seen = loco._last_aim
+	if loco.arc_rebuilds != still_rebuilds + 1:
+		bad.append("рука сдвинулась на 2 см, а дуга не пересчиталась")
+	if loco.arc_line.mesh == null or loco.arc_line.mesh.get_instance_id() != mesh_id:
+		bad.append("меш дуги создан заново")
+	# Отпускание: палец уходит к центру, рука в этот же миг дёргается влево на 90°.
+	l.global_basis = Basis(Vector3.UP, deg_to_rad(90.0))
+	stick["left"] = Vector2(0.05, 0.1)
+	loco._move(dt, {"move": stick["left"]})
+	var tp: Variant = loco.teleport
+	var want_yaw := LocomotionRes.Teleport.aim_yaw(0.7, 0.0)
+	if tp.phase == "":
+		bad.append("перенос не начался: %s" % [(_tp["log"] as Array).back() if not (_tp["log"] as Array).is_empty() else "журнал пуст"])
+	else:
+		if not seen.is_empty() and (tp.target as Vector3).distance_to(seen["pos"]) > 0.01:
+			bad.append("перенесло в %s, а дуга показывала %s" % [(tp.target as Vector3).snappedf(0.01), (seen["pos"] as Vector3).snappedf(0.01)])
+		if is_nan(tp.yaw_deg) or not is_equal_approx(tp.yaw_deg, want_yaw):
+			bad.append("курс %s°, а при прицеливании задан %.0f°" % [tp.yaw_deg, want_yaw])
+	tp.phase = ""
+	if bad.is_empty():
+		r.pass_("телепорт по видимой дуге: 4 неподвижных кадра — 1 расчёт, сдвиг руки — пересчёт в тот же меш; рывок руки на отпускании не увёл перенос с %s, курс %.0f° из прицела" % [
+				(seen["pos"] as Vector3).snappedf(0.01), want_yaw])
+	else:
+		r.fail("телепорт по видимой дуге: %s" % "; ".join(bad))
+
+
+## Курс вбок при прицеливании не обрывает прицел, когда ход и поворот на одном стике.
+## «Поворот главнее» (решение владельца 2026-09-22) обнулял ход при |x| ≥ 0.6, а обнулённый ход
+## читался как отпускание: человек, задававший курс, переносился посреди прицеливания.
+func _tp_side() -> void:
+	if _tp.is_empty():
+		r.fail("курс не обрывает прицел: стенд не собран")
+		return
+	var loco: LocomotionRes = _tp["loco"]
+	var l: XRController3D = _tp["left"]
+	var stick: Dictionary = _tp["stick"]
+	var st := menu.settings
+	st.values["move_hand"] = "both"
+	st.values["turn_hand"] = "both"
+	l.global_basis = Basis()
+	loco.aiming = false
+	loco.teleport.phase = ""
+	var bad: Array[String] = []
+	var dt := 1.0 / 90.0
+	stick["right"] = Vector2(0.2, 0.9)
+	loco._move(dt, loco.frame_sticks())
+	if not loco.aiming:
+		bad.append("прицел не начался от (0.2, 0.9)")
+	stick["right"] = Vector2(0.75, 0.65)
+	loco._move(dt, loco.frame_sticks())
+	if not loco.aiming or loco.teleport.phase != "":
+		bad.append("курс (0.75, 0.65) оборвал прицел: прицел %s, перенос «%s»" % [loco.aiming, loco.teleport.phase])
+	# И через настоящий такт: отклонение вбок при прицеливании — курс, тело не поворачивается.
+	# Фальсификатор `aimturn` был объявлен в locomotion и не проверялся ни одним прибором.
+	var body: PlayerBody = _tp["body"]
+	loco.falsify_aim_turn = falsify == "aimturn"
+	var yaw0 := body.global_rotation.y
+	for i in 3:
+		loco._physics_process(dt)
+	loco.falsify_aim_turn = false
+	if not loco.input_free():
+		bad.append("стенд: ввод занят (%s) — такт не дошёл до механик" % loco._hold_reason())
+	elif not loco.aiming:
+		bad.append("в такте прицел оборвался")
+	elif absf(rad_to_deg(body.global_rotation.y - yaw0)) > 0.1:
+		bad.append("при прицеливании тело повернулось на %.0f° — стик вбок крутит, а не задаёт курс" % rad_to_deg(body.global_rotation.y - yaw0))
+	# Без прицела то же отклонение — поворот, и ход от него не идёт: правило владельца цело.
+	loco.aiming = false
+	loco.teleport.phase = ""
+	var f := loco.frame_sticks()
+	if (f["move"] as Vector2).length() > 0.01:
+		bad.append("без прицела «поворот главнее» больше не действует: ход %s" % f["move"])
+	stick["right"] = Vector2.ZERO
+	st.values["move_hand"] = "left"
+	st.values["turn_hand"] = "right"
+	if bad.is_empty():
+		r.pass_("курс не обрывает прицел: один стик на обе механики, (0.75, 0.65) держит прицел и 3 такта не поворачивает тело; без прицела то же отклонение — поворот без хода")
+	else:
+		r.fail("курс не обрывает прицел: %s" % "; ".join(bad))
+
+
+## Возврат в стартовую точку во время перевала — перевал бросается. Состояние перевала живёт в
+## locomotion (`_mantle`), и снятый у тела `mantling` его не трогал: следующий такт уносил тело
+## обратно на траекторию (окно Mantle.RISE_S). Свидетель — место тела после такта, а не флаг.
+## `main.gd:respawn` зовёт `cancel_mantle` той же строкой; стенд гоняет её и настоящий такт.
+func _mantle_cancel() -> void:
+	if _tp.is_empty():
+		r.fail("возврат отменяет перевал: стенд не собран")
+		return
+	var loco: LocomotionRes = _tp["loco"]
+	var body: PlayerBody = _tp["body"]
+	var at: Vector3 = _tp["at"]
+	loco._mantle = {"from": at + Vector3(5.0, 0.0, -5.0), "to": at + Vector3(5.0, 1.5, -5.5), "t": 0.2}
+	body.mantling = true
+	# Ровно то, что делает respawn: отмена, флаг тела, место старта.
+	loco.cancel_mantle()
+	body.mantling = false
+	body.global_position = at
+	loco._physics_process(1.0 / 90.0)
+	var gone := body.global_position.distance_to(at)
+	loco._mantle = {}
+	if gone < 0.01:
+		r.pass_("возврат отменяет перевал: после такта тело на месте старта (ушло %.3f м)" % gone)
+	else:
+		r.fail("возврат отменяет перевал: такт унёс тело на %.2f м — обратно на траекторию перевала" % gone)
+
+
+## Плавный поворот пишется отрезком: строка на начало и строка на конец с суммой. Прежде — строка
+## на каждый такт выше мёртвой зоны, 90 строк в секунду.
+func _turn_segments() -> void:
+	if _tp.is_empty():
+		r.fail("плавный поворот отрезками: стенд не собран")
+		return
+	var loco: LocomotionRes = _tp["loco"]
+	var log: Array = _tp["log"]
+	var st := menu.settings
+	st.values["turn_mode"] = "smooth"
+	log.clear()
+	var dt := 1.0 / 90.0
+	for i in 45:
+		loco._turn(dt, {"turn": Vector2(1.0, 0.0)})
+	loco._turn(dt, {"turn": Vector2.ZERO})
+	loco._turn(dt, {"turn": Vector2.ZERO})
+	var turns := log.filter(func(x: String) -> bool: return x.begins_with("поворот|"))
+	var want := float(st.get_value("turn_speed")) * 45.0 * dt
+	var ok: bool = turns.size() == 2 and str(turns[1]).begins_with("поворот|плавный %.0f°" % want)
+	st.values["turn_mode"] = "snap"
+	if ok:
+		r.pass_("плавный поворот отрезками: 45 тактов — две строки, «%s»" % str(turns[1]).get_slice("|", 1))
+	else:
+		r.fail("плавный поворот отрезками: строк %d за 45 тактов, ожидались 2 с суммой %.0f°: %s" % [
+				turns.size(), want, turns.slice(0, 3)])
+
+
+## Дёрганье стика не заливает журнал: отрезок ходьбы короче WALK_CLAIM_M не пишет ни «пошёл», ни
+## «встал», но и не пропадает — число коротких уходит в строку ближайшего настоящего отрезка.
+## В журнале сессии 21:15 из 846 отрезков 529 были короче 30 см.
+func _walk_jitter() -> void:
+	if _tp.is_empty():
+		r.fail("короткие рывки ходьбы: стенд не собран")
+		return
+	var loco: LocomotionRes = _tp["loco"]
+	var body: PlayerBody = _tp["body"]
+	var log: Array = _tp["log"]
+	log.clear()
+	var p := body.global_position
+	for i in 5:
+		loco._track_walk("head", true)
+		p += Vector3(0.1, 0.0, 0.0)
+		body.global_position = p
+		loco._track_walk("head", true)
+		loco._track_walk("head", false)
+	var after_jitter := log.size()
+	loco._track_walk("head", true)
+	body.global_position = p + Vector3(0.0, 0.0, -2.0)
+	loco._track_walk("head", true)
+	loco._track_walk("head", false)
+	var ok: bool = after_jitter == 0 and log.size() == 2 and str(log[0]) == "ходьба|пошёл: head" \
+			and str(log[1]).begins_with("ходьба|встал: head, 2.00 м") and str(log[1]).ends_with("коротких рывков 5")
+	# Стенд отработал последним — вернуть настройки и убрать узлы.
+	var st := menu.settings
+	for k in (_tp["keep"] as Dictionary):
+		if _tp["keep"][k] == null:
+			st.values.erase(k)
+		else:
+			st.values[k] = _tp["keep"][k]
+	(_tp["holder"] as Node).queue_free()
+	_tp = {}
+	if ok:
+		r.pass_("короткие рывки ходьбы: 5 рывков по 10 см — ни строки, отрезок 2 м — «%s»" % str(log[1]).get_slice("|", 1))
+	else:
+		r.fail("короткие рывки ходьбы: после рывков строк %d, всего %d: %s" % [after_jitter, log.size(), log.slice(0, 4)])

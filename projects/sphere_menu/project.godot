@@ -31,6 +31,12 @@ anti_aliasing/quality/msaa_3d=1
 [xr]
 openxr/enabled=true
 openxr/startup_alert=false
+; Пространство отсчёта — Local Floor (2) С САМОГО СТАРТА (решение владельца 2026-09-26).
+; Умолчание Godot — Stage (1), но Quest без настроенной границы Stage не даёт, и Godot молча
+; откатывается на LOCAL (openxr_api.cpp: setup_play_space): зона 2, глаза на уровне земли, а наш
+; код переключал пространство уже ПОСЛЕ посадки. Meta: «Using Stage tracking origin is not
+; recommended for any application»; для VR рекомендован Floor Level (LOCAL_FLOOR).
+openxr/reference_space=2
 ; ОБЯЗАТЕЛЬНО для Android/Quest, и не только для шейдеров.
 ; Обход issue #115924 (PR #116226) читает эту настройку в
 ; java_godot_lib_jni.cpp:318 ДО того, как её объявит

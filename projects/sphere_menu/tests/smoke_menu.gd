@@ -202,7 +202,7 @@ const STEPS := ["открыть", "войти коротким", "действи
 		"правка на панели доходит до мира",
 		"предмет из комнаты остаётся в руке при выгрузке",
 		"телепорт по видимой дуге", "курс не обрывает прицел", "возврат отменяет перевал",
-		"плавный поворот отрезками", "короткие рывки ходьбы",
+		"плавный поворот отрезками", "короткие рывки ходьбы", "догон головы не двигает вид по вертикали",
 		"меню групп из уровня",
 		"раскладки", "выход удержанием"]
 
@@ -284,7 +284,7 @@ func _initialize() -> void:
 		[582, _input_lock], [583, _zone_prep], [615, _zone_check], [616, _play_mode], [617, _group_solid], [618, _group_menu], [620, _area_wait_prep], [640, _area_wait_check],
 		[642, _carry_prep], [646, _carry_check],
 		[650, _tp_prep], [654, _tp_seen], [655, _tp_side], [656, _mantle_cancel], [657, _turn_segments],
-		[658, _walk_jitter],
+		[658, _walk_jitter], [660, _follow_y_prep], [664, _follow_y_jump], [720, _follow_y_check],
 		[310, _layouts], [314, _exit_hold], [320, _finish],
 	]
 
@@ -3753,3 +3753,87 @@ func _walk_jitter() -> void:
 		r.pass_("короткие рывки ходьбы: 5 рывков по 10 см — ни строки, отрезок 2 м — «%s»" % str(log[1]).get_slice("|", 1))
 	else:
 		r.fail("короткие рывки ходьбы: после рывков строк %d, всего %d: %s" % [after_jitter, log.size(), log.slice(0, 4)])
+
+
+
+## Догон головы не двигает вид по вертикали.
+##
+## Тело догоняет голову по горизонтали, а origin отъезжает назад ровно на пройденное — чтобы голова
+## осталась там, где человек стоит. Если в «пройденное» попадает ВЕРТИКАЛЬ (скруглённое дно капсулы
+## наехало на ребро бордюра, депенетрация), origin уезжает вниз на неё, а обратный ход тела —
+## тяготением — уже не компенсируется: вид опускается и остаётся ниже. Кандидат на «рывок вниз и
+## стоп» при появлении (2026-09-26) и на глаза −0.8…−1.0 м в сессиях 2026-09-22. Голова скачет так,
+## как при смене пространства отсчёта: разом на метры.
+##
+## Свидетель — высота глаз НАД НОГАМИ: `head.y − body.y` обязана остаться ростом, чем бы ни кончился
+## догон. Два случая: через бордюр 12 см (ниже радиуса капсулы 0.22) и по ровному полу на 2 м.
+var _fy: Dictionary = {}
+
+func _follow_y_prep() -> void:
+	var at := Vector3(40.0, 0.0, -40.0)
+	var holder := Node3D.new()
+	head.get_parent().add_child(holder)
+	var mk := func(center: Vector3, size: Vector3) -> void:
+		var b := StaticBody3D.new()
+		var cs := CollisionShape3D.new()
+		var box := BoxShape3D.new()
+		box.size = size
+		cs.shape = box
+		b.add_child(cs)
+		holder.add_child(b)
+		b.global_position = center
+	mk.call(at + Vector3(0.0, -0.1, 0.0), Vector3(20.0, 0.2, 20.0))
+	# Бордюр: верх 0.12, ребро в 0.6 м справа от тела.
+	mk.call(at + Vector3(1.6, 0.06, 0.0), Vector3(2.0, 0.12, 4.0))
+	var bodies: Array = []
+	for i in 2:
+		var b := PlayerBody.new()
+		var o := XROrigin3D.new()
+		var h := Node3D.new()
+		holder.add_child(b)
+		b.add_child(o)
+		o.add_child(h)
+		h.position = Vector3(0, 1.6, 0)
+		b.setup(o, h)
+		b.set_eye_height(1.6)
+		b.falsify_follow_y = falsify == "followy"
+		# Тела разведены по месту (ловушка 38): второе — на ровном полу в 6 м.
+		b.global_position = at + Vector3(0.0, 0.0, 6.0 * i)
+		bodies.append({"body": b, "origin": o, "head": h})
+	_fy = {"holder": holder, "bodies": bodies}
+
+
+func _follow_y_jump() -> void:
+	if _fy.is_empty():
+		return
+	# Через бордюр — на 1.2 м вправо; по ровному полу — на 2 м вперёд. Как при смене пространства.
+	var jumps := [Vector3(1.2, 1.6, 0.0), Vector3(0.0, 1.6, -2.0)]
+	for i in 2:
+		var rec: Dictionary = _fy["bodies"][i]
+		rec["eye_over_feet_before"] = (rec["head"] as Node3D).global_position.y - (rec["body"] as Node3D).global_position.y
+		(rec["head"] as Node3D).position = jumps[i]
+
+
+func _follow_y_check() -> void:
+	if _fy.is_empty():
+		r.fail("догон головы не двигает вид по вертикали: стенд не собран")
+		return
+	var bad: Array[String] = []
+	var got: Array[String] = []
+	var names := ["через бордюр", "по ровному полу"]
+	for i in 2:
+		var rec: Dictionary = _fy["bodies"][i]
+		var b: PlayerBody = rec["body"]
+		var h: Node3D = rec["head"]
+		var o: Node3D = rec["origin"]
+		var over := h.global_position.y - b.global_position.y
+		var was: float = rec["eye_over_feet_before"]
+		got.append("%s: глаза над ногами %.3f → %.3f, origin.y %.3f, ноги %.3f" % [names[i], was, over, o.position.y, b.global_position.y])
+		if absf(over - was) > 0.02:
+			bad.append("%s — глаза над ногами %.3f вместо %.3f (origin ушёл по вертикали на %.3f)" % [names[i], over, was, o.position.y])
+	(_fy["holder"] as Node).queue_free()
+	_fy = {}
+	if bad.is_empty():
+		r.pass_("догон головы не двигает вид по вертикали: %s" % "; ".join(got))
+	else:
+		r.fail("догон головы не двигает вид по вертикали: %s" % "; ".join(bad))

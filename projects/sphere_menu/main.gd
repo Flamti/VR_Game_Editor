@@ -44,6 +44,8 @@ const Demo := preload("res://menu/demo.gd")
 const Goldberg := preload("res://menu/goldberg.gd")
 const Export := preload("res://session/export.gd")
 const SettingsApply := preload("res://session/settings_apply.gd")
+const PoseWatch := preload("res://locomotion/pose_watch.gd")
+const LoadingView := preload("res://session/loading_view.gd")
 
 ## Шар над ладонью левого контроллера, в его координатах (поза grip).
 const BALL_OFFSET := Vector3(0.0, 0.06, -0.10)
@@ -157,6 +159,13 @@ func _ready() -> void:
 	level.name = "Level"
 	add_child(level)
 	player.setup(origin, camera)
+	# До старта тело заморожено, а мир закрыт экраном загрузки: пока уровень не в физике, голова не
+	# трекается и пространство отсчёта не устоялось, любое движение тела или позы — рывок вида
+	# (2026-09-26). Выключать — после `_ready` тела (ловушка 28): тело — ребёнок сцены, оно уже готово.
+	player.set_physics_process(false)
+	loading = LoadingView.new()
+	loading.setup(camera)
+	loading.show_now()
 	locomotion = Locomotion.new()
 	add_child(locomotion)
 
@@ -191,6 +200,14 @@ func _ready() -> void:
 		# при этом рендер и доходит ли ввод контроллеров — не измерено: журнал это и покажет.
 		for sig in ["session_begun", "session_visible", "session_focussed", "session_stopping"]:
 			iface.connect(sig, _on_xr_session.bind(sig))
+		# Смена или перецентровка пространства отсчёта (Godot: openxr_interface.cpp — по событию
+		# XrEventDataReferenceSpaceChangePending). Сдвигает позу камеры внутри origin разом.
+		if iface.has_signal("pose_recentered"):
+			iface.connect("pose_recentered", _on_pose_recentered)
+		if iface.has_signal("play_area_changed"):
+			iface.connect("play_area_changed", func(mode: int) -> void:
+				print("пространство: play_area_changed → %d" % mode)
+				journal.log("пространство", menu.params(), "", "", -1, "play_area_changed → %d" % mode))
 	panel.edit_changed.connect(_on_edit_changed)
 	panel.button.connect(_on_panel_button)
 
@@ -301,10 +318,12 @@ func _ready() -> void:
 	# камера, дающая ноль в позе старта, окажется на высоте глаз, а присядет человек — опустится.
 	if not Space.has_floor(area):
 		var eye: float = profiles.profile.eye_m if profiles.profile.eye_m > 0.0 else 1.6
+		_origin_lift = eye
 		origin.position.y = eye
 		journal.log("пространство", menu.params(), "", "", -1,
 				"зона без пола: origin поднят на рост %.2f м" % eye)
 		print("зона без пола: origin поднят на %.2f м" % eye)
+	await _spawn_when_ready()
 	await _warm_in_xr()
 	var res: Dictionary = await ProbeBudget.request_target(self)
 	print("частота: запрошено %.0f, получено %.1f (%s)" % [res["requested"], res["got"], res["outcome"]])
@@ -431,6 +450,11 @@ func _process(_delta: float) -> void:
 	_unload_frame(_delta)
 	_grab_frame(_delta)
 	_watch_sink()
+	_watch_jump()
+	if _recenter_fix > 0:
+		_recenter_fix -= 1
+		if _recenter_fix == 0 and _spawned:
+			_head_over_body()
 	profile_ui.tick_eye(_delta)
 	if notice != null and notice.visible and Time.get_ticks_msec() > _notice_until:
 		notice.visible = false
@@ -514,7 +538,12 @@ func _load_level(path: String) -> Dictionary:
 			built["nodes"].size(), built["colors"]])
 	if built["spawn"] != Transform3D():
 		spawn_xf = built["spawn"]
-		_place_at_spawn("старт")
+		# Страховка падения — от геометрии уровня, а не −999 м: упавший возвращается сразу.
+		player.fall_y = _level_bottom_y() - FALL_BELOW_M
+		# При запуске старт делает `_spawn_when_ready` — когда уровень в физике, голова трекается и
+		# пространство устоялось. Здесь — только перезагрузка уровня после старта.
+		if _spawned:
+			_place_at_spawn("старт")
 	return built
 
 
@@ -723,10 +752,115 @@ func _move_entry(uuid: String, from: String, to: String) -> void:
 ## Вернуть человека в стартовую точку уровня — положение И поворот (пункт меню, падение со сцены).
 ## Поставить человека в точку старта ПО ГЕОМЕТРИИ: точка из данных говорит где, а высоту и посадку
 ## считает уровень (решение владельца 2026-09-22). Курс берётся из точки, место — из-под неё.
+## Ниже самой низкой геометрии уровня на столько — упал со сцены, м.
+const FALL_BELOW_M := 5.0
+## Старт ждёт готовности не дольше, мс; и столько кадров подряд без перецентровки при трекаемой
+## голове считается «пространство устоялось».
+const SPAWN_WAIT_MS := 6000
+const SPAWN_QUIET_FRAMES := 10
+var loading: LoadingView
+## Старт выполнен: тело посажено, голова над точкой, мир открыт.
+var _spawned := false
+## Подъём origin в зоне без пола (запасной путь) — посадка обязана его сохранить.
+var _origin_lift := 0.0
+## Сколько раз рантайм сменил или перецентрировал пространство; и через сколько кадров вернуть
+## голову над тело после последней перецентровки (поза обновляется кадром позже сигнала).
+var _recenters := 0
+var _recenter_fix := 0
+## Фальсификатор «spawnhead» (tests/boot_main.gd): голова не ставится над точкой старта — человек
+## появляется там, где стоит в комнате, со своим курсом.
+static var falsify_spawn_head := false
+
+
+## Старт — когда всё готово: уровень в пространстве запросов физики (такт физики после постройки),
+## голова трекается, и SPAWN_QUIET_FRAMES кадров подряд пространство не менялось. Прежде старт
+## ставился синхронно в `_ready`, в кадре постройки уровня, до начала XR-сессии и до смены зоны, —
+## всё, что двигало позу потом, сдвигало человека относительно посаженного тела. Без XR (стол) —
+## сразу после такта физики.
+func _spawn_when_ready() -> void:
+	var t0 := Time.get_ticks_msec()
+	await get_tree().physics_frame
+	var iface := XRServer.find_interface("OpenXR")
+	var xr: bool = iface != null and iface.is_initialized()
+	var quiet := 0
+	var seen := _recenters
+	while xr and Time.get_ticks_msec() - t0 < SPAWN_WAIT_MS:
+		await get_tree().process_frame
+		if _recenters != seen or not _head_tracked():
+			seen = _recenters
+			quiet = 0
+		else:
+			quiet += 1
+		if quiet >= SPAWN_QUIET_FRAMES:
+			break
+	var why := "XR нет" if not xr else (
+			"голова трекается, пространство устоялось" if quiet >= SPAWN_QUIET_FRAMES
+			else "ожидание вышло (%d мс), голова %s" % [SPAWN_WAIT_MS, "трекается" if _head_tracked() else "НЕ трекается"])
+	_place_at_spawn("старт")
+	_spawned = true
+	player.set_physics_process(true)
+	loading.hide_soft()
+	var line := "старт через %d мс: %s, перецентровок %d" % [Time.get_ticks_msec() - t0, why, _recenters]
+	print(line)
+	journal.log("перемещение", menu.params(), "", "", -1, line)
+
+
+func _head_tracked() -> bool:
+	var t := XRServer.get_tracker("head") as XRPositionalTracker
+	if t == null:
+		return false
+	var pose := t.get_pose("default")
+	return pose != null and pose.has_tracking_data
+
+
+## Голова — над точкой старта и с её курсом; тело — в точке. Так делает Godot XR Tools
+## (`staging/scene_base.gd: center_player_on`): поза камеры в origin сплющивается до курса и
+## горизонтального смещения, и origin ставится так, чтобы камера пришлась на точку. Без этого
+## человек появлялся там, где стоит в своей комнате относительно origin, и с тем курсом, куда смотрел.
+func _center_player_on() -> void:
+	var cam := camera.transform
+	var view := cam.basis.z
+	view.y = 0.0
+	var flat := Transform3D()
+	if view.length() > 0.01:
+		flat = flat.looking_at(-view.normalized(), Vector3.UP)
+	flat.origin = Vector3(cam.origin.x, 0.0, cam.origin.z)
+	var at := Transform3D(spawn_xf.basis.orthonormalized(), player.global_position)
+	origin.global_transform = (at * flat.affine_inverse()).orthonormalized()
+	origin.position.y = _origin_lift
+
+
+## Рантайм перецентрировал пространство: в Local Floor он сам ставит камеру над origin (Godot,
+## «OpenXR settings»), то есть голова разом уезжает от тела, и догон потащил бы тело туда же —
+## человек переместился бы по миру. Возвращаем голову над тело: место в мире сохраняется.
+func _head_over_body() -> void:
+	var d := player.global_position - camera.global_position
+	d.y = 0.0
+	origin.global_position += d
+	var line := "перецентровка: голова возвращена над тело, сдвиг %.2f м" % d.length()
+	print(line)
+	journal.log("пространство", menu.params(), "", "", -1, line)
+
+
+## Низ геометрии уровня по данным загруженных узлов, м.
+func _level_bottom_y() -> float:
+	var low := 0.0
+	var stack: Array[Node] = [level]
+	while not stack.is_empty():
+		var n: Node = stack.pop_back()
+		stack.append_array(n.get_children())
+		if n is VisualInstance3D:
+			var box: AABB = (n as VisualInstance3D).global_transform * (n as VisualInstance3D).get_aabb()
+			low = minf(low, box.position.y)
+	return low
+
+
 func _place_at_spawn(why: String) -> void:
 	player.global_transform = spawn_xf
 	player.velocity = Vector3.ZERO
 	var res: Dictionary = player.drop_to_ground(spawn_xf.origin)
+	if not falsify_spawn_head:
+		_center_player_on()
 	journal.log("перемещение", menu.params(), "", "PASS" if res["ok"] else "FAIL", -1,
 			"%s: точка %s → ноги %.2f (%s), маска %d" % [why, spawn_xf.origin.snappedf(0.01),
 					player.global_position.y, res["why"], player.collision_mask])
@@ -737,12 +871,12 @@ func respawn(why: String) -> void:
 	if spawn_xf == Transform3D():
 		return
 	var was := camera.global_position.y
-	_place_at_spawn("возврат")
-	# origin внутри тела мог уехать от компенсации следования — возвращаем и его.
-	origin.transform = Transform3D()
-	# И приседание: иначе тело «помнит» его и держит взгляд ниже (сессия 23 — «респавн не сбросил
-	# высоту, всё ещё глаза на уровне пола»).
+	# Приседание — ДО посадки: иначе тело «помнит» его и держит взгляд ниже (сессия 23), а снятое
+	# после посадки подняло бы origin над уже выставленной высотой.
 	player.set_crouch(0.0)
+	# Посадка ставит и origin: голова над точкой старта (`_center_player_on`), накопленное от догона
+	# смещение уходит вместе с прежним origin.
+	_place_at_spawn("возврат")
 	# Перевал бросается у ВЛАДЕЛЬЦА его состояния: снятый здесь только `mantling` оставлял словарь
 	# перевала в locomotion, и следующий такт уносил тело обратно на траекторию.
 	locomotion.cancel_mantle()
@@ -809,6 +943,44 @@ func _grab_frame(dt: float) -> void:
 ## «система дала другой пол» (сессия 32).
 ## Тело уехало вниз само, без падения и без команды: печатаем ОДИН раз, чтобы не залить лог.
 var _sank := false
+## Сторож рывка (locomotion/pose_watch.gd): прошлый снимок, сколько рывков напечатано, была ли в этом
+## кадре перецентровка пространства.
+var _pose_was: Dictionary = {}
+var _jumps := 0
+var _recentered := false
+const JUMPS_MAX := 10
+
+
+## Высота глаз скакнула за кадр — в logcat и журнал, с тем, КТО сдвинулся: ноги, origin или поза
+## камеры от рантайма. Первые JUMPS_MAX, чтобы не залить лог.
+func _watch_jump() -> void:
+	if player == null or origin == null or camera == null:
+		return
+	var now := PoseWatch.sample(player.global_position.y, origin.position.y, camera.position.y)
+	var msg := PoseWatch.classify(_pose_was, now)
+	if msg != "" and _jumps < JUMPS_MAX:
+		_jumps += 1
+		var line := "ПОЗА[рывок %d] кадр %d, зона %d%s: %s" % [_jumps, Engine.get_process_frames(),
+				_play_area(), ", перецентровка в этом кадре" if _recentered else "", msg]
+		print(line)
+		journal.log("перемещение", menu.params(), "", "", -1, line)
+	_pose_was = now
+	_recentered = false
+
+
+func _play_area() -> int:
+	var iface := XRServer.find_interface("OpenXR")
+	return int(iface.get_play_area_mode()) if iface != null else -1
+
+
+## Рантайм сменил или перецентрировал пространство отсчёта.
+func _on_pose_recentered() -> void:
+	_recentered = true
+	_recenters += 1
+	# Поза в новом пространстве приходит в трекер к следующему кадру.
+	_recenter_fix = 2
+	print("пространство: pose_recentered, зона %d" % _play_area())
+	journal.log("пространство", menu.params(), "", "", -1, "pose_recentered, зона %d" % _play_area())
 
 
 func _watch_sink() -> void:

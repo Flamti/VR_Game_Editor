@@ -143,7 +143,9 @@ extends SceneTree
 ##                        копланарность и мерцание; краснеет только «сетка не копланарна полу
 ##                        уровня»;
 ##   --falsify=signscan   порог табличек спрашивается ПОСЛЕ сбора группы — `due` всегда «да»;
-##                        краснеет только «группа табличек не собирается без сдвига головы».
+##                        краснеет только «группа табличек не собирается без сдвига головы»;
+##   --falsify=watchblind сторож рывка не называет origin — краснеет только «сторож рывка называет
+##                        виновника».
 
 const Report := preload("res://probe_report.gd")
 const Goldberg := preload("res://menu/goldberg.gd")
@@ -209,6 +211,7 @@ const LevelRes := preload("res://world/level_loader.gd")
 const GrabRes := preload("res://world/grab.gd")
 const RoomItemsRes := preload("res://world/room_items.gd")
 const FloorGridRes := preload("res://world/floor_grid.gd")
+const PoseWatchRes := preload("res://locomotion/pose_watch.gd")
 ## Этап Ф3, часть 2: перемещение и уровень.
 const MOVE_CHECKS := ["дуга телепорта", "перенос и рывок", "повороты", "непрерывное движение",
 		"виньетка", "лазанье", "разбор уровня", "подсказка в мире",
@@ -217,7 +220,7 @@ const MOVE_CHECKS := ["дуга телепорта", "перенос и рыво
 		"у каждой комнаты свой набор", "граница зоны принадлежит комнате",
 		"вынесенный не строится заново", "комната помнит место и поворот",
 		"рука не держит исчезнувший узел", "сетка не копланарна полу уровня",
-		"группа табличек не собирается без сдвига головы",
+		"группа табличек не собирается без сдвига головы", "сторож рывка называет виновника",
 		"подсказка смотрит на человека",
 		"призыв предмета", "курс при телепорте", "присед и виньетка по ускорению",
 		"перевал через край", "кромка в данных", "столкновения возвращаются сами",
@@ -3006,7 +3009,7 @@ func _space_checks() -> void:
 	else:
 		r.fail("высота глаз окном: %s" % "; ".join(eye_bad))
 
-	# Сброс пространства: режим зоны — stage, положение — заново от позы головы, высота глаз —
+	# Сброс пространства: режим зоны — roomscale (Local Floor, решение владельца 2026-09-26), положение — заново от позы головы, высота глаз —
 	# измеряется. Вызовы XR подменены.
 	var sp_bad: Array[String] = []
 	var sp := SpaceRes.new()
@@ -3020,11 +3023,11 @@ func _space_checks() -> void:
 		return true
 	sp.play_area_mode = func() -> int: return mode_now[0]
 	var detail := sp.reset(func() -> void: calls["measure"] += 1)
-	if calls["recenter"] != 1 or calls["mode"] != int(XRInterface.XR_PLAY_AREA_STAGE) or calls["measure"] != 1 \
+	if calls["recenter"] != 1 or calls["mode"] != int(XRInterface.XR_PLAY_AREA_ROOMSCALE) or calls["measure"] != 1 \
 			or not detail.contains("режим зоны"):
 		sp_bad.append("вызовы %s, строка «%s»" % [calls, detail])
 	if sp_bad.is_empty():
-		r.pass_("сброс пространства: режим зоны → stage, положение сброшено (center_on_hmd), высота глаз измеряется заново; в журнал — «%s»" % detail)
+		r.pass_("сброс пространства: режим зоны → roomscale (Local Floor), положение сброшено (center_on_hmd), высота глаз измеряется заново; в журнал — «%s»" % detail)
 
 	else:
 		r.fail("сброс пространства: %s" % "; ".join(sp_bad))
@@ -3520,6 +3523,7 @@ func _room_build_checks(street: String, room: String) -> void:
 	_dead_hand_check()
 	_grid_lift_check()
 	_sign_scan_check()
+	_pose_watch_check()
 
 
 ## Плоскость сетки не совпадает с верхней гранью пола уровня. Владелец 2026-09-23: сетка мерцает.
@@ -4427,28 +4431,26 @@ func _floor_area_check() -> void:
 	var got := sp.ensure_floor()
 	if not SpaceRes.has_floor(got):
 		bad.append("после запроса зона %d — без пола" % got)
-	if asked.is_empty() or asked[0] != int(XRInterface.XR_PLAY_AREA_STAGE):
-		bad.append("первой просят не stage: %s" % [asked])
-	# Если stage не дают, берём roomscale: у него тоже есть пол.
+	if asked != [int(XRInterface.XR_PLAY_AREA_ROOMSCALE)]:
+		bad.append("из сидячей просили %s, а не только roomscale (Local Floor)" % [asked])
+	# Зона с полом уже есть — не переключать: смена пространства после посадки — рывок вида.
 	var sp2 := SpaceRes.new()
 	var asked2: Array = []
-	var now2 := [int(XRInterface.XR_PLAY_AREA_SITTING)]
+	var now2 := [int(XRInterface.XR_PLAY_AREA_ROOMSCALE)]
 	sp2.set_play_area = func(m: int) -> bool:
 		asked2.append(m)
-		if m == int(XRInterface.XR_PLAY_AREA_STAGE):
-			return false
 		now2[0] = m
 		return true
 	sp2.play_area_mode = func() -> int: return now2[0]
-	if not SpaceRes.has_floor(sp2.ensure_floor()):
-		bad.append("без stage не взяли roomscale: просили %s" % [asked2])
+	if not SpaceRes.has_floor(sp2.ensure_floor()) or not asked2.is_empty():
+		bad.append("при зоне с полом всё равно переключали: %s" % [asked2])
 	# И сама таблица: какие режимы считаются «с полом».
 	if SpaceRes.has_floor(int(XRInterface.XR_PLAY_AREA_SITTING)) \
 			or SpaceRes.has_floor(int(XRInterface.XR_PLAY_AREA_3DOF)) \
 			or not SpaceRes.has_floor(int(XRInterface.XR_PLAY_AREA_ROOMSCALE)):
 		bad.append("режимы с полом определены неверно")
 	if bad.is_empty():
-		r.pass_("зона с полом при запуске: просим stage, не дали — roomscale; сидячая зона (%d) полом не считается, и её приход при запуске виден в журнале" % int(XRInterface.XR_PLAY_AREA_SITTING))
+		r.pass_("зона с полом при запуске: из сидячей просим только roomscale (Local Floor), при зоне с полом не переключаем; сидячая зона (%d) полом не считается, и её приход при запуске виден в журнале" % int(XRInterface.XR_PLAY_AREA_SITTING))
 	else:
 		r.fail("зона с полом при запуске: %s" % "; ".join(bad))
 
@@ -4479,3 +4481,31 @@ func _sign_scan_check() -> void:
 				SignFaceRes.HEAD_EPS * 40.0))
 	else:
 		r.fail("группа табличек не собирается без сдвига головы: %s" % "; ".join(bad))
+
+
+## Сторож рывка называет, КТО сдвинул вид: ноги (физика), origin (наш код) или камера в origin
+## (рантайм). Без этого «рывок вниз» на шлеме неотличим от «присел» и «провалился» (ловушка 57).
+## Случаи — из настоящих чисел: origin −0.485 через бордюр (стенд догона, 2026-09-26), смена
+## пространства (камера 0 → 1.6), падение тела; дыхание 5 см рывком не считается.
+func _pose_watch_check() -> void:
+	PoseWatchRes.falsify_blind_origin = falsify == "watchblind"
+	var bad: Array[String] = []
+	var base := PoseWatchRes.sample(0.0, 0.0, 1.6)
+	var cases := [
+		["origin через бордюр", PoseWatchRes.sample(0.12, -0.485, 1.6), "origin"],
+		["смена пространства", PoseWatchRes.sample(0.0, 0.0, 0.0), "камера в origin"],
+		["тело упало", PoseWatchRes.sample(-2.5, 0.0, 1.6), "ноги"],
+	]
+	for c in cases:
+		var msg := PoseWatchRes.classify(base, c[1])
+		if msg == "" or not msg.contains(c[2]):
+			bad.append("«%s»: «%s» — не назван «%s»" % [c[0], msg, c[2]])
+		elif c[2] != "ноги" and msg.contains("ноги") and c[0] != "origin через бордюр":
+			bad.append("«%s»: лишний виновник в «%s»" % [c[0], msg])
+	if PoseWatchRes.classify(base, PoseWatchRes.sample(0.0, 0.0, 1.65)) != "":
+		bad.append("дыхание 5 см названо рывком")
+	PoseWatchRes.falsify_blind_origin = false
+	if bad.is_empty():
+		r.pass_("сторож рывка называет виновника: origin, камера в origin и ноги различены; 5 см — не рывок")
+	else:
+		r.fail("сторож рывка называет виновника: %s" % "; ".join(bad))

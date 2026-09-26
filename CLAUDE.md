@@ -43,11 +43,11 @@ tools/make_start_location.py           # собрать стартовую ло�
 
 ```bash
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
-    --script res://tests/run_tests.gd [-- --falsify=<имя>]    # пол 141, 93 фальсификатора
+    --script res://tests/run_tests.gd [-- --falsify=<имя>]    # пол 142, 94 фальсификатора
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
-    --script res://tests/smoke_menu.gd [-- --falsify=<имя>]   # интеграция, пол 81, 64 фальсификатора
+    --script res://tests/smoke_menu.gd [-- --falsify=<имя>]   # интеграция, пол 82, 65 фальсификаторов
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
-    --script res://tests/boot_main.gd [-- --falsify=helpearly|bootblind]  # main.tscn целиком, пол 3; ПЕРЕД КАЖДЫМ ЭКСПОРТОМ
+    --script res://tests/boot_main.gd [-- --falsify=<имя>]    # main.tscn целиком и старт, пол 5, 4 фальсификатора; ПЕРЕД КАЖДЫМ ЭКСПОРТОМ
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
     --script res://tests/bench_menu.gd                         # замер кадра меню: глобус и линза
 # сверки КАРТИНКОЙ — нужен дисплей, без --headless (GLSL в headless не компилируется):
@@ -69,6 +69,9 @@ adb push claude.key /data/local/tmp/ && adb shell run-as org.flamti.vrge.sphere 
 # в шлеме: Настройки → Профиль → Аккаунты → Claude → «Из файла»; файл удаляется после импорта
 ```
 
+Журнал пишется в шлеме ПО ХОДУ — забирать можно и прерванную сессию, и прямо во время прогона:
+`adb shell run-as org.flamti.vrge.sphere cat files/sphere_session.tsv > session.tsv` (все сессии
+подряд). logcat за несколько минут вытесняется шумом системы — для длинного прогона свидетель журнал.
 С шлема после сессии: журнал — `adb pull /sdcard/Download/VRGE/<дата-время>`, скриншоты —
 `adb pull /sdcard/Download/VRGE/screenshots`. Эталон подписей — `tests/golden/labels_shader.png`
 (папка с `.gdignore`, в APK не попадает; менять только сознательно, после проверки глазами).
@@ -421,7 +424,8 @@ tools/         сборка, деплой, проверка артефактов
     старта, а не от земли: камера в origin давала **0.00**, и человек оказывался глазами в полу —
     «спавнюсь ниже пола» (сессия 32). Тело при этом стояло верно, и стенд «старт стоит на полу»
     честно зеленел: дефект был не в теле. Зона запрашивается при **каждом** запуске
-    (`Space.ensure_floor`: stage, если нет — roomscale), её режим пишется в журнал и в logcat.
+    (`Space.ensure_floor`: пол есть — не переключать, нет — roomscale; с 2026-09-26 пространство
+    Local Floor задано в `project.godot`, ловушка 60), её режим пишется в журнал и в logcat.
     Режим принадлежит системе шлема и может смениться после пересборки границы, поэтому спрашивать
     однажды нельзя (фальсификатор `sitting`).
     **Диагностика важнее догадки:** три сборки подряд я чинил не то, потому что «ниже пола» без
@@ -451,6 +455,19 @@ tools/         сборка, деплой, проверка артефактов
     строки). И отдельно: вывод `--check-only` читать **целиком** — первые строки там всегда ошибки
     OpenXR-загрузчика без шлема, и `head -3` показал только их, спрятав `Parse Error`. Текст ошибки
     скрипта `Logger._log_error` отдаёт в `code`, а не в `rationale`.
+
+60. **Origin компенсирует ход тела ТОЛЬКО по горизонтали, а пространство отсчёта не меняется после
+    посадки.** Сессия 24: «рывок вниз и стоп» при появлении и глаза на −0.8…−1.0 м во всех сессиях
+    2026-09-22 давал догон головы — `origin -= moved` по трём осям: дно капсулы наезжало на ребро
+    бордюра, тело поднималось, origin уходил вниз, а обратный ход тела тяготением не компенсировался
+    (через бордюр 12 см — −0.485 м, фальсификатор `followy`). Большие скачки головы давала смена
+    пространства ПОСЛЕ посадки: умолчание Godot — Stage (`xr/openxr/reference_space=1`), Quest без
+    границы его не даёт, Godot молча откатывается на LOCAL (зона 2), и наш код переключал на Local
+    Floor, когда тело уже стояло. Теперь Local Floor (`=2`) с первого кадра (Meta: «Stage… not
+    recommended for any application»), старт — по готовности (такт физики, голова трекается,
+    10 кадров без `pose_recentered`), головой над точкой с её курсом (`_center_player_on`, как у
+    XR Tools), за экраном «Загрузка». На столе это не воспроизводится: там голова не двигается —
+    стенды двигают голову сами (`spawnhead`: человек в 0.8 м от origin с поворотом 40°).
 
 ## Архитектурные правила
 

@@ -43,11 +43,11 @@ tools/make_start_location.py           # собрать стартовую ло�
 
 ```bash
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
-    --script res://tests/run_tests.gd [-- --falsify=<имя>]    # пол 142, 94 фальсификатора
+    --script res://tests/run_tests.gd [-- --falsify=<имя>]    # пол 144, 96 фальсификаторов
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
-    --script res://tests/smoke_menu.gd [-- --falsify=<имя>]   # интеграция, пол 83, 66 фальсификаторов
+    --script res://tests/smoke_menu.gd [-- --falsify=<имя>]   # интеграция, пол 84, 67 фальсификаторов
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
-    --script res://tests/boot_main.gd [-- --falsify=<имя>]    # main.tscn целиком и старт, пол 5, 4 фальсификатора; ПЕРЕД КАЖДЫМ ЭКСПОРТОМ
+    --script res://tests/boot_main.gd [-- --falsify=<имя>]    # main.tscn целиком: старт, сторож, память комнаты; пол 7, 6 фальсификаторов; ПЕРЕД КАЖДЫМ ЭКСПОРТОМ
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
     --script res://tests/bench_menu.gd                         # замер кадра меню: глобус и линза
 # сверки КАРТИНКОЙ — нужен дисплей, без --headless (GLSL в headless не компилируется):

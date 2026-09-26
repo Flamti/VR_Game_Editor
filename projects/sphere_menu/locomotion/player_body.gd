@@ -42,6 +42,16 @@ var _mask_was := 0
 ## площадке «на коленях» (сессия 20).
 var mantling := false
 
+## Последний перенос, который сделал НАШ код (телепорт, перевал, присед, посадка в старт): номер,
+## имя и какие слагаемые высоты глаз он двигал («body», «origin»). Номер растёт, флага нет: сторож
+## рывка (`pose_watch.gd`) сравнивает его с тем, что видел кадром раньше, и залипнуть тут нечему
+## (урок ловушки 33). Без пометки законные скачки съедали лимит сторожа (сессия 24).
+var transfer_seq := 0
+var transfer_label := ""
+var transfer_parts: Array = []
+## Фальсификатор «transferdumb» (tests/smoke_menu.gd, tests/boot_main.gd): переносы себя не помечают.
+static var falsify_unmarked := false
+
 var origin: XROrigin3D
 var head: Node3D
 ## Измеренная высота глаз профиля и текущее приседание, м.
@@ -141,6 +151,16 @@ func set_crouch(depth: float) -> void:
 	# Опускаем именно голову: origin — ребёнок тела, поэтому смещение вниз идёт ему.
 	if origin != null:
 		origin.position.y -= crouch - was
+		mark_transfer("присед", ["origin"])
+
+
+## Наш код переносит человека: пометить, чтобы сторож рывка не принял это за дефект.
+func mark_transfer(label: String, parts: Array = ["body"]) -> void:
+	if falsify_unmarked:
+		return
+	transfer_seq += 1
+	transfer_label = label
+	transfer_parts = parts
 
 
 ## Перенести человека (телепорт): тело едет так, чтобы ГОЛОВА оказалась над точкой.
@@ -197,6 +217,7 @@ func teleport_to(point: Vector3, yaw_deg := NAN) -> void:
 	var head_offset := head.global_position - global_position
 	global_position = point - Vector3(head_offset.x, 0.0, head_offset.z)
 	velocity = Vector3.ZERO
+	mark_transfer("телепорт")
 
 
 ## Сдвинуть мир под ногами (тяга мира): человек едет, тяготение на время отключено.

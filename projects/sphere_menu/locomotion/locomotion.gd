@@ -652,6 +652,7 @@ func _mantle_tick(dt: float) -> void:
 	var t := float(_mantle["t"])
 	body.global_position = Mantle.rise_point(_mantle["from"], _mantle["to"], t)
 	body.velocity = Vector3.ZERO
+	body.mark_transfer("перевал")
 	if t < 1.0:
 		return
 	_mantle.clear()

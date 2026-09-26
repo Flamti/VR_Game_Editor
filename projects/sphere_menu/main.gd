@@ -320,6 +320,7 @@ func _ready() -> void:
 		var eye: float = profiles.profile.eye_m if profiles.profile.eye_m > 0.0 else 1.6
 		_origin_lift = eye
 		origin.position.y = eye
+		player.mark_transfer("подъём зоны без пола", ["origin"])
 		journal.log("пространство", menu.params(), "", "", -1,
 				"зона без пола: origin поднят на рост %.2f м" % eye)
 		print("зона без пола: origin поднят на %.2f м" % eye)
@@ -861,6 +862,7 @@ func _place_at_spawn(why: String) -> void:
 	var res: Dictionary = player.drop_to_ground(spawn_xf.origin)
 	if not falsify_spawn_head:
 		_center_player_on()
+	player.mark_transfer(why, ["body", "origin"])
 	journal.log("перемещение", menu.params(), "", "PASS" if res["ok"] else "FAIL", -1,
 			"%s: точка %s → ноги %.2f (%s), маска %d" % [why, spawn_xf.origin.snappedf(0.01),
 					player.global_position.y, res["why"], player.collision_mask])
@@ -943,28 +945,24 @@ func _grab_frame(dt: float) -> void:
 ## «система дала другой пол» (сессия 32).
 ## Тело уехало вниз само, без падения и без команды: печатаем ОДИН раз, чтобы не залить лог.
 var _sank := false
-## Сторож рывка (locomotion/pose_watch.gd): прошлый снимок, сколько рывков напечатано, была ли в этом
-## кадре перецентровка пространства.
-var _pose_was: Dictionary = {}
-var _jumps := 0
+## Сторож рывка (locomotion/pose_watch.gd) и была ли в этом кадре перецентровка пространства.
+var _pose_watch := PoseWatch.new()
 var _recentered := false
-const JUMPS_MAX := 10
 
 
 ## Высота глаз скакнула за кадр — в logcat и журнал, с тем, КТО сдвинулся: ноги, origin или поза
-## камеры от рантайма. Первые JUMPS_MAX, чтобы не залить лог.
+## камеры от рантайма. Наши переносы (телепорт, перевал, присед, старт) сторож считает отдельно и в
+## лимит строк не пускает — лимит только для необъяснённого.
 func _watch_jump() -> void:
 	if player == null or origin == null or camera == null:
 		return
 	var now := PoseWatch.sample(player.global_position.y, origin.position.y, camera.position.y)
-	var msg := PoseWatch.classify(_pose_was, now)
-	if msg != "" and _jumps < JUMPS_MAX:
-		_jumps += 1
-		var line := "ПОЗА[рывок %d] кадр %d, зона %d%s: %s" % [_jumps, Engine.get_process_frames(),
-				_play_area(), ", перецентровка в этом кадре" if _recentered else "", msg]
+	var msg := _pose_watch.step(now, player.transfer_seq, player.transfer_label, player.transfer_parts)
+	if msg != "":
+		var line := "%s — кадр %d, зона %d%s" % [msg, Engine.get_process_frames(), _play_area(),
+				", перецентровка в этом кадре" if _recentered else ""]
 		print(line)
 		journal.log("перемещение", menu.params(), "", "", -1, line)
-	_pose_was = now
 	_recentered = false
 
 

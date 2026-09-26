@@ -24,7 +24,11 @@ extends SceneTree
 ##   --falsify=loadopen   экран загрузки не закрывается — краснеет только «экран загрузки закрывает
 ##                        мир до старта»;
 ##   --falsify=spawnhead  голова не ставится над точкой старта — краснеет только «старт: голова над
-##                        точкой, тело на полу».
+##                        точкой, тело на полу»;
+##   --falsify=transferdumb переносы не помечают себя (`PlayerBody.mark_transfer`) — краснеет только
+##                        «сторож рывка молчит на старте»: подъём зоны без пола снова назван рывком;
+##   --falsify=roomamnesia выгрузка не пишет память комнаты — краснеет только «комната помнит
+##                        оставленное»: занесённого куба нет, переставленный вернулся на полку.
 ##
 ## Контрольный случай — нарочная ошибка скрипта в самом приборе: она обязана попасть в журнал при
 ## любом состоянии `main.gd`. Не попала — слеп прибор, а не исправен код (PRACTICES §1.5).
@@ -36,7 +40,8 @@ const Report := preload("res://probe_report.gd")
 const FRAMES := 300
 const CHECKS := ["прибор видит ошибки скрипта", "основная сцена поднялась со своим скриптом",
 		"основная сцена без ошибок скрипта", "экран загрузки закрывает мир до старта",
-		"старт: голова над точкой, тело на полу"]
+		"старт: голова над точкой, тело на полу", "сторож рывка молчит на старте",
+		"комната помнит оставленное"]
 ## Где человек стоит в своей комнате относительно origin в момент старта: в стороне и с поворотом.
 ## На столе XRCamera3D никто не двигает, и без этого голова была бы над точкой и без правки (§2.5).
 const ROOM_HEAD := Vector3(0.7, 1.6, -0.4)
@@ -114,6 +119,8 @@ func _process(_delta: float) -> bool:
 	_frame += 1
 	if _frame == 1:
 		_boot()
+	if ROOM_STEPS.has(_frame):
+		call(ROOM_STEPS[_frame])
 	if _frame >= FRAMES and not _done:
 		_finish()
 		return true
@@ -132,6 +139,8 @@ func _boot() -> void:
 	LoadingViewRes.falsify_open = falsify == "loadopen"
 	if script != null:
 		(script as GDScript).set("falsify_spawn_head", falsify == "spawnhead")
+	(load("res://locomotion/player_body.gd") as GDScript).set("falsify_unmarked", falsify == "transferdumb")
+	(load("res://world/room_items.gd") as GDScript).set("falsify_amnesia", falsify == "roomamnesia")
 	_main = packed.instantiate()
 	root.add_child(_main)
 	# Старт ждёт такта физики — голова ставится в комнате до него.
@@ -178,6 +187,7 @@ func _spawn_checks() -> void:
 	if _early.is_empty() or _main == null or _main.get_script() == null:
 		r.fail("экран загрузки закрывает мир до старта: сцена не поднялась")
 		r.fail("старт: голова над точкой, тело на полу: сцена не поднялась")
+		r.fail("сторож рывка молчит на старте: сцена не поднялась")
 		return
 	var lv: Object = _main.get("loading")
 	if bool(_early["shown"]) and not bool(_early["spawned"]) and lv != null and not lv.call("is_shown"):
@@ -213,3 +223,161 @@ func _spawn_checks() -> void:
 				Vector2(ROOM_HEAD.x, ROOM_HEAD.z).length(), ROOM_YAW_DEG, off, yaw_err, feet, over, lift])
 	else:
 		r.fail("старт: голова над точкой, тело на полу: %s" % "; ".join(bad))
+	_watch_check()
+
+
+## Сторож рывка молчит на старте: подъём зоны без пола и посадка в точку старта — наши переносы, и
+## лимит строк сторожа на них не тратится. До сессии 25 прибор запуска печатал здесь «ПОЗА[рывок 1]
+## глаза 1.60 → 3.20: origin +1.60» — подъём, сделанный нашим же кодом. Здесь же видно, что пометки,
+## которые ставит `main.gd`, доходят до сторожа: дымовой прогон `main.gd` не поднимает.
+func _watch_check() -> void:
+	var w: Variant = _main.get("_pose_watch")
+	if w == null:
+		r.fail("сторож рывка молчит на старте: у сцены нет сторожа")
+		return
+	var jumps := int((w as Object).get("jumps"))
+	var ours: Dictionary = (w as Object).get("ours")
+	# Случай обязан задеть гейт (§2.5): наш скачок был и сторож его увидел — иначе молчание пусто.
+	if jumps != 0:
+		r.fail("сторож рывка молчит на старте: необъяснённых рывков %d, наших скачков %s" % [jumps, ours])
+	elif ours.is_empty():
+		r.fail("сторож рывка молчит на старте: сторож не видел ни одного нашего скачка — проверять нечего")
+	else:
+		r.pass_("сторож рывка молчит на старте: необъяснённых рывков 0, наши скачки учтены отдельно — %s" % (w as Object).call("ours_text"))
+
+
+## Комната помнит оставленное — через НАСТОЯЩИЕ обработчики `main.gd` (решение владельца 2026-09-23).
+##
+## Настольная `shelfback` проверяет `RoomItems` на значениях, дымовой `_carry` — свою копию
+## сантехники выгрузки. Ни одна не гоняет `_load_level` с памятью, `_settle` и `_unload_frame` из
+## `main.gd` — а связь «память → постройка» живёт именно там (§1.10). Здесь вход и выход — сигналы
+## той самой зоны, которые шлёт физика; перекрытие тел — поведение движка, от сигнала дальше — наш код.
+##
+## Случай: уличный куб занесён в дом и положен; свой куб дома переставлен внутри. Выгрузка, вход
+## снова. Свидетель — узлы: занесённый стоит там, где его оставили, переставленный — на новом
+## месте, ни один uuid не построен дважды, остальные кубы дома целы. Шаги разнесены по кадрам:
+## `queue_free` освобождает узел в конце кадра (ловушка 26 о том же).
+const ROOM_STEPS := {150: "_room_enter", 152: "_room_leave", 154: "_room_unload",
+		156: "_room_back", 158: "_room_check"}
+const ROOM_FILE := "res://world/levels/start_interior.json"
+## Уличный куб и куб дома из данных уровня, и куда их кладут — внутри ящика зоны `home_enter`.
+const STREET_CUBE := "grab0"
+const ROOM_CUBE := "in_box00"
+const STREET_CUBE_AT := Vector3(-7.5, 0.3, -6.8)
+const ROOM_CUBE_AT := Vector3(-6.0, 0.3, -4.8)
+var _room: Dictionary = {}
+
+
+func _live(uuid: String) -> Array[Node3D]:
+	var out: Array[Node3D] = []
+	var lvl: Node = _main.get("level") if _main != null else null
+	if lvl == null:
+		return out
+	var stack: Array[Node] = [lvl]
+	while not stack.is_empty():
+		var n: Node = stack.pop_back()
+		stack.append_array(n.get_children())
+		if n is Node3D and str(n.get_meta("uuid", "")) == uuid and not n.is_queued_for_deletion():
+			out.append(n as Node3D)
+	return out
+
+
+func _room_zone() -> Area3D:
+	if _main == null or _main.get_script() == null:
+		return null
+	return (_main.get("_zones") as Dictionary).get(ROOM_FILE, null) as Area3D
+
+
+func _room_enter() -> void:
+	var zone := _room_zone()
+	if zone == null:
+		_room = {"error": "у сцены нет зоны %s" % ROOM_FILE.get_file()}
+		return
+	zone.body_entered.emit(_main.get("player"))
+	var street := _live(STREET_CUBE)
+	var own := _live(ROOM_CUBE)
+	# Стенд обязан доказать, что видит искомое (ловушка 45): комната построилась, кубы есть.
+	if street.size() != 1 or own.size() != 1:
+		_room = {"error": "после входа уличных «%s» %d, кубов дома «%s» %d" % [STREET_CUBE, street.size(), ROOM_CUBE, own.size()]}
+		return
+	var cubes := 0
+	for e in (_main.get("_vis_nodes") as Dictionary).get(ROOM_FILE, []):
+		if ((e as Dictionary).get("node", null) as Node) != null and ((e as Dictionary)["node"] as Node).is_in_group("grab"):
+			cubes += 1
+	# Положили: так же, как отпущенный рукой предмет, — место, потом `_settle`.
+	for pair in [[street[0], STREET_CUBE_AT], [own[0], ROOM_CUBE_AT]]:
+		var rb := pair[0] as RigidBody3D
+		rb.freeze = true
+		rb.global_position = pair[1]
+		_main.call("_settle", rb)
+	var rooms: Object = _main.get("rooms")
+	_room = {"cubes": cubes, "owner": str(rooms.call("owner_of", STREET_CUBE))}
+
+
+func _room_leave() -> void:
+	if _room.has("error"):
+		return
+	# Где лежат в миг выгрузки — локально, как их запомнит комната и построит загрузчик.
+	_room["street_pos"] = _live(STREET_CUBE)[0].position
+	_room["own_pos"] = _live(ROOM_CUBE)[0].position
+	_room_zone().body_exited.emit(_main.get("player"))
+	# Отсчёт выгрузки идёт временем кадра; ждать его настоящими секундами прибору незачем — тот же
+	# `_unload_frame` с шагом больше задержки.
+	_main.call("_unload_frame", 3.0)
+
+
+func _room_unload() -> void:
+	if _room.has("error"):
+		return
+	_room["gone"] = _live(STREET_CUBE).size() == 0 and _live(ROOM_CUBE).size() == 0
+	_room["loaded_after_exit"] = (_main.get("stream") as Object).call("is_loaded", ROOM_FILE)
+
+
+func _room_back() -> void:
+	if _room.has("error"):
+		return
+	_room_zone().body_entered.emit(_main.get("player"))
+	# Место — в том же кадре, что и постройка: дальше тело живёт физикой.
+	var street := _live(STREET_CUBE)
+	var own := _live(ROOM_CUBE)
+	_room["street_back"] = street[0].position if street.size() == 1 else null
+	_room["own_back"] = own[0].position if own.size() == 1 else null
+
+
+func _room_check() -> void:
+	if _room.is_empty():
+		r.fail("комната помнит оставленное: шаги не исполнялись")
+		return
+	if _room.has("error"):
+		r.fail("комната помнит оставленное: %s" % _room["error"])
+		return
+	var bad: Array[String] = []
+	if str(_room["owner"]) != ROOM_FILE:
+		bad.append("положенный в доме уличный куб достался «%s», а не дому" % str(_room["owner"]).get_file())
+	if not bool(_room["gone"]) or bool(_room["loaded_after_exit"]):
+		bad.append("дом не выгрузился (кубы ушли %s, файл загружен %s)" % [_room["gone"], _room["loaded_after_exit"]])
+	for c in [["занесённый «%s»" % STREET_CUBE, "street_back", "street_pos", STREET_CUBE],
+			["переставленный «%s»" % ROOM_CUBE, "own_back", "own_pos", ROOM_CUBE]]:
+		var back: Variant = _room[c[1]]
+		var want: Vector3 = _room[c[2]]
+		var live := _live(c[3]).size()
+		if back == null:
+			bad.append("%s после возврата: экземпляров %d" % [c[0], live])
+		elif (back as Vector3).distance_to(want) > 0.01:
+			bad.append("%s стоит в %s, оставлен в %s" % [c[0], (back as Vector3).snappedf(0.01), want.snappedf(0.01)])
+		elif live != 1:
+			bad.append("%s построен %d раз" % [c[0], live])
+	var cubes := 0
+	for e in (_main.get("_vis_nodes") as Dictionary).get(ROOM_FILE, []):
+		var n: Node = (e as Dictionary).get("node", null)
+		if n != null and is_instance_valid(n) and not n.is_queued_for_deletion() and n.is_in_group("grab"):
+			cubes += 1
+	# Своих кубов дома было N, занесён один: стало N + 1.
+	if cubes != int(_room["cubes"]) + 1:
+		bad.append("кубов в доме %d, было %d и занесён один" % [cubes, _room["cubes"]])
+	if bad.is_empty():
+		r.pass_("комната помнит оставленное: занесённый «%s» и переставленный «%s» вернулись на свои места (%s, %s), по одному экземпляру; кубов в доме %d" % [
+				STREET_CUBE, ROOM_CUBE, (_room["street_pos"] as Vector3).snappedf(0.01),
+				(_room["own_pos"] as Vector3).snappedf(0.01), cubes])
+	else:
+		r.fail("комната помнит оставленное: %s" % "; ".join(bad))

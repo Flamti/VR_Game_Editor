@@ -145,7 +145,13 @@ extends SceneTree
 ##   --falsify=signscan   порог табличек спрашивается ПОСЛЕ сбора группы — `due` всегда «да»;
 ##                        краснеет только «группа табличек не собирается без сдвига головы»;
 ##   --falsify=watchblind сторож рывка не называет origin — краснеет только «сторож рывка называет
-##                        виновника».
+##                        виновника»;
+##   --falsify=watchours  наши переносы снова идут в общий лимит строк (поведение сессии 24) —
+##                        краснеют «сторож не тратит лимит на наши переносы» (10 строк на телепорты,
+##                        скачок origin потерян) и половина «возврат объяснён» в «наш перенос не
+##                        прячет чужое слагаемое»: старое поведение не объясняло ничего;
+##   --falsify=watchcover наш перенос объясняет любой скачок — краснеет только «наш перенос не
+##                        прячет чужое слагаемое».
 
 const Report := preload("res://probe_report.gd")
 const Goldberg := preload("res://menu/goldberg.gd")
@@ -221,6 +227,7 @@ const MOVE_CHECKS := ["дуга телепорта", "перенос и рыво
 		"вынесенный не строится заново", "комната помнит место и поворот",
 		"рука не держит исчезнувший узел", "сетка не копланарна полу уровня",
 		"группа табличек не собирается без сдвига головы", "сторож рывка называет виновника",
+		"сторож не тратит лимит на наши переносы", "наш перенос не прячет чужое слагаемое",
 		"подсказка смотрит на человека",
 		"призыв предмета", "курс при телепорте", "присед и виньетка по ускорению",
 		"перевал через край", "кромка в данных", "столкновения возвращаются сами",
@@ -4505,7 +4512,51 @@ func _pose_watch_check() -> void:
 	if PoseWatchRes.classify(base, PoseWatchRes.sample(0.0, 0.0, 1.65)) != "":
 		bad.append("дыхание 5 см названо рывком")
 	PoseWatchRes.falsify_blind_origin = false
+	_pose_watch_ours_check()
 	if bad.is_empty():
 		r.pass_("сторож рывка называет виновника: origin, камера в origin и ноги различены; 5 см — не рывок")
 	else:
 		r.fail("сторож рывка называет виновника: %s" % "; ".join(bad))
+
+
+## Сторож не тратит лимит на наши переносы. Сессия 24: к 17:52:39 десять строк лимита съели законные
+## телепорты и перевал, и всё, что случилось после, сторож уже не назвал бы. Случай — 12 телепортов
+## (больше лимита) и следом скачок origin: он обязан напечататься первым рывком.
+## И обратное: перенос не прячет то, чего он не двигал — телепорт двигает ноги, а не origin.
+func _pose_watch_ours_check() -> void:
+	PoseWatchRes.falsify_ours_counted = falsify == "watchours"
+	PoseWatchRes.falsify_ours_cover = falsify == "watchcover"
+	var w := PoseWatchRes.new()
+	var seq := 0
+	var feet := 0.0
+	w.step(PoseWatchRes.sample(feet, 0.0, 1.6), seq, "", [])
+	var printed: Array[String] = []
+	for i in PoseWatchRes.JUMPS_MAX + 2:
+		seq += 1
+		feet += 1.5
+		var line := w.step(PoseWatchRes.sample(feet, 0.0, 1.6), seq, "телепорт", ["body"])
+		if line != "":
+			printed.append(line)
+	# Кадр без переноса: origin ушёл вниз, как через бордюр до сессии 24.
+	var real := w.step(PoseWatchRes.sample(feet, -0.485, 1.6), seq, "телепорт", ["body"])
+	var tp_counted := int(w.ours.get("телепорт", 0))
+	if printed.is_empty() and real.begins_with("ПОЗА[рывок 1]") and real.contains("origin") \
+			and tp_counted == PoseWatchRes.JUMPS_MAX + 2:
+		r.pass_("сторож не тратит лимит на наши переносы: %d телепортов учтены отдельно, следом «%s»" % [tp_counted, real])
+	else:
+		r.fail("сторож не тратит лимит на наши переносы: телепорты напечатаны %d раз, учтены отдельно %d; скачок origin после них — «%s»" % [
+				printed.size(), tp_counted, real])
+	# Телепорт в том же кадре, что и скачок origin: origin обязан быть назван, а не спрятан.
+	var w2 := PoseWatchRes.new()
+	w2.step(PoseWatchRes.sample(0.0, 0.0, 1.6), 0, "", [])
+	var mixed := w2.step(PoseWatchRes.sample(1.5, -0.485, 1.6), 1, "телепорт", ["body"])
+	# Возврат в старт двигает и ноги, и origin — такой скачок объяснён целиком.
+	var w3 := PoseWatchRes.new()
+	w3.step(PoseWatchRes.sample(3.0, -0.4, 1.6), 0, "", [])
+	var home := w3.step(PoseWatchRes.sample(0.0, 0.0, 1.6), 1, "возврат", ["body", "origin"])
+	PoseWatchRes.falsify_ours_counted = false
+	PoseWatchRes.falsify_ours_cover = false
+	if mixed.contains("origin") and mixed.contains("не объясняет") and home == "":
+		r.pass_("наш перенос не прячет чужое слагаемое: «%s»; возврат (ноги и origin) объяснён целиком" % mixed)
+	else:
+		r.fail("наш перенос не прячет чужое слагаемое: телепорт со скачком origin — «%s»; возврат — «%s»" % [mixed, home])

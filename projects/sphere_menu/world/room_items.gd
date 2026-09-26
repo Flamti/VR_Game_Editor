@@ -31,6 +31,10 @@ var falsify_rebuild_taken := false
 ## Фальсификатор «shelfback»: комната отдаёт место из данных, а не запомненное, — оставленный на
 ## полу предмет возвращается на полку.
 var falsify_shelf_back := false
+## Фальсификатор «roomamnesia» (tests/boot_main.gd): выгрузка не пишет память — комната при
+## возврате строится из данных, как до 2026-09-23: занесённого предмета нет, переставленный стоит на
+## исходном месте.
+static var falsify_amnesia := false
 ## Фальсификатор «edgeout»: точка ровно на грани зоны считается снаружи.
 static var falsify_edge_out := false
 ## Фальсификатор «handdrops»: обход не считает занятым ничего — предмет выгружается прямо из руки
@@ -156,7 +160,7 @@ func unload_plan(file: String, main_file: String, items: Array) -> Dictionary:
 		kept[uuid] = {"pos": rec.get("pos", Vector3.ZERO), "rot": rec.get("rot", Vector3.ZERO)}
 	# Память файла переписывается целиком: остатки прошлой выгрузки иначе воскресали бы предметы,
 	# которых в комнате давно нет.
-	memory[_bucket(file)] = kept
+	memory[_bucket(file)] = {} if falsify_amnesia else kept
 	return {"keep": keep, "free": free_list}
 
 

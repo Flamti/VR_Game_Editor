@@ -126,6 +126,8 @@ extends SceneTree
 ##                         поворот отрезками»;
 ##   --falsify=walkjitter  отрезок ходьбы заявляется любым дёрганьем стика — краснеет только
 ##                         «короткие рывки ходьбы»;
+##   --falsify=transferdumb переносы не помечают себя — сторож рывка снова тратит лимит на телепорты;
+##                        краснеет только «наши переносы помечают себя»;
 ##   --falsify=mantlespot  высота приземления перевала берётся из найденной точки (верх зацепа), а не
 ##                         с поверхности под точкой приземления — краснеет только «перевал ставит на
 ##                         площадку, а не на зацеп»;
@@ -204,7 +206,7 @@ const STEPS := ["открыть", "войти коротким", "действи
 		"зона видна и работает скрытой", "режим игры прячет и возвращает", "скрытая группа держит",
 		"правка на панели доходит до мира",
 		"предмет из комнаты остаётся в руке при выгрузке",
-		"телепорт по видимой дуге", "курс не обрывает прицел", "возврат отменяет перевал",
+		"телепорт по видимой дуге", "курс не обрывает прицел", "возврат отменяет перевал", "наши переносы помечают себя",
 		"плавный поворот отрезками", "короткие рывки ходьбы", "догон головы не двигает вид по вертикали",
 		"перевал ставит на площадку, а не на зацеп",
 		"меню групп из уровня",
@@ -287,7 +289,7 @@ func _initialize() -> void:
 		[330, _phys_head_prep], [360, _phys_head_check], [380, _phys_step], [470, _phys_wall], [500, _lean_prep], [520, _mantle_floor_check], [545, _lean_check], [556, _mantle_floor_result], [558, _climb_prep], [570, _climb_check], [572, _mantle_prep], [563, _spawn_prep], [568, _spawn_check], [573, _climb_wall_prep], [576, _climb_wall_check], [577, _drop_check], [577, _held_ghost_prep], [579, _held_ghost_check], [580, _grab_check], [580, _pull_link], [581, _stick_owner], [581, _walk_log], [581, _hand_choice], [582, _fall_home], [592, _fall_check], [600, _mantle_check], [601, _mantle_view_check], [582, _room_node],
 		[582, _input_lock], [583, _zone_prep], [615, _zone_check], [616, _play_mode], [617, _group_solid], [618, _group_menu], [620, _area_wait_prep], [640, _area_wait_check],
 		[642, _carry_prep], [646, _carry_check],
-		[650, _tp_prep], [654, _tp_seen], [655, _tp_side], [656, _mantle_cancel], [657, _turn_segments],
+		[650, _tp_prep], [654, _tp_seen], [655, _tp_side], [656, _mantle_cancel], [656, _transfer_marks], [657, _turn_segments],
 		[658, _walk_jitter], [660, _follow_y_prep], [664, _follow_y_jump], [720, _follow_y_check],
 		[722, _mantle_top_prep], [728, _mantle_top_check],
 		[310, _layouts], [314, _exit_hold], [320, _finish],
@@ -3692,6 +3694,75 @@ func _mantle_cancel() -> void:
 	else:
 		r.fail("возврат отменяет перевал: такт унёс тело на %.2f м — обратно на траекторию перевала" % gone)
 
+
+
+## Наши переносы помечают себя на теле — иначе сторож рывка не отличит их от дефекта и потратит на
+## них лимит строк (сессия 24: к 17:52:39 десять строк съели телепорты и перевал). Через настоящий
+## такт locomotion: телепорт и перевал — ноги, присед — origin.
+func _transfer_marks() -> void:
+	if _tp.is_empty():
+		r.fail("наши переносы помечают себя: стенд не собран")
+		return
+	PlayerBody.falsify_unmarked = falsify == "transferdumb"
+	# Свой стенд, в стороне от тел соседних шагов (ловушка 38): у тела стенда `_tp` нет головы.
+	var holder: Node = _tp["holder"]
+	var at := Vector3(60.0, 0.0, -60.0)
+	var body := PlayerBody.new()
+	var m_origin := XROrigin3D.new()
+	var m_head := Node3D.new()
+	holder.add_child(body)
+	body.add_child(m_origin)
+	m_origin.add_child(m_head)
+	m_head.position = Vector3(0, 1.6, 0)
+	body.setup(m_origin, m_head)
+	body.global_position = at
+	body.set_physics_process(false)
+	var loco := LocomotionRes.new()
+	holder.add_child(loco)
+	loco.set_physics_process(false)
+	loco.setup(body, m_origin, m_head, menu, _tp["left"], _tp["left"])
+	var dt := 1.0 / 90.0
+	var bad: Array[String] = []
+	var got: Array[String] = []
+	var seq := body.transfer_seq
+	loco.teleport.start(loco.head.global_position, at + Vector3(2.0, 0.0, -2.0), "blink")
+	for i in 200:
+		if loco.teleport.phase == "":
+			break
+		loco._physics_process(dt)
+	var moved := body.global_position.distance_to(at)
+	# Стенд обязан доказать, что перенос был (ловушка 45): иначе «не помечен» ничего не значит.
+	if moved < 1.0:
+		bad.append("телепорт не перенёс тело (%.2f м) — проверять нечего" % moved)
+	elif body.transfer_seq == seq or body.transfer_label != "телепорт" or body.transfer_parts != ["body"]:
+		bad.append("телепорт на %.1f м: пометка «%s» %s, номер %d → %d" % [moved, body.transfer_label, body.transfer_parts, seq, body.transfer_seq])
+	else:
+		got.append("телепорт %.1f м" % moved)
+	seq = body.transfer_seq
+	loco._mantle = {"from": body.global_position, "to": body.global_position + Vector3(0.0, 1.0, -0.5), "t": 0.0}
+	body.mantling = true
+	loco._physics_process(dt)
+	if body.transfer_seq == seq or body.transfer_label != "перевал" or body.transfer_parts != ["body"]:
+		bad.append("перевал: пометка «%s» %s, номер %d → %d" % [body.transfer_label, body.transfer_parts, seq, body.transfer_seq])
+	else:
+		got.append("перевал")
+	loco.cancel_mantle()
+	body.mantling = false
+	body.global_position = at
+	seq = body.transfer_seq
+	body.set_crouch(0.3)
+	if body.transfer_seq == seq or body.transfer_label != "присед" or body.transfer_parts != ["origin"]:
+		bad.append("присед: пометка «%s» %s, номер %d → %d" % [body.transfer_label, body.transfer_parts, seq, body.transfer_seq])
+	else:
+		got.append("присед")
+	body.set_crouch(0.0)
+	PlayerBody.falsify_unmarked = false
+	loco.queue_free()
+	body.queue_free()
+	if bad.is_empty():
+		r.pass_("наши переносы помечают себя: %s" % ", ".join(got))
+	else:
+		r.fail("наши переносы помечают себя: %s" % "; ".join(bad))
 
 ## Плавный поворот пишется отрезком: строка на начало и строка на конец с суммой. Прежде — строка
 ## на каждый такт выше мёртвой зоны, 90 строк в секунду.

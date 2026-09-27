@@ -130,7 +130,20 @@ var falsify_mantle_eager_floor := false
 var falsify_mantle_solid := false
 ## Сколько человек держится у кромки и где была кисть ведущей руки — для распознавания намерения.
 var _ledge_held := 0.0
-var _hand_y_was := 0.0
+## Высшая точка ведущей кисти (относительно origin) за время у кромки: от неё меряется, на сколько
+## рука потянута вниз (`Mantle.PULL_M`).
+var _hand_top := 0.0
+## Фальсификатор «edgeblind» (tests/smoke_menu.gd): за край крыши не ухватиться — только за бруски.
+var falsify_edge_blind := false
+## Рука ближе этого к зоне кромки, но вне её — строка отказа называет расстояние, м. Сессия 36: пять
+## подъёмов без перевала и без единой строки — рука держала брусок снаружи зоны, и перевал молчал.
+const LEDGE_NEAR_M := 0.6
+## Фальсификатор «flickworld» (tests/smoke_menu.gd): рывок рукой меряется по мировой позиции руки.
+var falsify_flick_world := false
+## Что было у размеченной кромки, пока перевал не начался: лучшие глаза и рывок, время у кромки и
+## последнее несработавшее условие. Уходит в журнал строкой отказа — сессия 35 кончилась тремя
+## подъёмами без перевала, и почему, по журналу было не понять.
+var _ledge_try: Dictionary = {}
 ## Фальсификатор «mantlephys»: физика тела во время перевала не выключается — человека роняет и
 ## тянет обратно к стене (дефект сессии 20).
 var falsify_mantle_phys := false
@@ -164,6 +177,12 @@ func setup(p_body: PlayerBody, p_origin: XROrigin3D, p_head: Node3D, p_menu: Men
 
 func settings_value(id: String) -> Variant:
 	return menu.settings.get_value(id)
+
+
+## Настройки, которые читает перемещение. Одним списком: трасса (`session/trace.gd`) кладёт их в файл,
+## воспроизведение (`tests/replay.gd`) ставит их обратно, — два перечня разошлись бы (PRACTICES §1.8).
+const SETTINGS := ["crouch_m", "move_hand", "move_mode", "move_speed", "move_vignette", "snap_angle",
+		"teleport_range", "teleport_turn", "turn_hand", "turn_mode", "turn_speed"]
 
 
 ## Кто ещё держит ввод, кроме шара: ожидание PIN, замок панели, открытый ввод текста. Возвращает
@@ -239,6 +258,11 @@ var stick_source: Callable = func(who: String) -> Vector2:
 ## отдаёт false, и проверить лазанье через настоящий такт иначе нечем.
 var grip_source: Callable = func(who: String) -> bool:
 	return (left if who == "left" else right).is_button_pressed("grip_click")
+
+## Откуда берутся кнопки (присед — A правой). Отдельным полем по той же причине, что грип и стик:
+## иначе запись приседа нечем воспроизвести на столе (`tests/replay.gd`).
+var button_source: Callable = func(who: String, button: String) -> bool:
+	return (left if who == "left" else right).is_button_pressed(button)
 
 
 ## Стик выбранной руки. Настройка «обе» складывает стики: любой из них ведёт.
@@ -453,7 +477,7 @@ func _do_teleport(aim: Dictionary, mode: String, yaw := NAN) -> void:
 ## а нарочно трудно, и нигде про это не было написано.
 func _crouch() -> void:
 	var depth := float(settings_value("crouch_m"))
-	var down: bool = right.is_button_pressed("ax_button")
+	var down: bool = button_source.call("right", "ax_button")
 	var want := depth if down and depth > 0.0 else 0.0
 	if not is_equal_approx(want, body.crouch):
 		body.set_crouch(want)
@@ -473,6 +497,10 @@ func _climb(dt: float) -> void:
 		# Зацеп ищем только с нажатым грипом: обход группы из 14 брусков на каждую руку каждый такт
 		# шёл и тогда, когда человек просто шёл мимо (сессия 24, цена кадра).
 		var hold_node: Node3D = _climbable_near(ctrl.global_position) if (holding or falsify_climb_every) else null
+		# Край крыши — тоже зацеп: грип в зоне размеченной кромки держит, как брусок. Владелец после
+		# сессии 36: «не очевидно, что можно ухватиться за край крыши».
+		if hold_node == null and holding and not falsify_edge_blind:
+			hold_node = _ledge_at(ctrl.global_position)
 		if holding and not climb.hands.has(hand) and hold_node != null:
 			if not climb.active:
 				_climb_from = body.global_position
@@ -518,26 +546,29 @@ func _try_mantle(dt: float, positions: Dictionary) -> void:
 	var spot := Vector3.ZERO
 	var target := Vector3.ZERO
 	var found := false
+	var marked := false
 	# 1. Размеченная кромка: рука держащей руки внутри зоны.
-	for node in get_tree().get_nodes_in_group("ledge"):
-		var area := node as Area3D
-		if area == null:
+	var near_m := INF
+	var near_area: Area3D = null
+	for hand in climb.hands:
+		if not positions.has(hand):
 			continue
-		var shape := (area.get_child(0) as CollisionShape3D).shape as BoxShape3D
-		var half := shape.size * 0.5
-		var hand_in := false
-		for hand in climb.hands:
-			if not positions.has(hand):
-				continue
-			var local: Vector3 = area.to_local(positions[hand])
-			if absf(local.x) <= half.x and absf(local.y) <= half.y and absf(local.z) <= half.z:
-				hand_in = true
-		if not hand_in:
-			continue
-		spot = area.global_position
-		target = area.get_meta("target", area.global_position)
-		found = true
-		break
+		var area := _ledge_at(positions[hand])
+		if area != null:
+			spot = area.global_position
+			target = area.get_meta("target", area.global_position)
+			found = true
+			marked = true
+			break
+		for node in get_tree().get_nodes_in_group("ledge"):
+			var d := _ledge_distance(node as Area3D, positions[hand])
+			if d < near_m:
+				near_m = d
+				near_area = node as Area3D
+	# Рука у кромки, но вне зоны — в строку отказа, с расстоянием: иначе «не перевалился» молчит.
+	if not found and near_area != null and near_m < LEDGE_NEAR_M:
+		_ledge_note(true, head_pos.y, 0.0, near_area.global_position.y,
+				"рука вне зоны кромки на %.2f м" % near_m)
 	# 2. Без разметки — луч вниз перед головой, как раньше.
 	if not found:
 		var ahead := look
@@ -564,6 +595,7 @@ func _try_mantle(dt: float, positions: Dictionary) -> void:
 				break
 		if hit.is_empty():
 			_ledge_held = 0.0
+			_ledge_refused()
 			return
 		spot = hit["position"]
 		target = Mantle.landing(spot, look)
@@ -575,22 +607,39 @@ func _try_mantle(dt: float, positions: Dictionary) -> void:
 		var ground := _ground_under(target)
 		if is_nan(ground):
 			_ledge_held = 0.0
+			_ledge_note(marked, head_pos.y, 0.0, spot.y, "под точкой приземления нет опоры")
 			return
 		target.y = ground
 	# Площадка должна быть выше НОГ: иначе «перевалом» окажется всё, на что человек смотрит сверху.
 	if target.y - body.global_position.y < MANTLE_RISE_MIN and not falsify_mantle_eager_floor:
 		_ledge_held = 0.0
+		_ledge_note(marked, head_pos.y, 0.0, spot.y, "площадка %.2f не выше ног %.2f на %.1f м" % [
+				target.y, body.global_position.y, MANTLE_RISE_MIN])
 		return
-	# Намерение: копим время у кромки и смотрим на рывок кисти вниз.
+	# Намерение: копим время у кромки и смотрим на рывок кисти вниз. Кисть — ОТНОСИТЕЛЬНО ORIGIN, то
+	# есть так, как её двигает человек: в мире рука висящего стоит на зацепе — лазанье каждый такт
+	# сдвигает тело так, чтобы она туда вернулась, — и мировая скорость руки при любом рывке около
+	# нуля. Так путь «рывок вниз» был мёртв с самого начала (сессия 35).
+	var first := _ledge_held == 0.0
 	_ledge_held += dt
-	var hand_v_y := 0.0
+	var pulled := 0.0
 	if climb.dominant != "" and positions.has(climb.dominant):
-		var now: Vector3 = positions[climb.dominant]
-		hand_v_y = (now.y - float(_hand_y_was)) / maxf(dt, 0.001)
-		_hand_y_was = now.y
-	if not Mantle.intent(head_pos.y, spot.y, hand_v_y, _ledge_held):
+		var now := (positions[climb.dominant] as Vector3).y
+		if not falsify_flick_world:
+			now -= origin.global_position.y
+		_hand_top = now if first else maxf(_hand_top, now)
+		pulled = _hand_top - now
+	var go := Mantle.intent_ledge(head_pos.y, spot.y, pulled, _ledge_held) if marked \
+			else Mantle.intent(head_pos.y, spot.y, pulled, _ledge_held)
+	if not go:
+		# Причина — посчитанная, а не постоянная строка: при подтягивании, которого хватило, отказ
+		# говорит о высоте глаз (так краснел `mantleeyes` — «нет рывка» при рывке −0.96 м/с).
+		var why := "рука потянута вниз на %.2f из %.2f м" % [pulled, Mantle.pull_need()] if pulled < Mantle.pull_need() \
+				else "глаза %.2f не над краем %.2f" % [head_pos.y, spot.y]
+		_ledge_note(marked, head_pos.y, pulled, spot.y, why)
 		return
 	_ledge_held = 0.0
+	_ledge_try.clear()
 	# СШИВКА перед переносом. Пока человек лез, origin копил смещение от компенсации следования за
 	# головой — к верху стены это метры. Обнулять его в конце нельзя: вид скачком уезжает вбок ровно
 	# на накопленное («телепортировало куда-то далеко в сторону», сессия 22). Переносим смещение в
@@ -615,6 +664,51 @@ func _try_mantle(dt: float, positions: Dictionary) -> void:
 	climb.velocity = Vector3.ZERO
 	body.velocity = Vector3.ZERO
 	moved.emit("перевал", "на площадку %.2f м (голова была на %.2f)" % [target.y, head_pos.y])
+
+
+## Запомнить, что было у кромки, — для строки отказа. Только у РАЗМЕЧЕННОЙ: там человек заведомо
+## хочет наверх, а луч без разметки нащупывает что угодно, и строка на каждое касание залила бы журнал.
+func _ledge_note(marked: bool, head_y: float, pulled_m: float, ledge_y: float, why: String) -> void:
+	if not marked:
+		return
+	if _ledge_try.is_empty():
+		_ledge_try = {"eyes": head_y, "pull": pulled_m, "ledge": ledge_y, "why": why}
+	# Причина — того такта, где рука ушла вниз дальше всего: это и есть попытка человека. Последний
+	# такт говорил бы о руке, которая уже остановилась.
+	if pulled_m >= float(_ledge_try["pull"]):
+		_ledge_try["pull"] = pulled_m
+		_ledge_try["why"] = why
+	_ledge_try["eyes"] = maxf(float(_ledge_try["eyes"]), head_y)
+	_ledge_try["held"] = _ledge_held
+
+
+## Человек ушёл от кромки, так и не перевалившись: одна строка в журнал — что было и чего не хватило.
+func _ledge_refused() -> void:
+	if _ledge_try.is_empty():
+		return
+	moved.emit("перевал", "не начат у кромки %.2f: %s; глаза до %.2f, рука вниз до %.2f м (нужно %.2f), у кромки %.1f с" % [
+			float(_ledge_try["ledge"]), _ledge_try["why"], float(_ledge_try["eyes"]), float(_ledge_try["pull"]),
+			Mantle.pull_need(), float(_ledge_try.get("held", 0.0))])
+	_ledge_try.clear()
+
+
+## Зона размеченной кромки, в которой точка, или null. Одна проверка на хват за край и на перевал.
+func _ledge_at(pos: Vector3) -> Area3D:
+	for node in get_tree().get_nodes_in_group("ledge"):
+		if _ledge_distance(node as Area3D, pos) == 0.0:
+			return node as Area3D
+	return null
+
+
+## Расстояние от точки до коробки зоны кромки (0 — внутри), м.
+func _ledge_distance(area: Area3D, pos: Vector3) -> float:
+	if area == null:
+		return INF
+	var half := ((area.get_child(0) as CollisionShape3D).shape as BoxShape3D).size * 0.5
+	var local: Vector3 = area.to_local(pos)
+	var out := Vector3(maxf(absf(local.x) - half.x, 0.0), maxf(absf(local.y) - half.y, 0.0),
+			maxf(absf(local.z) - half.z, 0.0))
+	return out.length()
 
 
 ## Поверхность, на которую встанут ноги в точке `at`: луч сверху вниз, мимо тела и зацепов. NAN —
@@ -663,12 +757,33 @@ func _mantle_tick(dt: float) -> void:
 			head.global_position.y, head.global_position.x, head.global_position.z])
 
 
+## Что сейчас делает тело — одной строкой. Одна функция на всех, кто спрашивает (метка, будущий
+## инструмент «состояние тела»): состояние живёт в нескольких полях, и собранное в двух местах
+## разошлось бы при первой же новой механике.
+func mode() -> String:
+	if not _mantle.is_empty():
+		return "перевал"
+	if teleport.phase != "":
+		return "телепорт (%s)" % teleport.phase
+	if climb.active:
+		return "лазанье (ведёт %s)" % climb.dominant
+	if _suspended:
+		return "заперто"
+	if aiming:
+		return "прицел телепорта"
+	if _walking:
+		return "ходьба"
+	return "стоит"
+
+
 ## Отпустить рукой и, если это был последний хват, записать пройденное.
 func _release_climb(hand: String, why: String) -> void:
 	climb.release(hand)
 	if climb.active:
 		moved.emit("лазанье", "%s %s, ведёт %s" % [why, hand, climb.dominant])
 		return
+	# Последняя рука отпустила — если человек был у кромки и не перевалился, сказать, почему.
+	_ledge_refused()
 	var way := body.global_position - _climb_from
 	moved.emit("лазанье", "%s %s: %.2f м (вверх %.2f) за %.1f с, полёт %.2f м/с" % [
 			why, hand, way.length(), way.y, (Time.get_ticks_msec() - _climb_ms) / 1000.0,

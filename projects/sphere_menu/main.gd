@@ -45,6 +45,8 @@ const Goldberg := preload("res://menu/goldberg.gd")
 const Export := preload("res://session/export.gd")
 const SettingsApply := preload("res://session/settings_apply.gd")
 const PoseWatch := preload("res://locomotion/pose_watch.gd")
+const Marker := preload("res://session/marker.gd")
+const Trace := preload("res://session/trace.gd")
 const LoadingView := preload("res://session/loading_view.gd")
 
 ## Шар над ладонью левого контроллера, в его координатах (поза grip).
@@ -242,6 +244,10 @@ func _ready() -> void:
 		return Locomotion.hold_reason(profile_ui.active(), menu.panel_locked, panel.is_text_open())
 	locomotion.moved.connect(func(kind: String, detail: String):
 		journal.log("перемещение", menu.params(), "", "", -1, "%s: %s" % [kind, detail])
+		# Отказ перевала — с трассой: что делала рука у кромки, воспроизводится на столе.
+		if kind == "перевал" and detail.begins_with("не начат") and _refusal_dumps < TRACE_REFUSAL_DUMPS:
+			_refusal_dumps += 1
+			_dump_trace("отказ перевала %d" % _refusal_dumps)
 		if kind == "перевал":
 			_scenario_event("mantle", {}))
 	# Упал со сцены (сессия 17: за краем площадки можно падать вечно) — возврат в стартовую точку.
@@ -442,7 +448,104 @@ func _take_screenshot() -> void:
 	_scenario_event("screenshot", {"ok": res["ok"]})
 
 
+## Метки (session/marker.gd): сколько поставлено и была ли нажата «≡» в прошлом кадре.
+var _marks := 0
+var _mark_was := false
+## Трасса движений (session/trace.gd): пишется на каждый такт физики, сбрасывается в user://traces.
+var trace: Trace = Trace.new(Engine.physics_ticks_per_second)
+## Сколько трасс сброшено по рывку сторожа: рывки идут СЕРИЯМИ (падение — рывок на каждый кадр), и
+## трасса — одна на серию. Сессия 36: все три сброса ушли на одно падение за одну секунду, и на
+## неудачные подъёмы после него трасс не осталось.
+var _jump_dumps := 0
+var _last_jump_ms := -100000
+const TRACE_JUMP_DUMPS := 3
+## Серия рывков кончилась, если следующий пришёл позже этого, мс.
+const JUMP_SERIES_MS := 3000
+## Трассы на отказ перевала у кромки — ровно те попытки, которых в сессии 36 не хватило.
+var _refusal_dumps := 0
+const TRACE_REFUSAL_DUMPS := 5
+## Сколько файлов трасс держать на шлеме: старые удаляются.
+const TRACE_FILES_KEEP := 20
+## Фальсификатор «tracenone» (tests/boot_main.gd): трасса не сбрасывается.
+static var falsify_trace_none := false
+
+
+## Такт: трасса пишет, ЧТО пришло в этот такт — позы в origin, кнопки, стики — и где были тело и
+## origin ДО него. `main` стоит в дереве раньше тела и перемещения, поэтому его такт идёт первым:
+## воспроизведение ставит ряд k, гоняет тело и перемещение и сверяется с телом ряда k + 1.
+func _physics_process(dt: float) -> void:
+	if player == null or camera == null:
+		return
+	var buttons := {}
+	for pair in [["l", left], ["r", right]]:
+		var c: XRController3D = pair[1]
+		buttons[pair[0] + "grip"] = c.is_button_pressed("grip_click")
+		buttons[pair[0] + "trig"] = c.is_button_pressed("trigger_click")
+		buttons[pair[0] + "ax"] = c.is_button_pressed("ax_button")
+		buttons[pair[0] + "by"] = c.is_button_pressed("by_button")
+	trace.record(dt, camera.transform, left.transform, right.transform, buttons,
+			{"left": left.get_vector2("primary"), "right": right.get_vector2("primary")},
+			player.global_transform, origin.transform, player.transfer_seq, player.is_physics_processing(),
+			locomotion != null and locomotion.is_physics_processing(), player.velocity)
+
+
+## Сбросить трассу в файл. Возвращает путь или «» — его проверяет прибор запуска.
+func _dump_trace(why: String) -> String:
+	if falsify_trace_none or trace.size() == 0:
+		return ""
+	var settings := {}
+	for id in Locomotion.SETTINGS:
+		settings[id] = menu.settings.get_value(id)
+	var meta := {"why": why, "tps": Engine.physics_ticks_per_second, "levels": stream.loaded.keys(),
+			"settings": settings, "eye_height": (player as Object).get("eye_height"),
+			"time": Time.get_datetime_string_from_system()}
+	DirAccess.make_dir_recursive_absolute("user://traces")
+	var stamp := Time.get_datetime_string_from_system().replace(":", "-")
+	var path := "user://traces/%s_%s.tsv" % [stamp, why.replace(" ", "_")]
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	if f == null:
+		journal.log("трасса", menu.params(), "", "нет", -1, "%s: файл не открылся (%s)" % [why, path])
+		return ""
+	f.store_string(trace.to_text(meta))
+	f.close()
+	var files := DirAccess.get_files_at("user://traces")
+	files.sort()
+	for i in maxi(0, files.size() - TRACE_FILES_KEEP):
+		DirAccess.remove_absolute("user://traces/" + files[i])
+	journal.log("трасса", menu.params(), "", "да", -1, "%s: %d рядов → %s" % [why, trace.size(), path.get_file()])
+	return path
+
+
+## Метка: снимок состояния в журнал и logcat, скриншот того же мгновения, вибрация левой руки. Кнопка
+## — «≡» на левом контроллере: она привязана в карте действий и больше ничем не занята (на Quest
+## правая «≡» принадлежит системе). Возвращает строку — её проверяет прибор запуска.
+func _mark() -> String:
+	_marks += 1
+	var held := {}
+	for hand in grab.held:
+		var n: Variant = (grab.held[hand] as Dictionary).get("node", null)
+		held[hand] = (n as Node).name if n != null and is_instance_valid(n) else "?"
+	var flying := {}
+	for hand in _flying:
+		var n: Variant = (_flying[hand] as Dictionary).get("node", null)
+		flying[hand] = (n as Node).name if n != null and is_instance_valid(n) else "?"
+	var snap := Marker.snapshot(camera, origin, player, {"left": left, "right": right},
+			locomotion.mode() if locomotion != null else "—", held, flying,
+			RoomItems.file_at(_zones, camera.global_position))
+	var line := Marker.line(_marks, snap)
+	print(line)
+	journal.log("метка", menu.params(), "", "", -1, line)
+	_dump_trace("метка %d" % _marks)
+	left.trigger_haptic_pulse("haptic", 0.0, 0.6, 0.12, 0.0)
+	_take_screenshot()
+	return line
+
+
 func _process(_delta: float) -> void:
+	var mark_now := left.is_button_pressed("menu_button")
+	if mark_now and not _mark_was:
+		_mark()
+	_mark_was = mark_now
 	floor_grid.follow()
 	if SignFace.due(camera.global_position):
 		SignFace.face_all(get_tree().get_nodes_in_group("sign"), camera.global_position)
@@ -666,8 +769,22 @@ func _unload_frame(dt: float) -> void:
 		# Подвижное содержимое решает `RoomItems.unload_plan` — чистая функция, ту же гоняет прибор.
 		# Занятый предмет не выгружается никогда, ушедший из зоны достаётся улице, оставшийся
 		# запоминается вместе с местом и вернётся при следующем входе.
-		var items := RoomItems.survey(_vis_nodes.get(file, []),
-				_zones.get(file, null) as Area3D, _busy_item)
+		var zone := _zones.get(file, null) as Area3D
+		# Всё, что лежит в зоне дома из ЧУЖИХ наборов (брошенное снаружи), переходит дому до выгрузки:
+		# дом запоминает всё, что в нём, кроме занятого человеком (RoomItems.adopt).
+		var others := {}
+		for other in _vis_nodes:
+			if other != file:
+				others[other] = RoomItems.survey(_vis_nodes[other], zone, _busy_item)
+		for a in rooms.adopt(file, others):
+			for it in others[a["from"]]:
+				if str((it as Dictionary)["uuid"]) == str(a["uuid"]):
+					stream.detach(str(a["from"]), (it as Dictionary)["node"])
+					stream.attach(file, (it as Dictionary)["node"])
+			_move_entry(str(a["uuid"]), str(a["from"]), file)
+			journal.log("предмет", menu.params(), "", "", -1, "%s остался в доме: %s → %s" % [
+					a["uuid"], str(a["from"]).get_file(), file.get_file()])
+		var items := RoomItems.survey(_vis_nodes.get(file, []), zone, _busy_item)
 		var plan := rooms.unload_plan(file, _main_path, items)
 		var spared := {}
 		for uuid in plan["keep"]:
@@ -872,6 +989,8 @@ func _place_at_spawn(why: String) -> void:
 func respawn(why: String) -> void:
 	if spawn_xf == Transform3D():
 		return
+	# Трасса — ДО переноса: нужно то, что к возврату привело (падение, провал), а не сам возврат.
+	_dump_trace("возврат")
 	var was := camera.global_position.y
 	# Приседание — ДО посадки: иначе тело «помнит» его и держит взгляд ниже (сессия 23), а снятое
 	# после посадки подняло бы origin над уже выставленной высотой.
@@ -963,6 +1082,11 @@ func _watch_jump() -> void:
 				", перецентровка в этом кадре" if _recentered else ""]
 		print(line)
 		journal.log("перемещение", menu.params(), "", "", -1, line)
+		var now_ms := Time.get_ticks_msec()
+		if _jump_dumps < TRACE_JUMP_DUMPS and now_ms - _last_jump_ms > JUMP_SERIES_MS:
+			_jump_dumps += 1
+			_dump_trace("рывок %d" % _pose_watch.jumps)
+		_last_jump_ms = now_ms
 	_recentered = false
 
 

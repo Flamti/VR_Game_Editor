@@ -28,7 +28,11 @@ extends SceneTree
 ##   --falsify=transferdumb переносы не помечают себя (`PlayerBody.mark_transfer`) — краснеет только
 ##                        «сторож рывка молчит на старте»: подъём зоны без пола снова назван рывком;
 ##   --falsify=roomamnesia выгрузка не пишет память комнаты — краснеет только «комната помнит
-##                        оставленное»: занесённого куба нет, переставленный вернулся на полку.
+##                        оставленное»: занесённого куба нет, переставленный вернулся на полку;
+##   --falsify=roomforeign дом не забирает брошенное снаружи — краснеет только «комната помнит
+##                        оставленное»: брошенный куб остаётся стоять, когда дом выгружен;
+##   --falsify=markblind  метка пишет строку без позы — краснеет только «метка пишет снимок»;
+##   --falsify=tracenone  трасса не сбрасывается — краснеет только «метка сбрасывает трассу».
 ##
 ## Контрольный случай — нарочная ошибка скрипта в самом приборе: она обязана попасть в журнал при
 ## любом состоянии `main.gd`. Не попала — слеп прибор, а не исправен код (PRACTICES §1.5).
@@ -41,7 +45,7 @@ const FRAMES := 300
 const CHECKS := ["прибор видит ошибки скрипта", "основная сцена поднялась со своим скриптом",
 		"основная сцена без ошибок скрипта", "экран загрузки закрывает мир до старта",
 		"старт: голова над точкой, тело на полу", "сторож рывка молчит на старте",
-		"комната помнит оставленное"]
+		"комната помнит оставленное", "метка пишет снимок", "метка сбрасывает трассу"]
 ## Где человек стоит в своей комнате относительно origin в момент старта: в стороне и с поворотом.
 ## На столе XRCamera3D никто не двигает, и без этого голова была бы над точкой и без правки (§2.5).
 const ROOM_HEAD := Vector3(0.7, 1.6, -0.4)
@@ -83,12 +87,17 @@ var _main: Node = null
 var _before := 0
 var _done := false
 var _early: Dictionary = {}
+## Когда прибор стартовал: файл трассы засчитывается, только если он записан в ЭТОМ прогоне — иначе
+## старый файл с тем же именем делал проверку зелёной и без сброса (фальсификатор `tracenone` был
+## зелёным, 2026-09-27).
+var _started_unix := 0
 const LoadingViewRes := preload("res://session/loading_view.gd")
 
 
 func _init() -> void:
 	# Как можно раньше: ошибка разбора случается при загрузке сцены, и журнал должен уже слушать.
 	OS.add_logger(catch)
+	_started_unix = int(Time.get_unix_time_from_system())
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--falsify="):
 			falsify = a.get_slice("=", 1)
@@ -141,6 +150,10 @@ func _boot() -> void:
 		(script as GDScript).set("falsify_spawn_head", falsify == "spawnhead")
 	(load("res://locomotion/player_body.gd") as GDScript).set("falsify_unmarked", falsify == "transferdumb")
 	(load("res://world/room_items.gd") as GDScript).set("falsify_amnesia", falsify == "roomamnesia")
+	(load("res://world/room_items.gd") as GDScript).set("falsify_foreign", falsify == "roomforeign")
+	(load("res://session/marker.gd") as GDScript).set("falsify_blind", falsify == "markblind")
+	if script != null:
+		(script as GDScript).set("falsify_trace_none", falsify == "tracenone")
 	_main = packed.instantiate()
 	root.add_child(_main)
 	# Старт ждёт такта физики — голова ставится в комнате до него.
@@ -258,12 +271,16 @@ func _watch_check() -> void:
 ## месте, ни один uuid не построен дважды, остальные кубы дома целы. Шаги разнесены по кадрам:
 ## `queue_free` освобождает узел в конце кадра (ловушка 26 о том же).
 const ROOM_STEPS := {150: "_room_enter", 152: "_room_leave", 154: "_room_unload",
-		156: "_room_back", 158: "_room_check"}
+		156: "_room_back", 158: "_room_check", 170: "_mark_check"}
 const ROOM_FILE := "res://world/levels/start_interior.json"
 ## Уличный куб и куб дома из данных уровня, и куда их кладут — внутри ящика зоны `home_enter`.
 const STREET_CUBE := "grab0"
 const ROOM_CUBE := "in_box00"
 const STREET_CUBE_AT := Vector3(-7.5, 0.3, -6.8)
+## Брошенный снаружи: уличный куб, влетевший в дом БЕЗ «положили» (`_settle` не звали) — владелец
+## после сессии 36: такой дом не выгружал и не запоминал.
+const THROWN_CUBE := "grab1"
+const THROWN_AT := Vector3(-8.2, 0.3, -5.2)
 const ROOM_CUBE_AT := Vector3(-6.0, 0.3, -4.8)
 var _room: Dictionary = {}
 
@@ -296,8 +313,9 @@ func _room_enter() -> void:
 	zone.body_entered.emit(_main.get("player"))
 	var street := _live(STREET_CUBE)
 	var own := _live(ROOM_CUBE)
+	var thrown := _live(THROWN_CUBE)
 	# Стенд обязан доказать, что видит искомое (ловушка 45): комната построилась, кубы есть.
-	if street.size() != 1 or own.size() != 1:
+	if street.size() != 1 or own.size() != 1 or thrown.size() != 1:
 		_room = {"error": "после входа уличных «%s» %d, кубов дома «%s» %d" % [STREET_CUBE, street.size(), ROOM_CUBE, own.size()]}
 		return
 	var cubes := 0
@@ -310,6 +328,9 @@ func _room_enter() -> void:
 		rb.freeze = true
 		rb.global_position = pair[1]
 		_main.call("_settle", rb)
+	# Брошенный: место есть, «положили» — нет. Как куб, отпущенный на улице и долетевший до дома.
+	(thrown[0] as RigidBody3D).freeze = true
+	thrown[0].global_position = THROWN_AT
 	var rooms: Object = _main.get("rooms")
 	_room = {"cubes": cubes, "owner": str(rooms.call("owner_of", STREET_CUBE))}
 
@@ -320,6 +341,7 @@ func _room_leave() -> void:
 	# Где лежат в миг выгрузки — локально, как их запомнит комната и построит загрузчик.
 	_room["street_pos"] = _live(STREET_CUBE)[0].position
 	_room["own_pos"] = _live(ROOM_CUBE)[0].position
+	_room["thrown_pos"] = _live(THROWN_CUBE)[0].position
 	_room_zone().body_exited.emit(_main.get("player"))
 	# Отсчёт выгрузки идёт временем кадра; ждать его настоящими секундами прибору незачем — тот же
 	# `_unload_frame` с шагом больше задержки.
@@ -330,6 +352,7 @@ func _room_unload() -> void:
 	if _room.has("error"):
 		return
 	_room["gone"] = _live(STREET_CUBE).size() == 0 and _live(ROOM_CUBE).size() == 0
+	_room["thrown_gone"] = _live(THROWN_CUBE).size() == 0
 	_room["loaded_after_exit"] = (_main.get("stream") as Object).call("is_loaded", ROOM_FILE)
 
 
@@ -342,6 +365,8 @@ func _room_back() -> void:
 	var own := _live(ROOM_CUBE)
 	_room["street_back"] = street[0].position if street.size() == 1 else null
 	_room["own_back"] = own[0].position if own.size() == 1 else null
+	var thrown := _live(THROWN_CUBE)
+	_room["thrown_back"] = thrown[0].position if thrown.size() == 1 else null
 
 
 func _room_check() -> void:
@@ -356,8 +381,11 @@ func _room_check() -> void:
 		bad.append("положенный в доме уличный куб достался «%s», а не дому" % str(_room["owner"]).get_file())
 	if not bool(_room["gone"]) or bool(_room["loaded_after_exit"]):
 		bad.append("дом не выгрузился (кубы ушли %s, файл загружен %s)" % [_room["gone"], _room["loaded_after_exit"]])
+	if not bool(_room["thrown_gone"]):
+		bad.append("брошенный снаружи «%s» остался стоять, когда дом выгрузился" % THROWN_CUBE)
 	for c in [["занесённый «%s»" % STREET_CUBE, "street_back", "street_pos", STREET_CUBE],
-			["переставленный «%s»" % ROOM_CUBE, "own_back", "own_pos", ROOM_CUBE]]:
+			["переставленный «%s»" % ROOM_CUBE, "own_back", "own_pos", ROOM_CUBE],
+			["брошенный снаружи «%s»" % THROWN_CUBE, "thrown_back", "thrown_pos", THROWN_CUBE]]:
 		var back: Variant = _room[c[1]]
 		var want: Vector3 = _room[c[2]]
 		var live := _live(c[3]).size()
@@ -372,12 +400,80 @@ func _room_check() -> void:
 		var n: Node = (e as Dictionary).get("node", null)
 		if n != null and is_instance_valid(n) and not n.is_queued_for_deletion() and n.is_in_group("grab"):
 			cubes += 1
-	# Своих кубов дома было N, занесён один: стало N + 1.
-	if cubes != int(_room["cubes"]) + 1:
-		bad.append("кубов в доме %d, было %d и занесён один" % [cubes, _room["cubes"]])
+	# Своих кубов дома было N, занесён один и брошен один: стало N + 2.
+	if cubes != int(_room["cubes"]) + 2:
+		bad.append("кубов в доме %d, было %d, занесён и брошен по одному" % [cubes, _room["cubes"]])
 	if bad.is_empty():
-		r.pass_("комната помнит оставленное: занесённый «%s» и переставленный «%s» вернулись на свои места (%s, %s), по одному экземпляру; кубов в доме %d" % [
-				STREET_CUBE, ROOM_CUBE, (_room["street_pos"] as Vector3).snappedf(0.01),
-				(_room["own_pos"] as Vector3).snappedf(0.01), cubes])
+		r.pass_("комната помнит оставленное: занесённый «%s», переставленный «%s» и брошенный снаружи «%s» вернулись на свои места (%s, %s, %s), по одному экземпляру; кубов в доме %d" % [
+				STREET_CUBE, ROOM_CUBE, THROWN_CUBE, (_room["street_pos"] as Vector3).snappedf(0.01),
+				(_room["own_pos"] as Vector3).snappedf(0.01), (_room["thrown_pos"] as Vector3).snappedf(0.01), cubes])
 	else:
 		r.fail("комната помнит оставленное: %s" % "; ".join(bad))
+
+
+## Метка пишет снимок — через настоящий обработчик кнопки «≡» в `main.gd`.
+##
+## Владелец говорит «предмет ловится рядом, потом уплывает» — без времени, позы и картинки
+## (сессия 35). Метка — одно нажатие в шлеме: в журнал строка со снимком состояния. Свидетель — узлы
+## сцены: числа в строке обязаны совпасть с позой камеры и контроллеров, а номер — расти.
+func _mark_check() -> void:
+	if _main == null or _main.get_script() == null:
+		r.fail("метка пишет снимок: сцена не поднялась")
+		return
+	var cam: Node3D = _main.get("camera")
+	var right: Node3D = _main.get("right")
+	right.position = Vector3(0.25, 1.1, -0.3)
+	var l1 := str(_main.call("_mark"))
+	var l2 := str(_main.call("_mark"))
+	var bad: Array[String] = []
+	var head := "%.2f, %.2f, %.2f" % [cam.global_position.x, cam.global_position.y, cam.global_position.z]
+	var hand := "%.2f, %.2f, %.2f" % [right.position.x, right.position.y, right.position.z]
+	if not l1.begins_with("МЕТКА 1") or not l2.begins_with("МЕТКА 2"):
+		bad.append("номера: «%s», «%s»" % [l1.left(12), l2.left(12)])
+	if not l1.contains(head):
+		bad.append("нет позы головы (%s)" % head)
+	if not l1.contains(hand):
+		bad.append("нет правой кисти в origin (%s)" % hand)
+	for field in ["режим ", "ноги ", "origin ", "держит ", "комната "]:
+		if not l1.contains(field):
+			bad.append("нет поля «%s»" % field.strip_edges())
+	if bad.is_empty():
+		r.pass_("метка пишет снимок: «%s»" % l1)
+	else:
+		r.fail("метка пишет снимок: %s — строка «%s»" % ["; ".join(bad), l1])
+	_trace_file_check()
+
+
+## Метка сбрасывает трассу: файл в user://traces, разбирается, причина — эта метка, ряды есть, и
+## последний ряд говорит о том же теле, что стоит в сцене. Иначе воспроизводить на столе нечего.
+func _trace_file_check() -> void:
+	var files := DirAccess.get_files_at("user://traces")
+	files.sort()
+	var newest := ""
+	for f in files:
+		if f.contains("метка_2") and FileAccess.get_modified_time("user://traces/" + f) >= _started_unix:
+			newest = f
+	if newest == "":
+		r.fail("метка сбрасывает трассу: файла метки 2, записанного в этом прогоне, нет в user://traces (%d файлов)" % files.size())
+		return
+	var parsed: Dictionary = (load("res://session/trace.gd") as GDScript).call("parse",
+			FileAccess.get_file_as_string("user://traces/" + newest))
+	var bad: Array[String] = []
+	var rows: Array = parsed.get("rows", [])
+	var meta: Dictionary = parsed.get("meta", {})
+	if not parsed.get("ok", false):
+		bad.append("не разбирается: %s" % parsed.get("error", ""))
+	if rows.size() < 5:
+		bad.append("рядов %d" % rows.size())
+	if str(meta.get("why", "")) != "метка 2":
+		bad.append("причина «%s»" % meta.get("why", ""))
+	if not str(meta.get("levels", [])).contains("start_location.json"):
+		bad.append("в метаданных нет уровня: %s" % meta.get("levels", []))
+	var player: Node3D = _main.get("player")
+	if not rows.is_empty() and absf(float((rows.back() as Dictionary)["by"]) - player.global_position.y) > 0.05:
+		bad.append("последний ряд: тело y %.3f, в сцене %.3f" % [float((rows.back() as Dictionary)["by"]), player.global_position.y])
+	if bad.is_empty():
+		r.pass_("метка сбрасывает трассу: %s — %d рядов, уровни %s, настроек %d" % [newest, rows.size(),
+				meta.get("levels", []), (meta.get("settings", {}) as Dictionary).size()])
+	else:
+		r.fail("метка сбрасывает трассу: %s" % "; ".join(bad))

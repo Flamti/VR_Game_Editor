@@ -35,6 +35,9 @@ var falsify_shelf_back := false
 ## возврате строится из данных, как до 2026-09-23: занесённого предмета нет, переставленный стоит на
 ## исходном месте.
 static var falsify_amnesia := false
+## Фальсификатор «roomforeign» (tests/run_tests.gd, tests/boot_main.gd): дом не забирает то, что
+## влетело в него снаружи, — как до 2026-09-27.
+static var falsify_foreign := false
 ## Фальсификатор «edgeout»: точка ровно на грани зоны считается снаружи.
 static var falsify_edge_out := false
 ## Фальсификатор «handdrops»: обход не считает занятым ничего — предмет выгружается прямо из руки
@@ -162,6 +165,28 @@ func unload_plan(file: String, main_file: String, items: Array) -> Dictionary:
 	# которых в комнате давно нет.
 	memory[_bucket(file)] = {} if falsify_amnesia else kept
 	return {"keep": keep, "free": free_list}
+
+
+## Что из ЧУЖИХ файлов дом забирает при выгрузке: всё, что лежит в его зоне, кроме занятого человеком
+## (в руке или в полёте к руке). Владелец после сессии 36: «интерьер должен запоминать все объекты в
+## интерьере на момент выгрузки; объект в руках пользователя не засчитывается».
+##
+## Прежде владелец менялся только тем, что предмет ПОЛОЖИЛИ (`settle`): брошенный снаружи куб
+## отпускался на улице, оставался уличным и, влетев в дом, с ним не выгружался и не запоминался.
+## Теперь решает геометрия в миг выгрузки. `others` — {файл → обход `survey` его предметов}.
+## Возвращает [{uuid, from}] — кого перенести в набор дома перед выгрузкой.
+func adopt(file: String, others: Dictionary) -> Array:
+	var out: Array = []
+	if falsify_foreign:
+		return out
+	for from in others:
+		if str(from) == file:
+			continue
+		for it in others[from]:
+			var rec: Dictionary = it
+			if bool(rec.get("inside", false)) and not bool(rec.get("busy", false)):
+				out.append({"uuid": str(rec.get("uuid", "")), "from": str(from)})
+	return out
 
 
 ## Точка внутри коробки зоны. Чистая арифметика на значениях: узел вне дерева сцены отдаёт мировое

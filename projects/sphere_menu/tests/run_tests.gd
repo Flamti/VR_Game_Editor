@@ -126,6 +126,8 @@ extends SceneTree
 ##                        уровня по одному»;
 ##   --falsify=roomkeeps  вынесенный предмет остаётся за комнатой — краснеет только «вынесенное
 ##                        уходит из комнаты»;
+##   --falsify=roomforeign дом не забирает влетевшее снаружи — краснеет только «дом забирает всё, что
+##                        внутри при выгрузке» (и шаг памяти дома в tests/boot_main.gd);
 ##   --falsify=roomlost   принесённый в комнату предмет ей не достаётся и с ней не уходит —
 ##                        краснеет только «принесённое достаётся комнате»;
 ##   --falsify=onebucket  у комнат один общий набор на всех — краснеет только «у каждой комнаты
@@ -151,7 +153,11 @@ extends SceneTree
 ##                        скачок origin потерян) и половина «возврат объяснён» в «наш перенос не
 ##                        прячет чужое слагаемое»: старое поведение не объясняло ничего;
 ##   --falsify=watchcover наш перенос объясняет любой скачок — краснеет только «наш перенос не
-##                        прячет чужое слагаемое».
+##                        прячет чужое слагаемое»;
+##   --falsify=tracelossy трасса пишет числа с двумя знаками — краснеет только «трасса пишется и
+##                        читается без потерь»;
+##   --falsify=tracering  кольцо трассы читается с нулевой ячейки — краснеет только «трасса пишется и
+##                        читается без потерь» (последний ряд — не последний записанный).
 
 const Report := preload("res://probe_report.gd")
 const Goldberg := preload("res://menu/goldberg.gd")
@@ -218,16 +224,18 @@ const GrabRes := preload("res://world/grab.gd")
 const RoomItemsRes := preload("res://world/room_items.gd")
 const FloorGridRes := preload("res://world/floor_grid.gd")
 const PoseWatchRes := preload("res://locomotion/pose_watch.gd")
+const TraceRes := preload("res://session/trace.gd")
 ## Этап Ф3, часть 2: перемещение и уровень.
 const MOVE_CHECKS := ["дуга телепорта", "перенос и рывок", "повороты", "непрерывное движение",
 		"виньетка", "лазанье", "разбор уровня", "подсказка в мире",
 		"подгрузка и выгрузка по зоне", "узлы части уровня по одному",
-		"вынесенное уходит из комнаты", "принесённое достаётся комнате",
+		"вынесенное уходит из комнаты", "принесённое достаётся комнате", "дом забирает всё, что внутри при выгрузке",
 		"у каждой комнаты свой набор", "граница зоны принадлежит комнате",
 		"вынесенный не строится заново", "комната помнит место и поворот",
 		"рука не держит исчезнувший узел", "сетка не копланарна полу уровня",
 		"группа табличек не собирается без сдвига головы", "сторож рывка называет виновника",
 		"сторож не тратит лимит на наши переносы", "наш перенос не прячет чужое слагаемое",
+		"трасса пишется и читается без потерь",
 		"подсказка смотрит на человека",
 		"призыв предмета", "курс при телепорте", "присед и виньетка по ускорению",
 		"перевал через край", "кромка в данных", "столкновения возвращаются сами",
@@ -3431,6 +3439,22 @@ func _room_items_checks(street: String, room: String) -> void:
 	else:
 		r.fail("принесённое достаётся комнате: %s" % "; ".join(in_bad))
 
+	# 2б. Дом забирает при выгрузке ВСЁ, что лежит в его зоне, откуда бы оно ни пришло, — кроме
+	# занятого человеком (владелец после сессии 36). Брошенный снаружи куб отпущен на улице и её, а
+	# лежит в доме; держимый на пороге — в руке, а не в доме; лежащий снаружи — улицы.
+	RoomItemsRes.falsify_foreign = falsify == "roomforeign"
+	var adopted := rooms.adopt(room, {street: [
+			{"uuid": "thrown", "inside": true, "busy": false},
+			{"uuid": "in_hand", "inside": true, "busy": true},
+			{"uuid": "outside", "inside": false, "busy": false}],
+		room: [{"uuid": "own", "inside": true, "busy": false}]})
+	RoomItemsRes.falsify_foreign = false
+	var ids := adopted.map(func(a: Dictionary) -> String: return "%s←%s" % [a["uuid"], str(a["from"]).get_file()])
+	if ids == ["thrown←%s" % street.get_file()]:
+		r.pass_("дом забирает всё, что внутри при выгрузке: брошенный снаружи — дому; в руке и снаружи — нет; свои не трогает")
+	else:
+		r.fail("дом забирает всё, что внутри при выгрузке: забрал %s, ждали только брошенный с улицы" % [ids])
+
 	# 3. У каждой комнаты свой набор: оставленное в одной не всплывает в другой.
 	var second := "res://world/levels/второй_дом.json"
 	var mine_bad: Array[String] = []
@@ -3901,14 +3925,14 @@ func _mantle_check() -> void:
 		bad.append("берёт площадку ВЫШЕ головы")
 	if MantleRes.fits(3.5, 3.0, Vector3(0.8, 0.6, 0).normalized()):
 		bad.append("берёт наклонную поверхность")
-	# Намерение: высота обязательна, а дальше — рывок ИЛИ удержание.
+	# Намерение: высота обязательна, а дальше — рука потянута вниз ИЛИ удержание.
 	var above := 3.4 + MantleRes.HEAD_ABOVE_M + 0.02
-	if MantleRes.intent(3.40, 3.4, -1.0, 1.0):
+	if MantleRes.intent(3.40, 3.4, 1.0, 1.0):
 		bad.append("перевал начинается, когда глаза на уровне кромки")
-	if MantleRes.intent(above, 3.4, 0.0, MantleRes.INTENT_HOLD_S * 0.5):
-		bad.append("перевал начинается без рывка и без удержания")
-	if not MantleRes.intent(above, 3.4, -MantleRes.FLICK_DOWN_MS * 1.5, 0.0):
-		bad.append("рывок рукой вниз не запускает перевал")
+	if MantleRes.intent(above, 3.4, MantleRes.PULL_M * 0.5, MantleRes.INTENT_HOLD_S * 0.5):
+		bad.append("перевал начинается без подтягивания и без удержания")
+	if not MantleRes.intent(above, 3.4, MantleRes.PULL_M * 1.5, 0.0):
+		bad.append("рука, потянутая вниз, не запускает перевал")
 	if not MantleRes.intent(above, 3.4, 0.0, MantleRes.INTENT_HOLD_S + 0.01):
 		bad.append("удержание у кромки не запускает перевал")
 	# Траектория: строго линейно и в два этапа. Ускорение камеры в VR запрещено (схема владельца).
@@ -4513,6 +4537,7 @@ func _pose_watch_check() -> void:
 		bad.append("дыхание 5 см названо рывком")
 	PoseWatchRes.falsify_blind_origin = false
 	_pose_watch_ours_check()
+	_trace_check()
 	if bad.is_empty():
 		r.pass_("сторож рывка называет виновника: origin, камера в origin и ноги различены; 5 см — не рывок")
 	else:
@@ -4560,3 +4585,52 @@ func _pose_watch_ours_check() -> void:
 		r.pass_("наш перенос не прячет чужое слагаемое: «%s»; возврат (ноги и origin) объяснён целиком" % mixed)
 	else:
 		r.fail("наш перенос не прячет чужое слагаемое: телепорт со скачком origin — «%s»; возврат — «%s»" % [mixed, home])
+
+
+## Трасса пишется и читается без потерь: воспроизведение на столе годится, только если поза из файла
+## та же, что записана, — до десятой доли миллиметра. И буфер держит последние KEEP_S секунд, а не
+## первые: сбрасывается он в миг метки, и нужен момент ДО неё.
+func _trace_check() -> void:
+	TraceRes.falsify_lossy = falsify == "tracelossy"
+	TraceRes.falsify_ring = falsify == "tracering"
+	var tr := TraceRes.new(60)
+	var dt := 1.0 / 60.0
+	var n := int(TraceRes.KEEP_S * 60) + 100
+	for i in n:
+		var k := float(i)
+		var head := Transform3D(Basis(Vector3.UP, 0.001 * k), Vector3(0.1234567, 1.6 + 0.0001 * k, -0.2))
+		var hand := Transform3D(Basis(Vector3.RIGHT, 0.3), Vector3(0.25, 1.0 - 0.00037 * k, -0.3))
+		tr.record(dt, head, hand, hand, {"rgrip": i % 2 == 0}, {"left": Vector2(0.5, -0.25)},
+				Transform3D(Basis(Vector3.UP, 1.0), Vector3(3.0, 0.123456, -28.0)),
+				Transform3D(Basis(Vector3.UP, 0.5), Vector3(0.01, 0.0, -0.02)))
+	var parsed := TraceRes.parse(tr.to_text({"why": "проверка", "tps": 60}))
+	TraceRes.falsify_lossy = false
+	TraceRes.falsify_ring = false
+	var bad: Array[String] = []
+	if not parsed["ok"]:
+		bad.append("не разобралась: %s" % parsed["error"])
+	else:
+		var rows: Array = parsed["rows"]
+		if rows.size() != tr.size() or rows.size() != int(TraceRes.KEEP_S * 60):
+			bad.append("рядов %d, в буфере %d, ждали %d" % [rows.size(), tr.size(), int(TraceRes.KEEP_S * 60)])
+		if not rows.is_empty():
+			# Последний ряд — последний записанный (i = n − 1), а не первый.
+			var last: Dictionary = rows.back()
+			var want_hy := 1.6 + 0.0001 * float(n - 1)
+			var got_head := TraceRes.xf(last, "h")
+			# Допуск — полтакта: ошибка порядка в буфере сдвигает на сотни тактов, а округление — нет.
+			if absf(float(last["t"]) - dt * float(n)) > dt * 0.5:
+				bad.append("время последнего ряда %.5f вместо %.5f — буфер держит не последние" % [float(last["t"]), dt * float(n)])
+			if absf(got_head.origin.y - want_hy) > 1e-4 or absf(got_head.origin.x - 0.1234567) > 1e-4:
+				bad.append("голова %s вместо (0.12346, %.5f)" % [got_head.origin, want_hy])
+			if absf(float(last["by"]) - 0.123456) > 1e-4 or absf(float(last["byaw"]) - rad_to_deg(1.0)) > 1e-3:
+				bad.append("тело y %.5f курс %.3f" % [float(last["by"]), float(last["byaw"])])
+			if float(last["rgrip"]) != float((n - 1) % 2 == 0) or absf(float(last["lsy"]) + 0.25) > 1e-6:
+				bad.append("кнопки и стик: грип %s, стик %s" % [last["rgrip"], last["lsy"]])
+			if str((parsed["meta"] as Dictionary).get("why", "")) != "проверка":
+				bad.append("метаданные потерялись")
+	if bad.is_empty():
+		r.pass_("трасса пишется и читается без потерь: %d рядов (последние %.0f с), поза до 0.1 мм, кнопки и стики на месте" % [
+				(parsed["rows"] as Array).size(), TraceRes.KEEP_S])
+	else:
+		r.fail("трасса пишется и читается без потерь: %s" % "; ".join(bad))

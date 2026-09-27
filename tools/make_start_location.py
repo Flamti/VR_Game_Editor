@@ -251,11 +251,19 @@ for i in range(n_holds):
                      tags=["climb"], groups=["зацепы"], mounted_on="hclimb_face"))
 sign("sign_climb", [wall_face_x + out_x * 0.7, CLIMB_TOP + 0.5, wall_z],
      "Стена %.1f м — грип у бруска, перехват руками" % CLIMB_TOP)
-# Кромка перевала: зона у карниза, точка приземления — на крыше, в полуметре от края.
+# Кромка перевала: зона у карниза, точка приземления — на крыше, в полуметре от края. Зона — это и
+# место, где «рука у края» запускает перевал, и сам край как зацеп (locomotion.gd:_ledge_at).
+# По высоте — ДВА верхних бруска с запасом 15 см («последняя секция», владелец после сессии 36).
+# Наружу от стены — на LEDGE_OUT: контроллер, держащий брусок снаружи стены, стоит в 5–20 см от неё,
+# а прежняя зона кончалась в 0.2 м от стены, и в сессии 36 пять подъёмов прошли мимо неё без единой
+# строки отказа. Вглубь крыши — на LEDGE_IN. Центр по высоте — высота края, её не трогаем.
+LEDGE_OUT, LEDGE_IN = 0.35, 0.6
 _in = h_climb["sx"]          # к дому: у левого ряда это −X
+_section_y = 0.55 + (n_holds - 2) * step_y
+_ledge_h = round(2.0 * (h_climb["roof_y"] - (_section_y - 0.15)), 3)
 add(uuid="ledge_roof", type="ledge",
-    pos=[round(wall_face_x + _in * 0.2, 3), round(h_climb["roof_y"], 3), round(wall_z, 3)],
-    size=[0.8, 0.5, 2.4],
+    pos=[round(wall_face_x + _in * (LEDGE_IN - LEDGE_OUT) / 2.0, 3), round(h_climb["roof_y"], 3), round(wall_z, 3)],
+    size=[LEDGE_IN + LEDGE_OUT, _ledge_h, 2.4],
     target=[round(wall_face_x + _in * 1.0, 3), round(h_climb["roof_y"], 3), round(wall_z, 3)],
     layer="editor", groups=["кромки"])
 sign("sign_roof", [wall_face_x + _in * 1.2, h_climb["roof_y"] + 1.0, wall_z],

@@ -1,0 +1,39 @@
+# unix_время	событие	поверхность	радиус_см	ячейка_см	ячейка_факт_см	уровень_глобуса	вращение_рукой	папка	задание	попадание	мс_от_задания	подробности
+# сессия 2026-09-19T15:55:02
+1789815302.246	сессия_openxr	globe	8.0	4.0	4.17	2	face					session_begun кадр 0
+1789815302.568	сессия_openxr	globe	8.0	4.0	4.17	2	face					session_visible кадр 1
+1789815302.569	сессия_openxr	globe	8.0	4.0	4.17	2	face					session_focussed кадр 1
+1789815303.848	источник	globe	8.0	4.0	4.17	2	face					hands: профиль левой | { "profile": { "left": "/interaction_profiles/ext/hand_interaction_ext", "right": "/interaction_profiles/ext/hand_interaction_ext" }, "ctrl_pose": { "left": true, "right": true }, "ctrl_in": { "left": true, "right": true }, "hand_ok": { "left": true, "right": true }, "hand_src": { "left": 0, "right": 0 }, "conflicts": 0, "mode": "auto" }
+1789815304.132	folder	globe	20.0	1.5	3.52	13	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815304.133	toggle	globe	20.0	1.5	3.52	13	face					{ "open": true }
+1789815304.879	рука_drag	globe	20.0	1.5	3.52	13	face					{ "key": "361", "travel_cm": 5.11, "ms": 268 }
+1789815307.392	toggle	globe	20.0	1.5	3.52	13	face					{ "open": false }
+1789815307.392	рука_fist	globe	20.0	1.5	3.52	13	face					{ "open": false }
+1789815308.504	folder	globe	20.0	15.0	15.07	1	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815308.505	toggle	globe	20.0	15.0	15.07	1	face					{ "open": true }
+1789815308.505	рука_fist	globe	20.0	15.0	15.07	1	face					{ "open": true }
+1789815312.994	folder	lens	20.0	1.5	1.5	13	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815317.504	folder	globe_hex	20.0	1.5	3.52	13	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815322.102	folder	octa	20.0	1.5	3.65	21	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815326.687	folder	rings	20.0	1.5	3.29	16	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815331.294	folder	fib	20.0	1.5	3.47	27	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815335.855	folder	fib	8.0	1.5	1.49	26	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815335.855	настройка_значение	fib	8.0	1.5	1.49	26	face					radius_cm=8.0
+1789815335.876	folder	fib	17.5	1.5	3.04	27	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815335.877	настройка_значение	fib	17.5	1.5	3.04	27	face					radius_cm=17.5
+1789815335.891	folder	fib	20.0	1.5	3.47	27	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815335.961	folder	globe	20.0	1.5	3.52	13	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815371.208	folder	globe	20.0	1.5	3.52	13	face	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789815371.208	intent	globe	20.0	1.5	3.52	13	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789815371.220	folder	globe	20.0	1.5	3.52	13	face	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789815371.221	intent	globe	20.0	1.5	3.52	13	face	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789815375.739	folder	lens	20.0	1.5	1.5	13	face	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789815375.741	folder	lens	20.0	1.5	1.5	13	face	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789815375.741	intent	lens	20.0	1.5	1.5	13	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789815375.742	folder	lens	20.0	1.5	1.5	13	face					{ "folder": "", "view": "browse", "items": 6, "total": 6, "page": 1, "pages": 1 }
+1789815375.742	intent	lens	20.0	1.5	1.5	13	face					{ "do": "reload", "view": "browse", "folder": "" }
+1789815375.743	folder	lens	20.0	1.5	1.5	13	face	files				{ "folder": "files", "view": "browse", "items": 5, "total": 5, "page": 1, "pages": 1 }
+1789815375.743	intent	lens	20.0	1.5	1.5	13	face	files				{ "do": "reload", "view": "browse", "folder": "files" }
+1789815375.752	folder	lens	20.0	1.5	1.5	13	face	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }
+1789815375.752	intent	lens	20.0	1.5	1.5	13	face	bulk				{ "do": "reload", "view": "browse", "folder": "bulk" }
+1789815380.291	folder	globe	20.0	1.5	3.52	13	face	bulk				{ "folder": "bulk", "view": "browse", "items": 128, "total": 128, "page": 1, "pages": 1 }

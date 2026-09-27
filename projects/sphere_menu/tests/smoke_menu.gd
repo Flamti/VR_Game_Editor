@@ -128,6 +128,15 @@ extends SceneTree
 ##                         «короткие рывки ходьбы»;
 ##   --falsify=transferdumb переносы не помечают себя — сторож рывка снова тратит лимит на телепорты;
 ##                        краснеет только «наши переносы помечают себя»;
+##   --falsify=flickworld  подтягивание меряется по МИРОВОЙ позиции руки, которая в висе стоит на
+##                        зацепе, — его не видно никогда; краснеют обе проверки перевала у кромки
+##                        («рывком» и «со всей верхней секции»), выброс — нет;
+##   --falsify=mantleeyes  у размеченной кромки подтягиванию снова нужны глаза выше края — краснеют
+##                        те же две проверки;
+##   --falsify=pullshort   порог подтягивания — сантиметр — краснеет только «выброс трекинга не
+##                        запускает перевал»;
+##   --falsify=edgeblind   за край крыши не ухватиться — краснеет только «перевал со всей верхней
+##                        секции и с края» случаем edge;
 ##   --falsify=mantlespot  высота приземления перевала берётся из найденной точки (верх зацепа), а не
 ##                         с поверхности под точкой приземления — краснеет только «перевал ставит на
 ##                         площадку, а не на зацеп»;
@@ -208,7 +217,7 @@ const STEPS := ["открыть", "войти коротким", "действи
 		"предмет из комнаты остаётся в руке при выгрузке",
 		"телепорт по видимой дуге", "курс не обрывает прицел", "возврат отменяет перевал", "наши переносы помечают себя",
 		"плавный поворот отрезками", "короткие рывки ходьбы", "догон головы не двигает вид по вертикали",
-		"перевал ставит на площадку, а не на зацеп",
+		"перевал ставит на площадку, а не на зацеп", "перевал со всей верхней секции и с края", "перевал рывком у кромки", "выброс трекинга не запускает перевал",
 		"меню групп из уровня",
 		"раскладки", "выход удержанием"]
 
@@ -291,7 +300,7 @@ func _initialize() -> void:
 		[642, _carry_prep], [646, _carry_check],
 		[650, _tp_prep], [654, _tp_seen], [655, _tp_side], [656, _mantle_cancel], [656, _transfer_marks], [657, _turn_segments],
 		[658, _walk_jitter], [660, _follow_y_prep], [664, _follow_y_jump], [720, _follow_y_check],
-		[722, _mantle_top_prep], [728, _mantle_top_check],
+		[722, _mantle_top_prep], [728, _mantle_top_check], [729, _mantle_pull],
 		[310, _layouts], [314, _exit_hold], [320, _finish],
 	]
 
@@ -3449,6 +3458,180 @@ func _carry_check() -> void:
 		r.fail("предмет из комнаты остаётся в руке при выгрузке: %s" % "; ".join(bad))
 
 
+
+## Перевал рывком у кромки — через НАСТОЯЩИЙ `_climb`, контроллеры — дети origin, как в приложении.
+##
+## Шлем 2026-09-26 (сессия 35): три подъёма до `climb8`, 2.4–2.5 м вверх, и ни одного перевала —
+## «пытался подтянуться, толкнуть вверх, перевалиться, но ничего не помогло». Глаза у верхнего зацепа
+## были 2.3–2.4 м при кромке 3.60. Правило «глаза выше края» требовало протащить контроллер от
+## поднятой руки ниже груди (≈1.3 м), а второй путь — рывок рукой вниз — был мёртв: скорость кисти
+## мерилась в МИРЕ, а в висе лазанье каждый такт возвращает руку на зацеп, и мировая рука стоит.
+## Решение владельца (вариант Б): у размеченной кромки рывок вниз запускает перевал при любой высоте
+## глаз.
+##
+## Стенд: человек висит на `climb8`, поднятая рука на 0.95 м выше глаз, и тянет её вниз со скоростью
+## 0.9 м/с на 0.7 м — физиологичный размах «подтянуться». Потом перевал до конца и физика тела.
+func _mantle_pull() -> void:
+	_mantle_top_section()
+	var pull := _mantle_pull_case("pull")
+	var jitter := _mantle_pull_case("jitter")
+	for c in [["перевал рывком у кромки", pull], ["выброс трекинга не запускает перевал", jitter]]:
+		if (c[1] as Dictionary).has("error"):
+			r.fail("%s: %s" % [c[0], c[1]["error"]])
+	if pull.has("error") or jitter.has("error"):
+		return
+	var bad: Array[String] = []
+	if not pull["in_zone"]:
+		bad.append("рука на climb8 не в зоне кромки — проверять нечего")
+	if not pull["started"]:
+		bad.append("перевал не начался: рука протянута вниз на %.2f м, глаза %.2f → %.2f при крае %.2f (%s)" % [
+				pull["pulled"], pull["eyes0"], pull["eyes_top"], pull["roof"], "; ".join(pull["said"])])
+	elif absf(float(pull["feet_mantle"]) - float(pull["roof"])) > 0.05 or absf(float(pull["feet"]) - float(pull["roof"])) > 0.05 \
+			or absf(float(pull["eyes"]) - float(pull["feet"]) - 1.6) > 0.05:
+		bad.append("перевал начался, но ноги %.2f → %.2f после физики, глаза над ногами %.2f, крыша %.2f" % [
+				pull["feet_mantle"], pull["feet"], float(pull["eyes"]) - float(pull["feet"]), pull["roof"]])
+	if bad.is_empty():
+		r.pass_("перевал рывком у кромки: вис на climb8 (глаза %.2f), рука вниз на %.2f м — встал на крышу %.2f, глаза над ногами %.2f" % [
+				pull["eyes0"], pull["pulled"], pull["feet"], float(pull["eyes"]) - float(pull["feet"])])
+	else:
+		r.fail("перевал рывком у кромки: %s" % "; ".join(bad))
+	# Выброс: рука на один кадр ушла вниз на 1.5 см и вернулась. Путь рывка обязан быть живым в этом
+	# же стенде (случай «pull» выше), иначе молчание здесь ничего не значит (§2.5).
+	if jitter["started"]:
+		r.fail("выброс трекинга не запускает перевал: кадр с рукой на 1.5 см ниже перевалил человека (%s)" % "; ".join(jitter["said"]))
+	elif not jitter["in_zone"]:
+		r.fail("выброс трекинга не запускает перевал: рука не в зоне кромки — проверять нечего")
+	else:
+		r.pass_("выброс трекинга не запускает перевал: 1.5 см вниз за один кадр у кромки — висит дальше")
+
+
+## Перевал со всей верхней секции и с края крыши (владелец после сессии 36: «с последней секции
+## лестницы не работает, не очевидно что можно ухватиться и за край крыши — нужно упростить»).
+## В сессии 36 пять подъёмов кончились без перевала и БЕЗ строки отказа — рука ни разу не попала в зону
+## кромки. Случаи: медленное подтягивание (0.3 м/с), рука снаружи бруска, предпоследний брусок, край.
+func _mantle_top_section() -> void:
+	var bad: Array[String] = []
+	var got: Array[String] = []
+	for mode in ["slow", "outside", "climb7", "edge"]:
+		var o := _mantle_pull_case(mode)
+		if o.has("error"):
+			bad.append("%s: %s" % [mode, o["error"]])
+			continue
+		var feet: float = o["feet"]
+		if not o["started"] or absf(feet - float(o["roof"])) > 0.05:
+			bad.append("%s — перевала нет: рука вниз на %.2f м, ноги %.2f (%s)" % [mode, o["pulled"], feet,
+					"; ".join(o["said"]) if not (o["said"] as Array).is_empty() else "ни хвата, ни отказа"])
+		else:
+			got.append("%s — ноги %.2f после %.2f м" % [mode, feet, o["pulled"]])
+	if bad.is_empty():
+		r.pass_("перевал со всей верхней секции и с края: %s" % "; ".join(got))
+	else:
+		r.fail("перевал со всей верхней секции и с края: %s" % "; ".join(bad))
+
+
+## Вис на `climb8` и одна из двух рук: «pull» — тянет вниз 0.9 м/с на 0.7 м, «jitter» — стоит, но на
+## пятом такте трекинг даёт выброс на 1.5 см вниз и назад.
+func _mantle_pull_case(mode: String) -> Dictionary:
+	var street := "res://world/levels/start_location.json"
+	var res := LevelLoader.parse(FileAccess.get_file_as_string(street))
+	if not res["ok"]:
+		return {"error": "уровень не разобран"}
+	var root := Node3D.new()
+	head.get_parent().add_child(root)
+	LevelLoader.build(root, res["data"])
+	var loco := LocomotionRes.new()
+	loco.falsify_flick_world = falsify == "flickworld"
+	MantleRes.falsify_ledge_eyes = falsify == "mantleeyes"
+	MantleRes.falsify_pull_short = falsify == "pullshort"
+	loco.falsify_edge_blind = falsify == "edgeblind"
+	var body := PlayerBody.new()
+	var m_origin := XROrigin3D.new()
+	var m_head := Node3D.new()
+	var l := XRController3D.new()
+	var rr := XRController3D.new()
+	root.add_child(body)
+	body.add_child(m_origin)
+	m_origin.add_child(m_head)
+	m_origin.add_child(l)
+	m_origin.add_child(rr)
+	m_head.position = Vector3(0, 1.6, 0)
+	body.setup(m_origin, m_head)
+	body.set_eye_height(1.6)
+	body.set_physics_process(false)
+	root.add_child(loco)
+	loco.set_physics_process(false)
+	loco.setup(body, m_origin, m_head, menu, l, rr)
+	loco.grip_source = func(who: String) -> bool: return who == "right"
+	# Лицом к стене (она в −X): тело повёрнуто на 90°, и «вперёд» origin — это −X мира.
+	# Где рука: зацеп случая плюс смещение. «edge» — край крыши вдали от брусков (дальше REACH_M от
+	# любого), «outside» — рука держит climb8 со стороны улицы, как контроллер снаружи стены.
+	var hold := _obj_pos("climb7" if mode == "climb7" else "climb8")
+	if mode == "outside":
+		hold += Vector3(0.2, 0.0, 0.0)
+	elif mode == "edge":
+		hold = Vector3(-3.45, 3.65, -27.2)
+	var speed := 0.3 if mode == "slow" else 0.9
+	var pull_to := 0.3 if mode == "slow" else 0.7
+	# Как на шлеме: глаза у верхнего зацепа 2.40 (журнал сессии 35), рука на зацепе 3.35 — на 0.95 м
+	# выше глаз. Выше в стенде нельзя: при глазах от 3.4 голова входит в плиту крыши снизу, и запасной
+	# луч находит верх стены под ней — перевал случается от камеры внутри геометрии, а не от жеста.
+	var hand_local := Vector3(0.0, 2.55, -0.35)
+	body.global_basis = Basis(Vector3.UP, deg_to_rad(90.0))
+	body.global_position = hold - body.global_basis * hand_local
+	rr.position = hand_local
+	l.position = Vector3(-0.3, 1.0, -0.2)
+	var said: Array = []
+	loco.moved.connect(func(kind: String, d: String):
+		if kind == "перевал" or (kind == "лазанье" and d.begins_with("взялся")):
+			said.append(d))
+	var dt := 1.0 / 90.0
+	var eyes0 := m_head.global_position.y
+	var in_zone := false
+	var pulled := 0.0
+	var started := false
+	for i in 180:
+		loco._climb(dt)
+		if i == 0:
+			for node in get_nodes_in_group("ledge"):
+				var a := node as Area3D
+				var half := ((a.get_child(0) as CollisionShape3D).shape as BoxShape3D).size * 0.5
+				var loc := a.to_local(rr.global_position)
+				if absf(loc.x) <= half.x and absf(loc.y) <= half.y and absf(loc.z) <= half.z:
+					in_zone = true
+		if not loco._mantle.is_empty():
+			started = true
+			break
+		if mode != "jitter":
+			if pulled < pull_to:
+				rr.position.y -= speed * dt
+				pulled += speed * dt
+		elif i == 5:
+			rr.position.y -= 0.015
+		elif i == 6:
+			rr.position.y += 0.015
+		if mode == "jitter" and i >= 30:
+			break
+	var eyes_top := m_head.global_position.y
+	for i in 60:
+		if loco._mantle.is_empty():
+			break
+		loco._mantle_tick(dt)
+	var feet_mantle := body.global_position.y
+	for i in 20:
+		body.velocity = Vector3(0, -1.0, 0)
+		body.move_and_slide()
+	# Ушёл от кромки, не перевалившись, — строка отказа (её и видно в «said»).
+	for hand in loco.climb.hands.keys():
+		loco._release_climb(str(hand), "отпустил")
+	var roof_top := _obj_pos("hclimb_roof").y + float((_obj("hclimb_roof").get("size", [0, 0.2, 0]) as Array)[1]) * 0.5
+	var out := {"in_zone": in_zone, "started": started, "pulled": pulled, "eyes0": eyes0,
+			"eyes_top": eyes_top, "feet_mantle": feet_mantle, "feet": body.global_position.y,
+			"eyes": m_head.global_position.y, "roof": roof_top, "said": said}
+	MantleRes.falsify_ledge_eyes = false
+	MantleRes.falsify_pull_short = false
+	root.queue_free()
+	return out
+
 ## Правка настройки на панели применяется СРАЗУ, а не при повторном открытии пункта меню.
 ##
 ## Жалоба владельца 2026-09-23: «настройки применяются при повторном открытии этих настроек, а не
@@ -3996,7 +4179,10 @@ func _mantle_top_check() -> void:
 	var roof_top := _obj_pos("hclimb_roof").y + float((_obj("hclimb_roof").get("size", [0, 0.2, 0]) as Array)[1]) * 0.5
 	var ledge := _obj("ledge_roof")
 	var ledge_y := float((ledge.get("pos") as Array)[1])
-	var cases := [["рука на climb7, под кромкой (луч)", "climb7", 3.98], ["рука на climb8, в зоне кромки (данные)", "climb8", ledge_y + 0.3]]
+	# Луч — рукой НИЖЕ зоны кромки: с 2026-09-27 зона захватывает два верхних бруска, и рука на climb7
+	# до запасного луча больше не доходила — фальсификатор `mantlespot` стал зелёным (§2.5). climb6
+	# (2.65) ниже зоны, а под пробой луча — верх climb8 того же ряда, торчащий за край крыши.
+	var cases := [["рука на climb6, под зоной кромки (луч)", "climb6", 3.98], ["рука на climb8, в зоне кромки (данные)", "climb8", ledge_y + 0.3]]
 	var bad: Array[String] = []
 	var got: Array[String] = []
 	for c in cases:

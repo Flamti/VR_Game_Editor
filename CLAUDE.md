@@ -37,17 +37,22 @@ tools/gpu_stages.sh [файл] [окно] [пауза]  # режим ренде�
 tools/join_windows.py окна.tsv --clock … [--mem …] [--stages …]  # свод окон прибора с хостом
 tools/bake_grids.py                    # запечь сетки шар-меню (icosa/octa/rings/fib) в projects/sphere_menu/menu/geo/
 tools/make_start_location.py           # собрать стартовую локацию (улица с домами) и её интерьер
+tools/vr_session.sh mark|start|pull    # прогон шар-меню: отметка журнала, запуск (ПО КОМАНДЕ), сбор с отметки и отчёт
+tools/session_report.py журнал.tsv [--from-line N] [--logcat f] [--out r.md]  # отчёт по журналу
+tools/test_session_report.py [--falsify=nosplit|bycolumn|nomark]  # прибор разбора, пол 7
 ```
 
 Шар-меню (`projects/sphere_menu/`): настольные проверки и дымовой прогон — без шлема, до экспорта:
 
 ```bash
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
-    --script res://tests/run_tests.gd [-- --falsify=<имя>]    # пол 144, 96 фальсификаторов
+    --script res://tests/run_tests.gd [-- --falsify=<имя>]    # пол 146, 99 фальсификаторов
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
-    --script res://tests/smoke_menu.gd [-- --falsify=<имя>]   # интеграция, пол 84, 67 фальсификаторов
+    --script res://tests/smoke_menu.gd [-- --falsify=<имя>]   # интеграция, пол 87, 71 фальсификатор
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
-    --script res://tests/boot_main.gd [-- --falsify=<имя>]    # main.tscn целиком: старт, сторож, память комнаты; пол 7, 6 фальсификаторов; ПЕРЕД КАЖДЫМ ЭКСПОРТОМ
+    --script res://tests/boot_main.gd [-- --falsify=<имя>]    # main.tscn целиком: старт, сторож, память комнаты, метка, трасса; пол 9, 9 фальсификаторов; ПЕРЕД КАЖДЫМ ЭКСПОРТОМ
+godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
+    --script res://tests/replay.gd [-- --trace=<файл> [--verbose=N] | --falsify=flickworld|replaystart|replayprocess]  # воспроизвести трассу со шлема; без --trace — самопроверка, пол 3
 godot/bin/godot.linuxbsd.editor.x86_64 --headless --path projects/sphere_menu \
     --script res://tests/bench_menu.gd                         # замер кадра меню: глобус и линза
 # сверки КАРТИНКОЙ — нужен дисплей, без --headless (GLSL в headless не компилируется):
@@ -475,6 +480,17 @@ tools/         сборка, деплой, проверка артефактов
     поверхности ПОД ТОЧКОЙ ПРИЗЕМЛЕНИЯ, зацепы опорой не считаются. Стенд перевала обязан проходить
     выбор площадки (`_try_mantle`) на настоящей геометрии: прежний задавал цель из данных и выбор не
     видел (фальсификатор `mantlespot`).
+
+62. **`move_and_slide` вне кадра физики берёт шаг КАДРА.** `character_body_3d.cpp:45`:
+    `is_in_physics_frame() ? get_physics_process_delta_time() : get_process_delta_time()`. Стенд или
+    воспроизведение, которое гоняет тело из `_process`, двигает его со скоростью × (длительность
+    кадра / такт физики): воспроизведение трассы шло в 8.6 раза быстрее записи, а его самопроверка
+    была зелёной — тело в ней не ходило. Гонять тело — из `_physics_process` (у `SceneTree` тоже есть)
+    с частотой физики записи (фальсификатор `replayprocess`).
+63. **Лямбда GDScript захватывает локальную переменную ПО ЗНАЧЕНИЮ в миг создания.** `cur = rows[k]`
+    внутри цикла меняет переменную, а лямбда-источник кнопок продолжает видеть старый (пустой)
+    словарь: воспроизведение не получало ни грипа, ни стиков. Менять СОДЕРЖИМОЕ общего словаря
+    (`cur.clear(); cur.merge(row)`), а не переменную.
 
 ## Архитектурные правила
 
